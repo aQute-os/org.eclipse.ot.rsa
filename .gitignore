@@ -1,0 +1,9 @@
+.DS_Store
+.gradle/
+/generated/
+build/
+cnf/cache/
+cnf/local/
+.metadata
+
+
