@@ -15,11 +15,11 @@
 
 ## Licenses
 
-**Apache License 2.0**
+**Eclipse Public License - v 2.0**
 
 ## Copyright
 
-Data In Motion Consuling GmbH - All rights reserved
+Paremus Ltd., Data In Motion Consulting GmbH - All rights reserved
 
 ---
-Data In Motion Consuling GmbH - [info@data-in-motion.biz](mailto:info@data-in-motion.biz)
+Data In Motion Consulting GmbH - [info@data-in-motion.biz](mailto:info@data-in-motion.biz)
