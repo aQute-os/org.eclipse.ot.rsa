@@ -1,0 +1,11 @@
+-buildpath: \
+	slf4j.api,\
+	org.osgi.framework,\
+	org.osgi.annotation.versioning,\
+	org.osgi.annotation.bundle,\
+	org.osgi.service.component.annotations
+Bundle-Version: 1.0.0.${tstamp}
+Private-Package:  \
+	com.paremus.deployment.framework.provider.impl
+Export-Package:  \
+	com.paremus.deployment.framework.provider 

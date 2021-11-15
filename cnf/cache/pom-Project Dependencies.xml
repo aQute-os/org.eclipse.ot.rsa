@@ -1,47 +1,88 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Project Dependencies" increment="1636994735856">
+<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Project Dependencies" increment="1636996126347">
   <resource>
     <capability namespace="osgi.identity">
-      <attribute name="description" value="@API Guardian"/>
-      <attribute name="osgi.identity" value="org.apiguardian.api"/>
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.buffer"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
       <attribute name="type" value="osgi.bundle"/>
-      <attribute name="version" value="1.1.2" type="Version"/>
-      <attribute name="documentation" value="https://github.com/apiguardian-team/apiguardian"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
     </capability>
     <capability namespace="osgi.wiring.package">
-      <attribute name="bundle-symbolic-name" value="org.apiguardian.api"/>
-      <attribute name="bundle-version" value="1.1.2" type="Version"/>
-      <attribute name="version" value="1.1.2" type="Version"/>
-      <attribute name="osgi.wiring.package" value="org.apiguardian.api"/>
-      <attribute name="bnd.hashes" value="-1808614382,65018" type="List&lt;Long&gt;"/>
+      <directive name="uses" value="io.netty.util"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.buffer"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.buffer"/>
+      <attribute name="bnd.hashes" value="-1484128855,677988962,38634576,-1378934186,1230620931,-2005104277,-999372794,-1449933181,-296409929,-984202382,-19449731,2020032555,-56509920,-1394572304,-1697382911,1104080311,378815167,-376472660,-1505219417,-1814197859,-2108654523,-941272511,578007803,1968019149,-958944693,604060893,1456653426,-1842054172,675036470,-1827333838,423292510,2100251448,-1797139135,1587407638,-1640879983,-825218,2100983899,-1820339753,200117291,-93625925,201681809,1836539855,-142022049,-291791711,-2082434829,1558818947,67115090,1360036109,1464411878,1856556062,-2106800708,142248432,-596866851,-1078682117,-1041115253,1682337287,845066423,-1203521564,-85875522,1684431425,-1301843298,1319678825,307703433,-1920131526,146568450,-1507342099,-1294809915,1359363797,-1459780935,-1817423313,-31430220,1352158120,-654145083,367641378,1096783807,-1397104787,-709103964,507526100,-806992178,-1522086402,-1916725653,1719762309,-1111733816,625971173,-1979878521,1943598362,776378695,291814718,-1467207807,1922324518,-674025911,-143616445" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.util"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.buffer"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.buffer.search"/>
+      <attribute name="bnd.hashes" value="-1591293737,-594513726,-1678783089,909208690,-24445014,512759516,970787502,-1111375503,914077273,333290410,-1118201344" type="List&lt;Long&gt;"/>
     </capability>
     <capability namespace="osgi.wiring.bundle">
-      <attribute name="bundle-version" value="1.1.2" type="Version"/>
-      <attribute name="osgi.wiring.bundle" value="org.apiguardian.api"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.buffer"/>
     </capability>
     <capability namespace="osgi.wiring.host">
-      <attribute name="bundle-version" value="1.1.2" type="Version"/>
-      <attribute name="osgi.wiring.host" value="org.apiguardian.api"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.buffer"/>
     </capability>
     <capability namespace="bnd.info">
-      <attribute name="name" value="org.apiguardian:apiguardian-api"/>
-      <attribute name="from" value="org.apiguardian:apiguardian-api:1.1.2"/>
-      <attribute name="version" value="1.1.2" type="Version"/>
+      <attribute name="name" value="io.netty:netty-buffer"/>
+      <attribute name="from" value="io.netty:netty-buffer:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
     </capability>
     <capability namespace="bnd.maven">
-      <attribute name="maven-artifactId" value="apiguardian-api"/>
+      <attribute name="maven-artifactId" value="netty-buffer"/>
       <attribute name="maven-extension" value="jar"/>
       <attribute name="maven-repository" value="Project Dependencies"/>
-      <attribute name="maven-version" value="1.1.2"/>
-      <attribute name="maven-groupId" value="org.apiguardian"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
       <attribute name="maven-classifier" value=""/>
     </capability>
     <capability namespace="osgi.content">
-      <attribute name="size" value="6806" type="Long"/>
-      <attribute name="url" value="file:/home/mark/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"/>
+      <attribute name="size" value="302379" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-buffer/4.1.70.Final/netty-buffer-4.1.70.Final.jar"/>
       <attribute name="mime" value="application/vnd.osgi.bundle"/>
-      <attribute name="osgi.content" value="B509448AC506D607319F182537F0B35D71007582EC741832A1F111E5B5B70B38"/>
+      <attribute name="osgi.content" value="30108C7BFC1DFEC9FF050AFFA2815EB3883F1F1D24898C6B1959B36A2828339A"/>
     </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.concurrent)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal.logging)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.nio.ch)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.nio.ch"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.npn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.npn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.alpn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.alpn"/>
+    </requirement>
     <requirement namespace="osgi.ee">
       <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
     </requirement>
@@ -173,6 +214,306 @@
     <requirement namespace="osgi.ee">
       <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.8))"/>
     </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.handler"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.resolver"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.address"/>
+      <attribute name="bnd.hashes" value="-362817227,-2059957854" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.flow"/>
+      <attribute name="bnd.hashes" value="-1406844557,444602395" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.flush"/>
+      <attribute name="bnd.hashes" value="-51381118" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.ipfilter"/>
+      <attribute name="bnd.hashes" value="29498948,1878364987,-2007269099,-137630692,-911813698,1794805696,430410040,-1357870034,-888474986,-1045535088" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.util.internal.logging"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.logging"/>
+      <attribute name="bnd.hashes" value="1047009282,2060375744,-1194772725" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.pcap"/>
+      <attribute name="bnd.hashes" value="-757409953,-1255044977,854610852,8310029,-916208491,-764875059,-329324631,-393968759" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec,io.netty.util,io.netty.util.concurrent,javax.crypto,javax.net.ssl"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.ssl"/>
+      <attribute name="bnd.hashes" value="1289232350,1541039695,-924519752,-1298353811,-944922627,-180006582,281028672,-2069985743,281171186,1810407434,-411423335,-1967749420,-1551468655,-866374270,1630511251,1682067813,-1849068632,-1199619021,1566508221,-1975152945,-920120508,-1674974707,1668066181,1076730952,337899493,-643085115,1000384268,-540233075,-1287367156,1787040839,1639105616,-1425816997,537989322,-2066364471,1009093080,-1526731128,685453108,1838183807,337480530,-1221107064,-1847984798,836965047,-1308652973,-238977051,-506544063,-1942841078,489824757,905840329,-1874628266,412276592,1118360642,867877879,1040996649,1817671476,114750493,1596049073,-942591001,414353344,-1713096859,401447746,-194848528,-1584474537,1407691610,-1693484583,1519657690,-153649342,-236039575,2013471961,1302029325,-1721705758,12019891,929400868,-1872821608,1457547268,-606014711,1577618965,870267112,712730117,-1243792706,294940991,401403082,425163454,-1959481100,-1207683455,1316325102,-1615601125,-1865659089,1331665931,-1773825761,-47355393,32381369,-1044521582,-1529402588,-1602053676,-1007658882,-1520156424,1170098070,1488959294,339565814,-26759948,1760224219,337462105,955641881,-672438471,-368122452,1404683279,-1672367802,-1440644717,275773445,-33131029,-1238494602,-320637863,-1695215943,-831415811,1042443024,2046778170,1920029013,-2144729350,-1045972970,1613763777,-55630441,25997587,830825869,1567293609,-208268048,-175911907,288002412,286701084,-1790544753,-1333780718,-957356395,731710610,1031554595,370058232,-312912776,434237389,1696054092,1718269864,-1119526321,1701747410,772827070,-1158611661,1714187641,-1858259047,2144820729,-1005975473,1493238781,782085669,-254784873" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.handler.ssl"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.ssl.ocsp"/>
+      <attribute name="bnd.hashes" value="-1067146962" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="javax.net.ssl,javax.security.auth.x500,javax.security.cert"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.ssl.util"/>
+      <attribute name="bnd.hashes" value="1624286963,1025086897,-678340438,1087696505,-262747081,-1260779409,-2046781955,-2112587584,1640821455,1386379298,-1902131926,-97962807,-2129681949,11633280,797149662,-1945793697,241397016" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.stream"/>
+      <attribute name="bnd.hashes" value="1777308488,-735087746,-2047612828,-278386584,-1021007284,320051368,608362551" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.timeout"/>
+      <attribute name="bnd.hashes" value="-574916355,-542523394,-127066211,-1134807589,-2064138671,-753464657,-1950553857,217763725,1531053508,-1631164929,126968846,-1247842867,1423810887,1883257928" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.handler"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.traffic"/>
+      <attribute name="bnd.hashes" value="1501318487,-1585122937,-1785034557,2094501766,349983791,743552287,-1484966586,1154747593,-1302511450,1545955626,2118570335" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.handler"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.handler"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="io.netty:netty-handler"/>
+      <attribute name="from" value="io.netty:netty-handler:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="netty-handler"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="522589" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-handler/4.1.70.Final/netty-handler-4.1.70.Final.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="97FCAE516C2DB0E8D6C7D3DE369A3B2AEC466B592E44C2A5A2C95176EC331B0E"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.security.x509)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.security.x509"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.npn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.npn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.alpn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.alpn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.buffer)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.buffer"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.channel)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.channel.socket)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.socket"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.handler.codec)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.handler.codec.base64)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.base64"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.internal.tcnative)(version&gt;=2.0.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="io.netty.internal.tcnative"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.resolver)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.resolver"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.concurrent)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal.logging)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.crypto)"/>
+      <attribute name="osgi.wiring.package" value="javax.crypto"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.crypto.spec)"/>
+      <attribute name="osgi.wiring.package" value="javax.crypto.spec"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.net.ssl)"/>
+      <attribute name="osgi.wiring.package" value="javax.net.ssl"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.security.auth.x500)"/>
+      <attribute name="osgi.wiring.package" value="javax.security.auth.x500"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.security.cert)"/>
+      <attribute name="osgi.wiring.package" value="javax.security.cert"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.asn1.x500)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.asn1.x500"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.cert)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.cert"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.cert.jcajce)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.cert.jcajce"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.jce.provider)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.jce.provider"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.operator)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.operator"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.bouncycastle.operator.jcajce)(version&gt;=1.69.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.bouncycastle.operator.jcajce"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.conscrypt)(version&gt;=2.5.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.conscrypt"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.nio.ch)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.nio.ch"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="http://www.opensource.org/licenses/bsd-license.php"/>
+      <attribute name="osgi.identity" value="com.google.protobuf"/>
+      <attribute name="documentation" value="http://code.google.com/p/protobuf"/>
+      <attribute name="description" value="Protocol Buffers are a way of encoding structured data in an efficient yet    extensible format."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="2.5.0" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="com.google.protobuf"/>
+      <attribute name="bundle-version" value="2.5.0" type="Version"/>
+      <attribute name="version" value="2.5.0" type="Version"/>
+      <attribute name="osgi.wiring.package" value="com.google.protobuf"/>
+      <attribute name="bnd.hashes" value="1895597947,-884583067,467107344,1808220083,1023460097,-1913100909,-1596427104,1130708147,-1432821354,-696084042,-2092313692,-1921645279,-1805671591,-1506423949,-2006942994,1310656888,-959592354,395019642,1077971865,1550922911,244972632,109128384,806927933,-1765950853,1843539145,-237377169,401403822,544970794,73174740,2622298,-1550464129,1972270969,64498205,-957504412,-1589915596,585315965,-1500083653,-365868489,667551681,-932536768,-1977815710,194757878,-1394400073,-1958347455,-1875506056,-1264238944,1918299741,1218686555,-1734176668,777020468,4988489,1304930287,1965687765,1273315299,1061164438,-2039441598,1905097022,1370804378,996264040,341176496,-942610438,1245097871,-1184696102,1433928757,-97873056,-380871605,309434311,-1864662160,-1090449313,-517066596,36083689,-543543256,-574241237,1397676166,1404952400,460429284,-56671548,258150120,-1832325779,-856473220,-729829622,-1235072950,-604331977,-864375512,-229048379,636072965,-1271003801,476117362,-547023405,1969982373,1107395176,-1685285567,2009328998,69671911,-2130895020,-1395127703,-796904854,1352220529,1908463373,-1501909104,1646736280,-1610837778,1933926536,-841495450,-2006338193,-2056139411,635054813,-980912544,1758833982,2098438178,1759593926,-672457902,-1857450237,1215820741,-793627352,-1675388953,794521909,1502142083,-1885593583,-1911543745,636944336,1066018340,-1210059632,-196375110,-1083041285,-1860185802,-1329178276,-132611128,1795704696,1949100523,-512741078,-657507458,-185479359,1354014202,-1233568921,-646160747,135145786,1734025673,1265763317,67115090,917115616,-2029030736,159503416,-372670666,1971845884,1349935098,1360799750,2146092791,-826429532,-1635593053,67875034,-2123421870,-920792896,2646929,-1025788108,1944533244" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="2.5.0" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="com.google.protobuf"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="2.5.0" type="Version"/>
+      <attribute name="osgi.wiring.host" value="com.google.protobuf"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="com.google.protobuf:protobuf-java"/>
+      <attribute name="from" value="com.google.protobuf:protobuf-java:2.5.0"/>
+      <attribute name="version" value="2.5.0" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="protobuf-java"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="2.5.0"/>
+      <attribute name="maven-groupId" value="com.google.protobuf"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="533455" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="E0C1C64575C005601725E7C6A02CEBF9E1285E888F756B2A1D73FFA8D725CC74"/>
+    </capability>
   </resource>
   <resource>
     <capability namespace="osgi.identity">
@@ -333,6 +674,156 @@
   </resource>
   <resource>
     <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.common"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.util.concurrent,io.netty.util.internal"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+      <attribute name="bnd.hashes" value="-1757988346,161728645,1041677782,-1513144442,-2074480921,1395777183,-1014357342,-1003585838,2017053308,-852264381,-852262592,1739184628,-219156230,1551985769,797631562,-1966187897,473294670,-503167036,74895872,981512571,103728609,212973809,-729316289,-1856570595,1914867292,1096973294,-148295317,2106701976,-656034701,-1698218082,-469955881,1058340743,984750069,1014906555,-1792757586,-787837153,1349703009,773309108,-839910937,-1776976416,-159852567,-1075911838,1128674715,248224916,315803703,-1178689546,-809691978,1440148393,-2140710328,80204392,2245120,2368538,-1525001189,-725793697,-326166903,-676841786,-572770237,-220302159,735689042,73313124,1849829846,-53432425,1008891570,1322365299,1689072286,-1067120936,-1241480889,538532492,-1818600760,268308644,67115090,-1504349796,1303270386,350741825,80811813,2057217610,504312166,2016261304" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.collection"/>
+      <attribute name="bnd.hashes" value="1265757423,1524266386,691293134,-1985699937,-624644275,-2029030736,-2050817629,219533462,-2132501046,1941037653,-955202329,1742393323,402777429,-449732545,-368754343,-562402617,854853190,-792313440,-69425522,50207065,-963126285,-2023333279,391784345,875125299,-1812922207" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.util.internal"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+      <attribute name="bnd.hashes" value="1745316561,139521131,471278804,755700901,-1884567358,-61653027,-276764548,504108268,-1664992443,-1209824738,461178715,-2127158029,1105351515,-397375727,1428005717,353281702,-1832655605,692906938,-596690177,933152109,-1391224050,774652444,-1007510254,1746501760,-1646785179,1942294434,16099279,2115664355,-380170313,-407640786,21157387,-1359289035,-660747638,161313921,-120716214,-539197060,-703392892,-861903179,1656987190,969533064,93903424,1818145038,722272048,1355436283,-1964889308,-2014563026,183256001,1667683666,-70533247,1360725280,1773500880,-856047453,-388039504,853069397,-1857010914,-829187191,-1399994853,-1062279324,-1739955285,-2034616579,1471929042,1742586259,-873640968,743765939" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.util,io.netty.util.concurrent,io.netty.util.internal.logging,javax.security.cert,reactor.blockhound,reactor.blockhound.integration"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+      <attribute name="bnd.hashes" value="-881495317,516877708,-1773540202,-1421792418,-1421792415,2074976011,535616128,-1098795717,1198429484,-1961163577,-575127136,-1019767877,-2133620278,-581041046,-1891661224,-651434550,1024314304,1516281191,365628234,925372306,1990479287,-1611061594,-1903625371,1460803424,-1830476713,-2140710328,-1658695731,-2093126214,-1234775013,-1234621439,-2045428039,320051368,-582337387,2405203,20081045,-1477553236,1440489988,1627473325,-830355121,-695615832,1011048720,-322234517,958460805,-1819865363,1796126631,-1656858402,420425683,-1552682428,1746404198,-455037185,1365099396,-484422334,-1848577129,-1805778749,1607667745,-857973178" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+      <attribute name="bnd.hashes" value="409168783,1657640824,-239379854,1408872259,1609749661,-758074675,1171768701,334840641,-277247351,809960618,593827432,-529257086,-1282611478,-616880448,-22532957,1420625875,1739120055" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="io.netty.common"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.svm"/>
+      <attribute name="bnd.hashes" value="-1560386181,-942763231,689670345,-725024499" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.common"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.common"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="io.netty:netty-common"/>
+      <attribute name="from" value="io.netty:netty-common:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="netty-common"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="653349" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-common/4.1.70.Final/netty-common-4.1.70.Final.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="11196ACE142D8F5EDC1BFBF96C7F64AC69F57A31971B8F67AF957C5C701B13F5"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.misc)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.misc"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.oracle.svm.core.annotate)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.oracle.svm.core.annotate"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.security.cert)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="javax.security.cert"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.commons.logging)(version&gt;=1.2.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.apache.commons.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.log4j)(version&gt;=2.14.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.apache.log4j"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.logging.log4j)(version&gt;=2.6.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.apache.logging.log4j"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.logging.log4j.message)(version&gt;=2.6.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.apache.logging.log4j.message"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.logging.log4j.spi)(version&gt;=2.6.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.apache.logging.log4j.spi"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.slf4j)(version&gt;=1.7.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.slf4j"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.slf4j.helpers)(version&gt;=1.7.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.slf4j.helpers"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.slf4j.spi)(version&gt;=1.7.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.slf4j.spi"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=reactor.blockhound)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="reactor.blockhound"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=reactor.blockhound.integration)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="reactor.blockhound.integration"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
       <attribute name="license" value="&quot;(Apache-2.0 OR EPL-2.0)&quot;;description=&quot;This program and the accompanying materials are made available under the terms of the Apache License, Version 2.0, or the Eclipse Public License 2.0.&quot;;link=&quot;https://opensource.org/licenses/Apache-2.0,https://opensource.org/licenses/EPL-2.0&quot;"/>
       <attribute name="copyright" value="Copyright (c) Neil Bartlett (2009, 2021) and others. All Rights Reserved."/>
       <attribute name="osgi.identity" value="org.bndtools.templates.osgi"/>
@@ -428,5 +919,903 @@
       <attribute name="mime" value="application/vnd.osgi.bundle"/>
       <attribute name="osgi.content" value="30B91E87FD3D89F6CCAEAD31584B884AC25D9BA18888AE258B47C9F110FE868E"/>
     </capability>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="http://www.apache.org/licenses/LICENSE-2.0.txt"/>
+      <attribute name="osgi.identity" value="org.apache.johnzon.core"/>
+      <attribute name="documentation" value="http://johnzon.apache.org/"/>
+      <attribute name="description" value="Apache Johnzon is an implementation of JSR-353 (JavaTM API for JSON Processing)."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="1.2.3" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="javax.json,javax.json.spi,javax.json.stream"/>
+      <attribute name="bundle-symbolic-name" value="org.apache.johnzon.core"/>
+      <attribute name="bundle-version" value="1.2.3" type="Version"/>
+      <attribute name="version" value="1.2.3" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apache.johnzon.core"/>
+      <attribute name="bnd.hashes" value="303463776,-781677967,1993615347,1145292307,-1921018260,1521165926,-551271076,-1485893118,-1297684740,657602674,-43820649,804502459,-32939882,-240242424,2433570,2141503264,-982430146,874409109,-278990763,637045098,-506777153,266591217,2077742807,895019957,1685820601,-1379512673,-1970089570,1387105131,951756231,-517853971,-1974537875,58653853,1166425060,-1856850371,-1856697256,514881585,-1500878988,1973900583,1811707011,-2081939429,1177986117,-1034663383,1178139232,-1167360043,-1166996041,2010787138,-302127911,1611057503,142105790,919447723,-1985128919,1371753383,-666019591,1417170863,287546459,-1478916219,-583643246,1816284,237930454,-217105822,-1820588799,1786735667,81291353" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="org.apache.johnzon.core"/>
+      <attribute name="bundle-version" value="1.2.3" type="Version"/>
+      <attribute name="version" value="1.2.3" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apache.johnzon.core.util"/>
+      <attribute name="bnd.hashes" value="579084763,1994305914" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="1.2.3" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="org.apache.johnzon.core"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="1.2.3" type="Version"/>
+      <attribute name="osgi.wiring.host" value="org.apache.johnzon.core"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="org.apache.johnzon:johnzon-core"/>
+      <attribute name="from" value="org.apache.johnzon:johnzon-core:1.2.3"/>
+      <attribute name="version" value="1.2.3" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="johnzon-core"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="1.2.3"/>
+      <attribute name="maven-groupId" value="org.apache.johnzon"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="135445" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/org/apache/johnzon/johnzon-core/1.2.3/johnzon-core-1.2.3.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="18C607AE89D959A66AEDFAD287AF01F8D292B3CFAEA9074B30258BB2673B9F23"/>
+    </capability>
+    <capability namespace="osgi.serviceloader">
+      <attribute name="osgi.serviceloader" value="javax.json.spi.JsonProvider"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.json)"/>
+      <attribute name="osgi.wiring.package" value="javax.json"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.json.spi)"/>
+      <attribute name="osgi.wiring.package" value="javax.json.spi"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.json.stream)"/>
+      <attribute name="osgi.wiring.package" value="javax.json.stream"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=org.apache.johnzon.core.util)"/>
+      <attribute name="osgi.wiring.package" value="org.apache.johnzon.core.util"/>
+    </requirement>
+    <requirement namespace="osgi.contract">
+      <directive name="filter" value="(&amp;(osgi.contract=JavaJSONP)(version=1.1.0))"/>
+      <attribute name="osgi.contract" value="JavaJSONP"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.8))"/>
+    </requirement>
+    <requirement namespace="osgi.extender">
+      <directive name="filter" value="(osgi.extender=osgi.serviceloader.registrar)"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
+      <attribute name="osgi.identity" value="org.apache.felix.cm.json"/>
+      <attribute name="documentation" value="https://www.apache.org/"/>
+      <attribute name="description" value="Support for OSGi configurations specified in JSON documents."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="1.0.6" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="javax.json,javax.json.stream"/>
+      <attribute name="bundle-symbolic-name" value="org.apache.felix.cm.json"/>
+      <attribute name="bundle-version" value="1.0.6" type="Version"/>
+      <attribute name="version" value="1.0.2" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apache.felix.cm.json"/>
+      <attribute name="bnd.hashes" value="-601309207,1895597947,-1292362848,90665273,1755944708,246070505,-1216219555,-1923478059" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="1.0.6" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="org.apache.felix.cm.json"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="1.0.6" type="Version"/>
+      <attribute name="osgi.wiring.host" value="org.apache.felix.cm.json"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="org.apache.felix:org.apache.felix.cm.json"/>
+      <attribute name="from" value="org.apache.felix:org.apache.felix.cm.json:1.0.6"/>
+      <attribute name="version" value="1.0.6" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="org.apache.felix.cm.json"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="1.0.6"/>
+      <attribute name="maven-groupId" value="org.apache.felix"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="47891" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/org/apache/felix/org.apache.felix.cm.json/1.0.6/org.apache.felix.cm.json-1.0.6.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="88F4B3ACE90F6795267C0C1745A7D0E953A61AA80BEB3462222D7259AD7652C5"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.json)"/>
+      <attribute name="osgi.wiring.package" value="javax.json"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=javax.json.stream)"/>
+      <attribute name="osgi.wiring.package" value="javax.json.stream"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.util.converter)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.util.converter"/>
+    </requirement>
+    <requirement namespace="osgi.contract">
+      <directive name="filter" value="(&amp;(osgi.contract=JavaJSONP)(version=1.1.0))"/>
+      <attribute name="osgi.contract" value="JavaJSONP"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.8))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
+      <attribute name="osgi.identity" value="org.apache.felix.eventadmin"/>
+      <attribute name="documentation" value="https://www.apache.org/"/>
+      <attribute name="description" value="This bundle provides an implementation of the OSGi R7 EventAdmin service."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="1.6.2" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="org.osgi.framework"/>
+      <attribute name="bundle-symbolic-name" value="org.apache.felix.eventadmin"/>
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
+      <attribute name="version" value="1.4.0" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.event"/>
+      <attribute name="bnd.hashes" value="2086568683,67338874,-1345319691,-468363275,1765379952,1940233037,-658393026,442928508,-1923478059" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="org.apache.felix.eventadmin"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
+      <attribute name="osgi.wiring.host" value="org.apache.felix.eventadmin"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="org.apache.felix:org.apache.felix.eventadmin"/>
+      <attribute name="from" value="org.apache.felix:org.apache.felix.eventadmin:1.6.2"/>
+      <attribute name="version" value="1.6.2" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="org.apache.felix.eventadmin"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="1.6.2"/>
+      <attribute name="maven-groupId" value="org.apache.felix"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="83611" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/org/apache/felix/org.apache.felix.eventadmin/1.6.2/org.apache.felix.eventadmin-1.6.2.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="445A90F6E31CDE9635C474CEA286273481D2E6EE293B52D8FC42ED8E927B5604"/>
+    </capability>
+    <capability namespace="osgi.implementation">
+      <directive name="uses" value="org.osgi.service.event"/>
+      <attribute name="version" value="1.4.0" type="Version"/>
+      <attribute name="osgi.implementation" value="osgi.event"/>
+    </capability>
+    <capability namespace="osgi.service">
+      <attribute name="objectClass" value="org.osgi.service.event.EventAdmin"/>
+    </capability>
+    <capability namespace="osgi.service">
+      <directive name="uses" value="org.osgi.service.event"/>
+      <attribute name="objectClass" value="org.osgi.service.event.EventAdmin" type="List&lt;String&gt;"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.cm)(version&gt;=1.2.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.cm"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.metatype)(version&gt;=1.1.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.metatype"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.log)(version&gt;=1.3.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.log"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.framework)(version&gt;=1.8.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.framework"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.event)(version&gt;=1.4.0)(!(version&gt;=1.5.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.event"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.util.tracker)(version&gt;=1.5.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.util.tracker"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.8))"/>
+    </requirement>
+    <requirement namespace="osgi.service">
+      <directive name="filter" value="(objectClass=org.osgi.service.event.EventHandler)"/>
+      <directive name="effective" value="active"/>
+      <directive name="resolution" value="optional"/>
+      <directive name="cardinality" value="multiple"/>
+    </requirement>
+    <requirement namespace="osgi.service">
+      <directive name="filter" value="(objectClass=org.osgi.service.log.LogService)"/>
+      <directive name="effective" value="active"/>
+      <directive name="resolution" value="optional"/>
+      <directive name="cardinality" value="single"/>
+    </requirement>
+    <requirement namespace="osgi.service">
+      <directive name="filter" value="(objectClass=org.osgi.service.log.LogReaderService)"/>
+      <directive name="effective" value="active"/>
+      <directive name="resolution" value="optional"/>
+      <directive name="cardinality" value="single"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="description" value="@API Guardian"/>
+      <attribute name="osgi.identity" value="org.apiguardian.api"/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="1.1.2" type="Version"/>
+      <attribute name="documentation" value="https://github.com/apiguardian-team/apiguardian"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="org.apiguardian.api"/>
+      <attribute name="bundle-version" value="1.1.2" type="Version"/>
+      <attribute name="version" value="1.1.2" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apiguardian.api"/>
+      <attribute name="bnd.hashes" value="-1808614382,65018" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="1.1.2" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="org.apiguardian.api"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="1.1.2" type="Version"/>
+      <attribute name="osgi.wiring.host" value="org.apiguardian.api"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="org.apiguardian:apiguardian-api"/>
+      <attribute name="from" value="org.apiguardian:apiguardian-api:1.1.2"/>
+      <attribute name="version" value="1.1.2" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="apiguardian-api"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="1.1.2"/>
+      <attribute name="maven-groupId" value="org.apiguardian"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="6806" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/org/apiguardian/apiguardian-api/1.1.2/apiguardian-api-1.1.2.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="B509448AC506D607319F182537F0B35D71007582EC741832A1F111E5B5B70B38"/>
+    </capability>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.resolver"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.resolver"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.resolver"/>
+      <attribute name="bnd.hashes" value="366976888,-1457831942,-3296603,478110648,2051982918,1228395792,1837791346,-609209655,-1911543745,1029097215,-1139293222,-493127185,-1795005754,1397661317,494181331,881800145,935225400,-894435033,-1836174051,712816234,-1008458077" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.resolver"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.resolver"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="io.netty:netty-resolver"/>
+      <attribute name="from" value="io.netty:netty-resolver:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="netty-resolver"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="37040" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-resolver/4.1.70.Final/netty-resolver-4.1.70.Final.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="2E72B07669EBD36EA6D66C558C5FD798BA873FC5976B057F53B2417ED76EAD98"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.concurrent)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal.logging)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.nio.ch)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.nio.ch"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.npn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.npn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.alpn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.alpn"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0.txt"/>
+      <attribute name="osgi.identity" value="org.apache.felix.configadmin"/>
+      <attribute name="documentation" value="http://felix.apache.org/site/apache-felix-config-admin.html"/>
+      <attribute name="description" value="Implementation of the OSGi Configuration Admin Service Specification 1.6"/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="1.9.22" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="org.apache.felix.configadmin"/>
+      <attribute name="bundle-version" value="1.9.22" type="Version"/>
+      <attribute name="version" value="1.2.0" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apache.felix.cm"/>
+      <attribute name="bnd.hashes" value="-1075294946,-208945106,-1923478059" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="org.apache.felix.cm,org.osgi.framework"/>
+      <attribute name="bundle-symbolic-name" value="org.apache.felix.configadmin"/>
+      <attribute name="bundle-version" value="1.9.22" type="Version"/>
+      <attribute name="version" value="1.1.0" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.apache.felix.cm.file"/>
+      <attribute name="bnd.hashes" value="-1871950444,-1580107855,-1017611574,-1923478059" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="org.osgi.framework"/>
+      <attribute name="bundle-symbolic-name" value="org.apache.felix.configadmin"/>
+      <attribute name="bundle-version" value="1.9.22" type="Version"/>
+      <attribute name="version" value="1.6.0" type="Version"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.cm"/>
+      <attribute name="bnd.hashes" value="595867238,-1563253546,-1675361255,160505113,-1671138460,2064407577,-851798102,368751429,2132978627,40470441,1045830198,-14948876,1655325979,-1419216863,-1923478059" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="1.9.22" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="org.apache.felix.configadmin"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="1.9.22" type="Version"/>
+      <attribute name="osgi.wiring.host" value="org.apache.felix.configadmin"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="org.apache.felix:org.apache.felix.configadmin"/>
+      <attribute name="from" value="org.apache.felix:org.apache.felix.configadmin:1.9.22"/>
+      <attribute name="version" value="1.9.22" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="org.apache.felix.configadmin"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="1.9.22"/>
+      <attribute name="maven-groupId" value="org.apache.felix"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="168301" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/org/apache/felix/org.apache.felix.configadmin/1.9.22/org.apache.felix.configadmin-1.9.22.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="B349E16D60DA66B6DA70AB3E056677A9D6A0B8953DF84ECD63B10AA5EF3C5865"/>
+    </capability>
+    <capability namespace="osgi.implementation">
+      <directive name="uses" value="org.osgi.service.cm,org.apache.felix.cm"/>
+      <attribute name="version" value="1.6.0" type="Version"/>
+      <attribute name="osgi.implementation" value="osgi.cm"/>
+    </capability>
+    <capability namespace="osgi.service">
+      <directive name="uses" value="org.osgi.service.cm,org.apache.felix.cm"/>
+      <attribute name="objectClass" value="org.osgi.service.cm.ConfigurationAdmin" type="List&lt;String&gt;"/>
+    </capability>
+    <capability namespace="osgi.service">
+      <directive name="uses" value="org.osgi.service.cm,org.apache.felix.cm"/>
+      <attribute name="objectClass" value="org.apache.felix.cm.PersistenceManager" type="List&lt;String&gt;"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.cm)(version&gt;=1.6.0)(!(version&gt;=1.7.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.cm"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.coordinator)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.coordinator"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.service.log)(version&gt;=1.3.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.service.log"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.felix.cm)(version&gt;=1.2.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.apache.felix.cm"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.apache.felix.cm.file)(version&gt;=1.1.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.apache.felix.cm.file"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.framework)(version&gt;=1.8.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.framework"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.osgi.util.tracker)(version&gt;=1.5.0)(!(version&gt;=2.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="org.osgi.util.tracker"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.7))"/>
+    </requirement>
+    <requirement namespace="osgi.service">
+      <directive name="filter" value="(objectClass=org.osgi.service.log.LogService)"/>
+      <directive name="effective" value="active"/>
+      <directive name="resolution" value="optional"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.codec"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.channel.socket,io.netty.util"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec"/>
+      <attribute name="bnd.hashes" value="-246330674,812260255,-536155065,57285884,-1162081870,-1683976632,531410656,-1108911002,-1885117191,204895540,2123162942,1731057109,-1636078642,1524835067,-1624966189,19190940,2046432395,-352826015,-12073358,-1467126331,1702968891,-1847489305,1236675807,1797431845,-147989019,900410947,-1477626004,863221145,-2076004685,1810367121,-1835006106,-1424881448,-594650225,133350081,-469836209,-1231161409,-1237399317,191587894,-1567906425,1765740470,-1576617452,112245520,-1228982062,-424111567,1051267999,-2098533257,1879512748,1534772522,-1334611484,-515276471,1506831042,-1601062062,865908515,-2145913692,1328673615" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.base64"/>
+      <attribute name="bnd.hashes" value="-1087880156,1982630255,-886960171,-774379081,258205869" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.bytes"/>
+      <attribute name="bnd.hashes" value="598530291,1743696331" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="com.aayushatharva.brotli4j.encoder,io.netty.buffer,io.netty.channel,io.netty.handler.codec,net.jpountz.lz4"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.compression"/>
+      <attribute name="bnd.hashes" value="1998227090,80204913,313955666,1459121706,1817014188,573645587,-195419827,-2078562930,1189042429,1344447661,681083967,-1204900608,1177085468,167563345,1188767623,-289175830,2128695139,-1647073020,1312729385,2092397425,807857216,1953023256,1336878128,1001563396,795372344,-922485335,70926968,-924954008,65368851,2026434480,1897740202,-850761709,2097162026,-388128159,757037881,297911236,-198617265,946548775,379523895,1733982952,-1415818304,988541865,-1747722883,-602556843,566294867,1363845292,-1785955964,1838519249,-1814159501,-262322393,-1914407638,-769241598,1541913338,-1607887918,-1337219051,-192353377,-1160803879,-15637839,-1895497075,-1107729880,2795401,-1854573626,-607741613,-249849131" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.json"/>
+      <attribute name="bnd.hashes" value="1691617245" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec,org.jboss.marshalling"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.marshalling"/>
+      <attribute name="bnd.hashes" value="-356868129,2000343948,-1699413212,-554247172,645419764,-1616561971,923875046,1436794628,-659915525,-496914196,607691056,1752857096,-816596467,891578406,-1131404475" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="com.google.protobuf,com.google.protobuf.nano,io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.protobuf"/>
+      <attribute name="bnd.hashes" value="-1978569191,690989165,-833403151,1420383557,269750217,-296675047" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.serialization"/>
+      <attribute name="bnd.hashes" value="-1261400001,1292822483,1562509694,1193160373,-485859736,-1411590877,-416773559,-1144816667,-370716987,349373,929645886,-338232783,369247099,1304914377" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.string"/>
+      <attribute name="bnd.hashes" value="447543912,817640753,-1860563245,-715397205" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.handler.codec"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.codec"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.handler.codec.xml"/>
+      <attribute name="bnd.hashes" value="-2105342034" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.codec"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.codec"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="io.netty:netty-codec"/>
+      <attribute name="from" value="io.netty:netty-codec:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="netty-codec"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="336973" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-codec/4.1.70.Final/netty-codec-4.1.70.Final.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="7268A42A3255A1209DC291B703092FD7B8E5C2E78A263E83991C7ECF3016388A"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.aayushatharva.brotli4j)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.aayushatharva.brotli4j"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.aayushatharva.brotli4j.decoder)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.aayushatharva.brotli4j.decoder"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.aayushatharva.brotli4j.encoder)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.aayushatharva.brotli4j.encoder"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=com.github.luben.zstd)(version&gt;=1.5.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.github.luben.zstd"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=com.google.protobuf)(version&gt;=2.6.0)(!(version&gt;=3.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.google.protobuf"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.google.protobuf.nano)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.google.protobuf.nano"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=com.jcraft.jzlib)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.jcraft.jzlib"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=com.ning.compress)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.ning.compress"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=com.ning.compress.lzf)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.ning.compress.lzf"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=com.ning.compress.lzf.util)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="com.ning.compress.lzf.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.buffer)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.buffer"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.channel)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.channel.socket)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.socket"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.concurrent)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal.logging)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=lzma.sdk)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="lzma.sdk"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=lzma.sdk.lzma)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="lzma.sdk.lzma"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=net.jpountz.lz4)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="net.jpountz.lz4"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=net.jpountz.xxhash)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="net.jpountz.xxhash"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=org.jboss.marshalling)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.jboss.marshalling"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.nio.ch)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.nio.ch"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.npn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.npn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.alpn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.alpn"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
+  </resource>
+  <resource>
+    <capability namespace="osgi.identity">
+      <attribute name="license" value="https://www.apache.org/licenses/LICENSE-2.0"/>
+      <attribute name="osgi.identity" value="io.netty.transport"/>
+      <attribute name="documentation" value="https://netty.io/"/>
+      <attribute name="description" value="Netty is an asynchronous event-driven network application framework for    rapid development of maintainable high performance protocol servers and    clients."/>
+      <attribute name="type" value="osgi.bundle"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.resolver,io.netty.util"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.bootstrap"/>
+      <attribute name="bnd.hashes" value="-323845333,-234798004,33311406,9956942,-1791497424,1384906407,765600556,-450502170,-129401770,-2006584757,-2067776147" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.bootstrap,io.netty.buffer,io.netty.util,io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel"/>
+      <attribute name="bnd.hashes" value="1178624136,1886620445,738219324,-889658748,1469687227,-1100557727,80579438,597629412,1729425350,521220171,1790395964,-1922742877,-1212493942,1719606046,-314323832,799592380,-1925059485,-1756379706,-1891363613,1773145605,-910216377,1612220589,-2030851412,1384906407,676961099,671231884,1063197120,1864767622,1131895642,-679231552,-1125374745,-1497885592,604153544,2578847,1863701619,-829263522,994591060,1688507227,-2032978684,1587830271,-978951886,2117800760,67115090,1366083691,-24211693,-285755689,265385080,981641863,-901017435,751716650,-2136957301,-228455329,-1626816173,-2127395144,-1625024351,-187339650,-604051635,1824425702,1259748844,-1780761651,1835507928,-714251166,1344101764,-106690745,-1864804259,-1625338993,2112486930,1957989176,-1654759886,-1445017825,-895288220,200788562,1752114969,999610173,789523778,1715327121,-775429426,-2080986581,1667014805,-1260311175,1322642704,1582041562,-1013608416,2035150910,-2132056655,1204980961,-34804420,218577105,342677321,-542648400,-855457414,352321581,-1031892266,-2140710328,979376600,332701700,-1809291919,974105728,-1913830238,-776705180,320051368,1690679625,681773660,836174314,-245168927,-2056799194,-1161937790,1738099887,-2002081445,-1781730272,-1705942970,2074237634,-10270204,1631877100,965114233,379889637,225590094,-1057838127,577061228,-390124955" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.embedded"/>
+      <attribute name="bnd.hashes" value="1435216059,-1286726416,80204913,-217013511,1903415796,472862932,-1527729545" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel,io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.group"/>
+      <attribute name="bnd.hashes" value="60983132,1198256211,741936191,-379877869,-977316145,1040823482,-1356571445,-1743527235,32429148,-232029308,823428787,1016974333,-510109999,-377711584,728190195" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.internal"/>
+      <attribute name="bnd.hashes" value="73965966" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.local"/>
+      <attribute name="bnd.hashes" value="1879738921,-1158229807,80204913,-528585928,1720862613,607083756,2078308021" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.util,io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.nio"/>
+      <attribute name="bnd.hashes" value="-93884958,-726390519,1086457528,1331212474,337244721,1518350073,2135640590,-1363646711,-820793142,1451967445,-677985895,-1487680012,223408627" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.oio"/>
+      <attribute name="bnd.hashes" value="-1231949144,-1511782726,140731216,-806017009,-962880506,-1489690154" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.bootstrap,io.netty.channel,io.netty.util.concurrent"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.pool"/>
+      <attribute name="bnd.hashes" value="642809453,-1046096385,-2077382250,1941895071,-835979605,2081627453,-1558574198,-1388030117,29227489,121188548,-399964570,-139664437,-1031270111,-612932979" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.util"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.socket"/>
+      <attribute name="bnd.hashes" value="-1028009859,-878066260,2128399488,1228588853,432719010,1375580804,102634761,664736515,2017566222,-2078990959,-774298365,-1459583451,2075491805,-1561121939,189961487,2045865456,-1729648302" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.channel.nio,io.netty.channel.socket"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.socket.nio"/>
+      <attribute name="bnd.hashes" value="47558084,-500634578,-590675696,-1166164581,966438137,797911774,1312457026,-24377220,1571478724" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.package">
+      <directive name="uses" value="io.netty.buffer,io.netty.channel,io.netty.channel.oio,io.netty.channel.socket"/>
+      <attribute name="bundle-symbolic-name" value="io.netty.transport"/>
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="version" value="4.1.70" type="Version"/>
+      <attribute name="osgi.wiring.package" value="io.netty.channel.socket.oio"/>
+      <attribute name="bnd.hashes" value="1063840528,1746315163,-1801480994,-1497706931,-657682449,-1071618152,-1420901126,-534911397,-1240144515" type="List&lt;Long&gt;"/>
+    </capability>
+    <capability namespace="osgi.wiring.bundle">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.bundle" value="io.netty.transport"/>
+    </capability>
+    <capability namespace="osgi.wiring.host">
+      <attribute name="bundle-version" value="4.1.70.Final" type="Version"/>
+      <attribute name="osgi.wiring.host" value="io.netty.transport"/>
+    </capability>
+    <capability namespace="bnd.info">
+      <attribute name="name" value="io.netty:netty-transport"/>
+      <attribute name="from" value="io.netty:netty-transport:4.1.70.Final"/>
+      <attribute name="version" value="4.1.70.Final" type="Version"/>
+    </capability>
+    <capability namespace="bnd.maven">
+      <attribute name="maven-artifactId" value="netty-transport"/>
+      <attribute name="maven-extension" value="jar"/>
+      <attribute name="maven-repository" value="Project Dependencies"/>
+      <attribute name="maven-version" value="4.1.70.Final"/>
+      <attribute name="maven-groupId" value="io.netty"/>
+      <attribute name="maven-classifier" value=""/>
+    </capability>
+    <capability namespace="osgi.content">
+      <attribute name="size" value="480814" type="Long"/>
+      <attribute name="url" value="file:/home/mark/.m2/repository/io/netty/netty-transport/4.1.70.Final/netty-transport-4.1.70.Final.jar"/>
+      <attribute name="mime" value="application/vnd.osgi.bundle"/>
+      <attribute name="osgi.content" value="CBF7D6FB9AF32FA36B414C8F577E87FFAFE59417A1F8D778B5BEE773225EAF44"/>
+    </capability>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.buffer)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.buffer"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.resolver)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.resolver"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.concurrent)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.concurrent"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=io.netty.util.internal.logging)(version&gt;=4.1.0)(!(version&gt;=5.0.0)))"/>
+      <attribute name="osgi.wiring.package" value="io.netty.util.internal.logging"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(osgi.wiring.package=sun.nio.ch)"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="sun.nio.ch"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.npn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.npn"/>
+    </requirement>
+    <requirement namespace="osgi.wiring.package">
+      <directive name="filter" value="(&amp;(osgi.wiring.package=org.eclipse.jetty.alpn)(version&gt;=1.0.0)(!(version&gt;=2.0.0)))"/>
+      <directive name="resolution" value="optional"/>
+      <attribute name="osgi.wiring.package" value="org.eclipse.jetty.alpn"/>
+    </requirement>
+    <requirement namespace="osgi.ee">
+      <directive name="filter" value="(&amp;(osgi.ee=JavaSE)(version=1.6))"/>
+    </requirement>
   </resource>
 </repository>
