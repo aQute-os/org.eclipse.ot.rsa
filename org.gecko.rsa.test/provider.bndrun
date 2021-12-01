@@ -18,6 +18,7 @@
 	com.paremus.net;version=snapshot,\
 	org.apache.aries.spifly.dynamic.framework.extension;version='[1.3.4,1.3.5)',\
 	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
+	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
 	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\
 	org.apache.felix.converter;version='[1.0.18,1.0.19)',\
 	org.apache.felix.eventadmin;version='[1.6.2,1.6.3)',\
@@ -30,7 +31,6 @@
 	org.gecko.rsa.test;version=snapshot,\
 	org.gecko.rsa.test.api;version=snapshot,\
 	org.gecko.rsa.test.config;version=snapshot,\
-	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	slf4j.api;version='[1.7.25,1.7.26)',\
 	slf4j.simple;version='[1.7.25,1.7.26)'
 
@@ -42,5 +42,7 @@
 	bnd.identity;id='org.gecko.rsa.test',\
 	bnd.identity;id='org.gecko.rsa.test.config',\
 	bnd.identity;id='com.paremus.dosgi.topology.scoped',\
-	osgi.identity;filter:='(&(osgi.identity=org.apache.felix.eventadmin)(version>=1.3.2))'
+	osgi.identity;filter:='(&(osgi.identity=org.apache.felix.eventadmin)(version>=1.3.2))',\
+	osgi.identity;filter:='(&(osgi.identity=org.apache.felix.configadmin)(version>=1.9.22))'
 -runee: JavaSE-11
+-resolve: auto
