@@ -9,25 +9,31 @@
 	osgi.console.enable.builtin=false
 
 -runbundles: \
-	ch.qos.logback.classic;version='[1.2.3,1.2.4)',\
 	ch.qos.logback.core;version='[1.2.3,1.2.4)',\
+	com.paremus.deployment.framework.provider;version=snapshot,\
 	com.paremus.dosgi.discovery.gossip;version=snapshot,\
 	com.paremus.dosgi.net;version=snapshot,\
+	com.paremus.dosgi.topology.scoped;version=snapshot,\
 	com.paremus.gossip;version=snapshot,\
 	com.paremus.net;version=snapshot,\
-	org.apache.felix.configadmin;version='[1.9.8,1.9.9)',\
-	org.apache.felix.configurator;version='[1.0.6,1.0.7)',\
-	org.apache.felix.gogo.command;version='[1.0.2,1.0.3)',\
-	org.apache.felix.gogo.runtime;version='[1.0.10,1.0.11)',\
-	org.apache.felix.gogo.shell;version='[1.0.0,1.0.1)',\
-	org.apache.felix.scr;version='[2.1.10,2.1.11)',\
-	org.gecko.rsa.test.consumer;version=snapshot,\
-	org.osgi.service.event;version='[1.4.0,1.4.1)',\
-	slf4j.api;version='[1.7.25,1.7.26)',\
+	org.apache.aries.spifly.dynamic.framework.extension;version='[1.3.4,1.3.5)',\
+	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
+	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\
+	org.apache.felix.converter;version='[1.0.18,1.0.19)',\
+	org.apache.felix.eventadmin;version='[1.6.2,1.6.3)',\
+	org.apache.felix.gogo.command;version='[1.1.2,1.1.3)',\
+	org.apache.felix.gogo.runtime;version='[1.1.4,1.1.5)',\
+	org.apache.felix.gogo.shell;version='[1.1.4,1.1.5)',\
+	org.apache.felix.scr;version='[2.1.28,2.1.29)',\
+	org.apache.geronimo.specs.geronimo-json_1.1_spec;version='[1.5.0,1.5.1)',\
+	org.apache.johnzon.core;version='[1.2.15,1.2.16)',\
+	org.gecko.rsa.test;version=snapshot,\
 	org.gecko.rsa.test.api;version=snapshot,\
 	org.gecko.rsa.test.config;version=snapshot,\
-	com.paremus.deployment.framework.provider;version=snapshot,\
-	com.paremus.dosgi.topology.scoped;version=snapshot
+	org.gecko.rsa.test.consumer;version=snapshot,\
+	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
+	slf4j.api;version='[1.7.25,1.7.26)',\
+	slf4j.simple;version='[1.7.25,1.7.26)'
 
 -runrequires: \
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
