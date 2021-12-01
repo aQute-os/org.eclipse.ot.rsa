@@ -1,0 +1,30 @@
+-buildpath: \
+	org.osgi.framework,\
+	org.osgi.util.tracker,\
+	org.osgi.annotation.versioning,\
+	org.osgi.service.cm,\
+	org.osgi.util.promise,\
+	org.osgi.util.function,\
+	slf4j.api,\
+	biz.aQute.bnd.annotation;version='6.0',\
+	com.paremus.net;version=project
+
+Bundle-Version: 1.0.0.${tstamp}
+
+Private-Package:  \
+	com.paremus.gossip.cluster.impl,\
+	com.paremus.gossip.net,\
+	com.paremus.gossip.v1.messages,\
+	com.paremus.gossip,\
+	com.paremus.gossip.impl,\
+	com.paremus.gossip.activator
+
+Export-Package:  \
+	com.paremus.gossip.cluster,\
+	com.paremus.gossip.cluster.listener,\
+	com.paremus.net.info
+	
+Bundle-Activator: com.paremus.gossip.activator.Activator
+
+Conditional-Package: aQute.bnd.annotation.metatype
+

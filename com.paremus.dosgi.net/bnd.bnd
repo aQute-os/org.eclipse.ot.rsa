@@ -1,0 +1,70 @@
+Bundle-Version: 1.0.0.${tstamp}
+
+-buildpath: \
+	com.paremus.net;version=latest;packages='aQute.bnd.annotation.metatype,com.paremus.net.encode',\
+	slf4j.api;version='1.7',\
+	io.netty.buffer;version='4.1',\
+	io.netty.codec;version='4.1',\
+	io.netty.common;version='4.1',\
+	io.netty.handler;version='4.1',\
+	io.netty.resolver;version='4.1',\
+	io.netty.transport;version='4.1',\
+	org.osgi.framework,\
+	org.osgi.util.tracker,\
+	org.osgi.resource,\
+	org.osgi.annotation.versioning,\
+	org.osgi.service.remoteserviceadmin,\
+	org.osgi.service.cm,\
+	org.osgi.util.promise,\
+	org.osgi.util.function,\
+	org.osgi.service.event,\
+	org.osgi.service.async
+
+Private-Package: \
+	com.paremus.dosgi.net.activator,\
+	com.paremus.dosgi.net.client,\
+	com.paremus.dosgi.net.config,\
+	com.paremus.dosgi.net.impl,\
+	com.paremus.dosgi.net.proxy,\
+	com.paremus.dosgi.net.serialize,\
+	com.paremus.dosgi.net.serialize.freshvanilla,\
+	com.paremus.dosgi.net.serialize.java,\
+	com.paremus.dosgi.net.serialize.protobuf,\
+	com.paremus.dosgi.net.server,\
+	com.paremus.dosgi.net.tcp,\
+	com.paremus.dosgi.net.wireformat,\
+	io.netty.buffer;-split-package:=merge-first,\
+	org.freshvanilla.net,\
+	org.freshvanilla.lang,\
+	org.freshvanilla.lang.misc,\
+	org.freshvanilla.utils
+	
+Conditional-Package: io.netty.*;-split-package:=merge-first,\
+					 aQute.bnd.annotation.metatype
+Bundle-Activator: com.paremus.dosgi.net.activator.Activator
+
+Import-Package: \
+	!com.oracle.*,\
+	!javassist,\
+	!org.apache.commons.logging,\
+	!org.apache.log4j,\
+	!org.apache.logging.log4j,\
+	!org.apache.tomcat.jni,\
+	!org.bouncycastle.*,\
+	!org.eclipse.jetty.*,\
+	!sun.security.*,\
+	reactor.blockhound.*;'resolution:'=optional,\
+	org.conscrypt;'resolution:'=optional,\
+	org.apache.logging.*;'resolution:'=optional,\
+	io.netty.internal.*;'resolution:'=optional,\
+	sun.misc;'resolution:'=optional,\
+	*
+
+Export-Package: com.paremus.dosgi.topology.scoped,\
+				org.osgi.service.remoteserviceadmin;-split-package:=first,\
+		 		org.osgi.service.async.delegate,\
+		 		org.osgi.util.promise,\
+		 		org.osgi.util.function
+		 		
+Provide-Capability: osgi.remoteserviceadmin.distribution;configs:List<String>="com.paremus.dosgi.net";version:Version="1.1.0"
+		 		

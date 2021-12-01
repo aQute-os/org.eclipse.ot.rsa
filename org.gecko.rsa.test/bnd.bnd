@@ -1,0 +1,7 @@
+-buildpath: \
+	org.gecko.rsa.test.api;version=latest,\
+	org.osgi.annotation.bundle,\
+	org.osgi.service.component.annotations
+
+Bundle-Version: 1.0.0.${tstamp}
+-privatepackage: org.gecko.rsa.test

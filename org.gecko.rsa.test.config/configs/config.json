@@ -1,0 +1,29 @@
+{
+  ":configurator:resource-version": 1,
+  
+	"com.paremus.gossip~DIM": 
+  	{
+	    "base.udp.port": 10101,
+		"base.tcp.port": 10102,
+		"port.increment": "10",
+		"max.members": "5",
+		"initial.peers": "127.0.0.1",
+		"cluster.name": "DIMC"
+	},
+	"com.paremus.net.encode": 
+  	{
+	},
+	
+	"com.paremus.dosgi.discovery.gossip": 
+  	{
+	    "root.cluster": "DIMC", 
+		"infra": "false"
+	},
+	"com.paremus.dosgi.net":
+	{
+		"server.bind.address": "127.0.0.1",
+		"allow.insecure.transports": true,
+		"server.protocols": "TCP;nodelay=true",
+		"nodelay": true
+  	}
+}

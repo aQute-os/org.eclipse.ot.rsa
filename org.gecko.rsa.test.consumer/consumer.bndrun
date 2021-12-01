@@ -1,0 +1,41 @@
+-runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runprovidedcapabilities: ${native_capability}
+
+-resolve.effective: active
+
+-runproperties: \
+	org.osgi.service.http.port=8080,\
+	osgi.console=,\
+	osgi.console.enable.builtin=false
+
+-runbundles: \
+	ch.qos.logback.classic;version='[1.2.3,1.2.4)',\
+	ch.qos.logback.core;version='[1.2.3,1.2.4)',\
+	com.paremus.dosgi.discovery.gossip;version=snapshot,\
+	com.paremus.dosgi.net;version=snapshot,\
+	com.paremus.gossip;version=snapshot,\
+	com.paremus.net;version=snapshot,\
+	org.apache.felix.configadmin;version='[1.9.8,1.9.9)',\
+	org.apache.felix.configurator;version='[1.0.6,1.0.7)',\
+	org.apache.felix.gogo.command;version='[1.0.2,1.0.3)',\
+	org.apache.felix.gogo.runtime;version='[1.0.10,1.0.11)',\
+	org.apache.felix.gogo.shell;version='[1.0.0,1.0.1)',\
+	org.apache.felix.scr;version='[2.1.10,2.1.11)',\
+	org.gecko.rsa.test.consumer;version=snapshot,\
+	org.osgi.service.event;version='[1.4.0,1.4.1)',\
+	slf4j.api;version='[1.7.25,1.7.26)',\
+	org.gecko.rsa.test.api;version=snapshot,\
+	org.gecko.rsa.test.config;version=snapshot,\
+	com.paremus.deployment.framework.provider;version=snapshot,\
+	com.paremus.dosgi.topology.scoped;version=snapshot
+
+-runrequires: \
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
+	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
+	bnd.identity;id='com.paremus.dosgi.discovery.gossip',\
+	bnd.identity;id='com.paremus.dosgi.net',\
+	bnd.identity;id='org.gecko.rsa.test.consumer',\
+	bnd.identity;id='org.gecko.rsa.test.config',\
+	bnd.identity;id='com.paremus.dosgi.topology.scoped',\
+	osgi.identity;filter:='(&(osgi.identity=org.apache.felix.eventadmin)(version>=1.3.2))'
+-runee: JavaSE-11
