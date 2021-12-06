@@ -110,7 +110,7 @@ public class SocketCommsTest {
 				});
 		
 		Mockito.when(encodingScheme.validateAndDecode(Mockito.any(byte[].class), Mockito.any(byte[].class)
-				, Mockito.anyInt(), Mockito.anyInt(), Mockito.any(EncryptionDetails.class)))
+				, Mockito.anyInt(), Mockito.anyInt(), Mockito.any()))
 			.then(i -> {
 				byte[] body = (byte[]) i.getArguments()[1];
 				int offset = (int) i.getArguments()[2];

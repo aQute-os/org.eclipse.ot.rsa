@@ -57,7 +57,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -102,7 +101,6 @@ public class SocketCommsTest {
 	
 	@BeforeEach
 	public void setUp() throws Exception {
-		MockitoAnnotations.initMocks(this);
 		socketComms = new SocketComms("cluster", ID, Configurable.createConfigurable(Config.class, config), encodingScheme,
 				ServerSocketFactory.getDefault());
 		
@@ -125,7 +123,7 @@ public class SocketCommsTest {
 		socketComms.startListening(gossip, replicator, ses);
 		
 		Mockito.when(encodingScheme.validateAndDecode(Mockito.any(byte[].class), Mockito.any(byte[].class), 
-				Mockito.anyInt(), Mockito.anyInt(), Mockito.any(EncryptionDetails.class)))
+				Mockito.anyInt(), Mockito.anyInt(), Mockito.any()))
 				.then(new Answer<DataInput>() {
 					@Override
 					public DataInput answer(InvocationOnMock invocation)
@@ -183,7 +181,7 @@ public class SocketCommsTest {
 			DatagramPacket dp = new DatagramPacket(new byte[1024], 1024);
 			s.receive(dp);
 			
-			Mockito.verifyZeroInteractions(gossip);
+			Mockito.verifyNoInteractions(gossip);
 			
 			assertEquals(1, dp.getData()[dp.getOffset()]);
 			assertEquals(3, dp.getData()[dp.getOffset() + 1]);

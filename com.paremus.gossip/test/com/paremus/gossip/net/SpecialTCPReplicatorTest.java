@@ -230,7 +230,7 @@ public class SpecialTCPReplicatorTest {
 									}
 								}));
 
-		assertTrue(semA.tryAcquire(2, SECONDS));
+		assertTrue(semA.tryAcquire(20, SECONDS));
 		assertTrue(semB.tryAcquire(2, SECONDS));
 
 		Mockito.verify(gossipB).merge(
@@ -265,7 +265,7 @@ public class SpecialTCPReplicatorTest {
 	}
 
 	private void setupDecryption(EncodingScheme es, Key k) {
-		Mockito.when(es.decryptingStream(Mockito.any(InputStream.class), Mockito.any(EncryptionDetails.class))).then(
+		Mockito.when(es.decryptingStream(Mockito.any(InputStream.class), Mockito.any())).then(
 				i -> {
 					Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
 					c.init(Cipher.DECRYPT_MODE, k, new IvParameterSpec(
@@ -281,7 +281,7 @@ public class SpecialTCPReplicatorTest {
 	}
 
 	private void setupDecryption(EncodingScheme es) {
-		Mockito.when(es.decryptingStream(Mockito.any(InputStream.class), Mockito.isNotNull(EncryptionDetails.class))).then(
+		Mockito.when(es.decryptingStream(Mockito.any(InputStream.class), Mockito.any(EncryptionDetails.class))).then(
 				i -> {
 					Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
 					c.init(Cipher.DECRYPT_MODE, ((EncryptionDetails) i.getArguments()[1]).getKey(), 
