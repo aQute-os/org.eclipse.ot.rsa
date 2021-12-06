@@ -36,7 +36,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -154,7 +153,7 @@ public class ServiceExporterTest {
 		Mockito.doAnswer(i -> {
 			sem.release(32 << ((EndpointEvent)i.getArguments()[0]).getType());
 			return null;
-		}).when(listener).endpointChanged(Mockito.any(), Mockito.anyString());
+		}).when(listener).endpointChanged(Mockito.any(), Mockito.<String>any());
     }
 
 	private void setupFrameworkIds() {
@@ -170,7 +169,7 @@ public class ServiceExporterTest {
 
 	private void setupRSAs() {
 		Mockito.when(awareRSA.exportService(Mockito.any(Framework.class), Mockito.any(), 
-				Mockito.anyMapOf(String.class, Object.class))).then(i -> {
+				Mockito.anyMap())).then(i -> {
 			sem.release();
 			return singleton(awareReg);	
 		});
@@ -185,7 +184,7 @@ public class ServiceExporterTest {
 
 	private void setupRSA(RemoteServiceAdmin rsa, int release, ExportRegistration reg, ExportReference ref, EndpointDescription ed) {
 		Mockito.when(rsa.exportService(Mockito.any(), 
-				Mockito.anyMapOf(String.class, Object.class))).then(i -> {
+				Mockito.anyMap())).then(i -> {
 			sem.release(release);
 			return singleton(reg);	
 		});
@@ -286,7 +285,7 @@ public class ServiceExporterTest {
     	exporter.addingRSA(childC, rsaC);
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rsaA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -321,7 +320,7 @@ public class ServiceExporterTest {
     			Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, "<<ROOT>>", rootId, "<<ROOT>>")));
     	
     	
-    	Mockito.verifyZeroInteractions(rsaA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -354,7 +353,7 @@ public class ServiceExporterTest {
     	
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rsaA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -506,8 +505,8 @@ public class ServiceExporterTest {
     	Mockito.verify(rootReg).update(
     			Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, "<<ROOT>>", rootId, "<<ROOT>>")));
     	
-    	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(awareDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.anyString());
-    	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(rootDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.anyString());
+    	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(awareDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.<String>any());
+    	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(rootDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.<String>any());
     	
     }
 
@@ -534,7 +533,7 @@ public class ServiceExporterTest {
     	exporter.addingRSA(childC, rsaC);
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rsaA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -570,7 +569,7 @@ public class ServiceExporterTest {
     	
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rsaA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -606,7 +605,7 @@ public class ServiceExporterTest {
     	exporter.addingRSA(childC, rsaC);
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -642,7 +641,7 @@ public class ServiceExporterTest {
     	
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rootRSA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rootRSA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -764,8 +763,8 @@ public class ServiceExporterTest {
     	Mockito.verify(regA).update(
     			Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, rootId, SCOPE_A)));
     	
-    	Mockito.verify(listener, Mockito.times(2)).endpointChanged(Mockito.argThat(endpointEventWith(awareDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.anyString());
-    	Mockito.verify(listener, Mockito.times(2)).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.anyString());
+    	Mockito.verify(listener, Mockito.times(2)).endpointChanged(Mockito.argThat(endpointEventWith(awareDesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.<String>any());
+    	Mockito.verify(listener, Mockito.times(2)).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.MODIFIED_ENDMATCH)), Mockito.<String>any());
     }
 
 	@Test
@@ -793,7 +792,7 @@ public class ServiceExporterTest {
     	exporter.addingRSA(childC, rsaC);
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rootRSA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rootRSA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -831,7 +830,7 @@ public class ServiceExporterTest {
     	
     	assertFalse(sem.tryAcquire(100, TimeUnit.MILLISECONDS));
     	
-    	Mockito.verifyZeroInteractions(rootRSA, rsaB, rsaC);
+    	Mockito.verifyNoInteractions(rootRSA, rsaB, rsaC);
     	
     	exporter.addingEEL(root, listener, listenerRef, "");
     	assertTrue(sem.tryAcquire(2 * (32 << EndpointEvent.ADDED), 100, TimeUnit.MILLISECONDS));
@@ -989,13 +988,13 @@ public class ServiceExporterTest {
     	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(awareDesc, EndpointEvent.REMOVED)), Mockito.anyString());
     	
     	Mockito.verify(awareReg).close();
-    	Mockito.verifyZeroInteractions(rootReg, regB, regC);
+    	Mockito.verifyNoInteractions(rootReg, regB, regC);
     	
     	exporter.removingRSA(childA, rsaA);
     	assertTrue(sem.tryAcquire(32 << EndpointEvent.REMOVED, 100, TimeUnit.MILLISECONDS));
     	
     	Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.REMOVED)), Mockito.anyString());
     	Mockito.verify(regA).close();
-    	Mockito.verifyZeroInteractions(rootReg, regB, regC);
+    	Mockito.verifyNoInteractions(rootReg, regB, regC);
     }
 }

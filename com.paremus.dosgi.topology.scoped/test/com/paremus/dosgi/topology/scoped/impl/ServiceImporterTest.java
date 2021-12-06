@@ -50,6 +50,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 import com.paremus.dosgi.discovery.scoped.Constants;
 import com.paremus.dosgi.topology.scoped.IsolationAwareRemoteServiceAdmin;
 
+@SuppressWarnings("deprecation")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ServiceImporterTest {
