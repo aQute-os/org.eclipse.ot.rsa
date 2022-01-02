@@ -12,6 +12,8 @@
  */
 package com.paremus.dosgi.net.impl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Instances of this class are used by every {@link RemoteServiceAdminInstance} to send
+ * Instances of this class are used by every {@link RemoteServiceAdminImpl} to send
  * various {@link RemoteServiceAdminEvent} types to all registered
  * {@link RemoteServiceAdminListener} and any active {@link EventAdmin} services.
  */
@@ -169,13 +171,21 @@ public class RemoteServiceAdminEventPublisher {
     }
 
     public void notifyExportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-    	notifyExportRemoved(service, endpoint, t);
-    	notifyExport(service, endpoint);
+    	ExportReference ref = new AnonymousExportReference(service, endpoint);
+    	RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+    			RemoteServiceAdminEvent.EXPORT_UPDATE, _bundleContext.getBundle(), ref, t);
+    	
+    	notifyListeners(rsae);
+    	notifyEventAdmin(rsae);
     }
     
     public void notifyImportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-    	notifyImportRemoved(service, endpoint, t);
-    	notifyImport(service, endpoint);
+    	ImportReference ref = new AnonymousImportReference(service, endpoint);
+    	RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+    			RemoteServiceAdminEvent.IMPORT_UPDATE, _bundleContext.getBundle(), ref, t);
+    	
+    	notifyListeners(rsae);
+    	notifyEventAdmin(rsae);
     }
 
     private void notifyListeners(RemoteServiceAdminEvent rsae) {
@@ -237,9 +247,12 @@ public class RemoteServiceAdminEventPublisher {
         String topic = RemoteServiceAdminEventType.valueOf(rsaEvent.getType()).topicName();
         Event event = new Event(topic, props);
 
-        for (EventAdmin ea : eventAdmins) {
-            ea.postEvent(event);
-        }
+        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+	        for (EventAdmin ea : eventAdmins) {
+	            ea.postEvent(event);
+	        }
+	        return null;
+        });
     }
 
     private void setIfNotNull(Map<String, Object> props, String key, Object o) {

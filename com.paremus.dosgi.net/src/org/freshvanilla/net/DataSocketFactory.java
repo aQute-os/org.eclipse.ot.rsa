@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.freshvanilla.lang.MetaClasses;
 import org.freshvanilla.lang.ObjectBuilder;
+import org.freshvanilla.lang.misc.AccessUtils;
 import org.freshvanilla.utils.Factory;
 import org.freshvanilla.utils.VanillaResource;
 
@@ -44,7 +45,9 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
         super(name);
         _addresses = parseConnectionString(connectionString);
         _timeoutMillis = timeoutMS;
-        _wireFormatBuilder = new BinaryWireFormat.Builder(name, metaClasses);
+        _wireFormatBuilder = new BinaryWireFormat.Builder(name, metaClasses, AccessUtils.isSafe() ?
+        		new VersionAwareVanillaPojoSerializer(metaClasses) : 
+        		new VanillaPojoSerializer(metaClasses));
     }
 
     public Map<String, Object> getHeader() {

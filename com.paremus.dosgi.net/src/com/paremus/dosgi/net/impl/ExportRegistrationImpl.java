@@ -53,10 +53,12 @@ public class ExportRegistrationImpl implements ExportRegistration {
     /**
      * Default constructor for a new service export.
      * 
-     * @param rsa the exporting {@link RemoteServiceAdmin}
      * @param sref a reference to the service being exported
+     * @param extraProperties the extra properties with which this service is being exported
+     * @param endpoint the description of the exported endpoint
+     * @param sourceFramework the framework from which this service is being exported
+     * @param rsa the exporting {@link RemoteServiceAdmin}
      * @throws NullPointerException if either argument is <code>null</code>
-     * @see RemoteServiceAdminInstanceCustomizer#createExportRegistration(ServiceReference)
      */
     @SuppressWarnings("unchecked")
 	public ExportRegistrationImpl(ServiceReference<?> sref, Map<String, ?> extraProperties,
@@ -92,10 +94,10 @@ public class ExportRegistrationImpl implements ExportRegistration {
     /**
      * Default constructor for a failed service export.
      * 
-     * @param rsa the exporting {@link RemoteServiceAdmin}
      * @param sref a reference to the service being exported
+     * @param rsa the exporting {@link RemoteServiceAdmin}
+     * @param failure the error that occurred when exporting the service
      * @throws NullPointerException if either argument is <code>null</code>
-     * @see RemoteServiceAdminInstanceCustomizer#createExportRegistration(ServiceReference)
      */
     public ExportRegistrationImpl(ServiceReference<?> sref, RemoteServiceAdminImpl rsa, Throwable failure) {
     	
@@ -149,12 +151,7 @@ public class ExportRegistrationImpl implements ExportRegistration {
 
 	/**
      * Default implementation of {@link ExportRegistration#close()}, removing this export
-     * from the associated {@link RemoteServiceAdminInstance}.
-     * <p>
-     * Implementors who added additional state for exported service (e.g. a transport
-     * channel) will probably want to override this method and, after calling this
-     * {@link #close()}, release any custom state. A good indicator for this is the usage
-     * count of the export as indicated by {@link #getInstanceCount()}.
+     * from the associated {@link RemoteServiceAdminImpl}.
      */
     @Override
     public void close() {
@@ -197,8 +194,23 @@ public class ExportRegistrationImpl implements ExportRegistration {
 	    	return null;
         }
     }
+    
+    /**
+     * Like {@link #getException()} except it continues to return the exception after
+     * close has been called
+     * @return
+     */
+    Throwable internalGetException() {
+    	synchronized (this) {
+        	if(_state == ERROR) {
+        			return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
+        	}
+        	return _exception;
+        }
+	}
 
-    public EndpointDescription update(Map<String, ?> properties) {
+    @Override
+	public EndpointDescription update(Map<String, ?> properties) {
     	synchronized (this) {
     		if (_state == CLOSED) {
                 return null;

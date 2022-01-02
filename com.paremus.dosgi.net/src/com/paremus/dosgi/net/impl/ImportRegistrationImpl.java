@@ -16,13 +16,19 @@ import static com.paremus.dosgi.net.impl.RegistrationState.CLOSED;
 import static com.paremus.dosgi.net.impl.RegistrationState.ERROR;
 import static com.paremus.dosgi.net.impl.RegistrationState.OPEN;
 import static com.paremus.dosgi.net.impl.RegistrationState.PRE_INIT;
+import static java.util.stream.Collectors.toList;
 import static org.osgi.framework.Constants.SERVICE_ID;
 import static org.osgi.framework.ServiceException.REMOTE;
 
+import java.net.URI;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.osgi.framework.BundleContext;
@@ -38,14 +44,17 @@ import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
+import org.osgi.util.converter.Converters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.paremus.dosgi.net.client.ClientConnectionManager;
 import com.paremus.dosgi.net.config.ImportedServiceConfig;
 import com.paremus.dosgi.net.proxy.ClientServiceFactory;
-import com.paremus.dosgi.net.proxy.MethodCallHandlerFactory;
 
-import aQute.bnd.annotation.metatype.Configurable;
+import io.netty.channel.Channel;
+import io.netty.util.Timer;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 public class ImportRegistrationImpl implements ImportRegistration {
 	
@@ -56,7 +65,12 @@ public class ImportRegistrationImpl implements ImportRegistration {
     private final Framework _targetFramework;
     private final ImportReference _importReference;
     private final RemoteServiceAdminImpl _rsa;
-    private final MethodCallHandlerFactory _handlerFactory;
+    private final ClientConnectionManager _clientConnectionManager;
+    private final Channel _channel;
+    private final EventExecutorGroup _executor;
+    private final Timer _timer;
+    private final long _defaultServiceTimeout;
+    private final AtomicLong _serviceTimeout;
 
     private EndpointDescription _endpointDescription;
     private Throwable _exception;
@@ -66,54 +80,82 @@ public class ImportRegistrationImpl implements ImportRegistration {
 	private final Map<Integer, String> _methodMappings;
 
     /**
-     * Default constructor for a new service export.
+     * Default constructor for a new service import.
      * 
+     * @param endpoint the description for the endpoint being imported
+     * @param targetFramework the framework into which this service is being imported
+     * @param hostBundleContext the bundle context for the proxy bundle
      * @param rsa the exporting {@link RemoteServiceAdmin}
-     * @param sref a reference to the service being exported
-     * @throws NullPointerException if either argument is <code>null</code>
-     * @see RemoteServiceAdminInstanceCustomizer#createExportRegistration(ServiceReference)
+     * @param ccm The connection manager for making client invocations
+     * @param defaultServiceTimeout the time (in millis) after which client calls should timeout
+     * @param executor the worker to use when making async network calls
+     * @param timer The timer to use for triggering scheduled future work
+     * @throws NullPointerException if any required argument is <code>null</code>
      */
 	public ImportRegistrationImpl(EndpointDescription endpoint, Framework targetFramework,
-			BundleContext hostBundleContext, RemoteServiceAdminImpl rsa, int defaultServiceTimeout) {
+			BundleContext hostBundleContext, RemoteServiceAdminImpl rsa, ClientConnectionManager ccm,
+			int defaultServiceTimeout, EventExecutorGroup executor, Timer timer) {
     	
         _endpointDescription = Objects.requireNonNull(endpoint, "The endpoint for an export must not be null");
         _targetFramework = Objects.requireNonNull(targetFramework, "The target framework for a remote service import not be null");
         _hostBundleContext = Objects.requireNonNull(hostBundleContext, "The remote service host bundle must be active to import a remote service");
         _importReference = new SimpleImportReference();
         _rsa = Objects.requireNonNull(rsa, "The Remote Service Admin must not be null");
+        _clientConnectionManager = Objects.requireNonNull(ccm, "The Remote Service Admin must not be null");
+        _executor = Objects.requireNonNull(executor, "The executor must not be null");
+        _timer = Objects.requireNonNull(timer, "The timer must not be null");
+        _defaultServiceTimeout = defaultServiceTimeout;
         
-        _config = Configurable.createConfigurable(ImportedServiceConfig.class, 
-				_endpointDescription.getProperties());
+        try {
+			_config = Converters.standardConverter().convert( 
+					_endpointDescription.getProperties()).to(ImportedServiceConfig.class);
+		} catch (Exception ex) {
+			LOG.error("A serious failure occurred trying to import endpoint {}", endpoint, ex);
+			throw new IllegalArgumentException(ex);
+		}
         
-        _methodMappings = _config.com_paremus_dosgi_net_methods().stream()
+        long serviceTimeout = getServiceTimeout();
+        _serviceTimeout = new AtomicLong(serviceTimeout);
+        
+        _methodMappings = Arrays.stream(_config.com_paremus_dosgi_net_methods())
         	.map(s -> s.split("="))
         	.collect(Collectors.toMap(s -> Integer.valueOf(s[0]), s -> s[1]));
         
-        MethodCallHandlerFactory mchf;
+        
+        List<URI> uris = Arrays.stream(_config.com_paremus_dosgi_net())
+        		.map(URI::create)
+        		.collect(toList());
+		
+        Channel channel;
         try {
-        	mchf = _rsa.getHandlerFactoryFor(_endpointDescription, _config, _methodMappings);
+        	channel = uris.stream()
+        			.map(uri -> _clientConnectionManager.getChannelFor(uri, _endpointDescription))
+        			.filter(mchf -> mchf != null)
+        			.findFirst().orElseThrow(() -> 
+        				new IllegalArgumentException("Unable to connect to any of the endpoint locations " + uris));
         } catch (Exception e) {
-        	_handlerFactory = null;
+        	_channel = null;
         	_serviceRegistration = null;
         	asyncFail(e);
         	return;
         }
         _exception = null;
-        _handlerFactory = mchf;
+        _channel = channel;
         _state = OPEN;
 
         Dictionary<String, Object> serviceProps = new Hashtable<>(_endpointDescription.getProperties());
         serviceProps.remove(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
         serviceProps.put(RemoteConstants.SERVICE_IMPORTED, Boolean.TRUE);
         
-        int serviceTimeout = _config.com_paremus_dosgi_net_timeout() > 0 ? 
-        		_config.com_paremus_dosgi_net_timeout() : defaultServiceTimeout;
+        
         
         ServiceRegistration<?> reg;
         try { 
 	        reg = _hostBundleContext.registerService(
 	        		endpoint.getInterfaces().toArray(new String[0]), 
-	        		new ClientServiceFactory(this, endpoint, _handlerFactory, serviceTimeout), 
+	        		new ClientServiceFactory(this, endpoint, _channel, 
+	        				_config.com_paremus_dosgi_net_serialization().getFactory(), 
+	        				_serviceTimeout, _executor, _timer), 
 	        		serviceProps);
 		} catch (Exception e) {
 			_serviceRegistration = null;
@@ -131,7 +173,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
         	}
 		}
         try {
-        	_handlerFactory.addImportRegistration(this);
+        	_clientConnectionManager.addImportRegistration(this);
         } catch (Exception e) {
             asyncFail(e);
            	return;
@@ -150,7 +192,28 @@ public class ImportRegistrationImpl implements ImportRegistration {
         	return;
         }
     }
+
+	private long getServiceTimeout() {
+		long serviceTimeout = _config.com_paremus_dosgi_net_timeout();
+        
+        if(serviceTimeout < 0) {
+        	serviceTimeout = _config.osgi_basic_timeout(); 
+        }
+        
+        if(serviceTimeout < 0) {
+        	serviceTimeout = _defaultServiceTimeout; 
+        }
+		return serviceTimeout;
+	}
 	
+	/**
+	 * Create a failed endpoint
+	 * 
+	 * @param endpoint The Endpoint Description
+	 * @param targetFramework The framework into which the service is being imported
+	 * @param rsa The Remote Service Admin
+	 * @param failure The failure that occurred while importing
+	 */
 	public ImportRegistrationImpl(EndpointDescription endpoint, Framework targetFramework,
 			RemoteServiceAdminImpl rsa, Exception failure) {
 		
@@ -160,10 +223,15 @@ public class ImportRegistrationImpl implements ImportRegistration {
         
         _serviceRegistration = null;
         _importReference = null;
-        _handlerFactory = null;
+        _clientConnectionManager = null;
+        _channel = null;
+        _executor = null;
+        _timer = null;
         _hostBundleContext = null;
         _config = null;
         _methodMappings = null;
+        _defaultServiceTimeout = -1;
+        _serviceTimeout = null;
         
         _state = ERROR;
         _exception = failure;
@@ -204,12 +272,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 	/**
      * Default implementation of {@link ExportRegistration#close()}, removing this export
-     * from the associated {@link RemoteServiceAdminInstance}.
-     * <p>
-     * Implementors who added additional state for exported service (e.g. a transport
-     * channel) will probably want to override this method and, after calling this
-     * {@link #close()}, release any custom state. A good indicator for this is the usage
-     * count of the export as indicated by {@link #getInstanceCount()}.
+     * from the associated {@link RemoteServiceAdminImpl}.
      */
 	@Override
     public void close() {
@@ -221,19 +284,18 @@ public class ImportRegistrationImpl implements ImportRegistration {
             	return;
             }
 
-            // we must remove ourselves from the RSA *before* closing, otherwise
-            // RSAListeners will not have access to the ImportReference in received
-            // events.
-            _rsa.removeImportRegistration(this, _endpointDescription.getId());
-
             _state = CLOSED;
-            try {
-            	if(_serviceRegistration != null) _serviceRegistration.unregister();
-            } catch (IllegalStateException ise) {
-            	//This can happen if the target is shutting down
-            }
-            _handlerFactory.close(this);
         }
+        // We must remove before unregistering so that the service reference (if valid) is still
+        // available to send in the RemoteServiceAdminEvent
+        _rsa.removeImportRegistration(this, _endpointDescription.getId());
+        
+        try {
+        	if(_serviceRegistration != null) _serviceRegistration.unregister();
+        } catch (IllegalStateException ise) {
+        	//This can happen if the target is shutting down
+        }
+        _clientConnectionManager.notifyClosing(this);
     }
 
 	@Override
@@ -261,6 +323,21 @@ public class ImportRegistrationImpl implements ImportRegistration {
         }
     }
 
+    /**
+     * Like {@link #getException()} except it continues to return the exception after
+     * close has been called
+     * @return
+     */
+    Throwable internalGetException() {
+    	synchronized (this) {
+        	if(_state == ERROR) {
+        			return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
+        	}
+        	return _exception;
+        }
+	}
+
+	@Override
 	public boolean update(EndpointDescription endpoint) {
     	synchronized (this) {
             if (_state == CLOSED) {
@@ -274,14 +351,20 @@ public class ImportRegistrationImpl implements ImportRegistration {
             if(!_endpointDescription.equals(endpoint)) {
             	throw new IllegalArgumentException(_endpointDescription.getId());
             }
-            ImportedServiceConfig tmpConfig = Configurable.createConfigurable(ImportedServiceConfig.class, 
-    				_endpointDescription.getProperties());
-            if(!_config.com_paremus_dosgi_net_methods().equals(tmpConfig.com_paremus_dosgi_net_methods())) {
+            ImportedServiceConfig tmpConfig;
+			try {
+				tmpConfig = Converters.standardConverter().convert( 
+						endpoint.getProperties()).to(ImportedServiceConfig.class);
+			} catch (Exception e) {
+				throw new IllegalArgumentException("The endpoint could not be processed", e);
+			}
+            if(!Arrays.deepEquals(_config.com_paremus_dosgi_net_methods(), tmpConfig.com_paremus_dosgi_net_methods())) {
             	throw new IllegalArgumentException("The methods supported by the remote endpoint have changed");
             }
             
             _endpointDescription = endpoint;
             _config = tmpConfig;
+            _serviceTimeout.set(getServiceTimeout());
             
             try {
             	//TODO check the handler is still valid
@@ -323,9 +406,9 @@ public class ImportRegistrationImpl implements ImportRegistration {
             return b.toString();
         }
     }
-
-	public ImportedServiceConfig getConfig() {
-		return _config;
+	
+	public UUID getId() {
+		return UUID.fromString(_endpointDescription.getId());
 	}
 
 	public Map<Integer, String> getMethodMappings() {
@@ -338,9 +421,9 @@ public class ImportRegistrationImpl implements ImportRegistration {
                 return;
             }
             _state = ERROR;
-            LOG.debug("The import for endpoint {} in framework {} is being failed", new Object[] {
+            LOG.debug("The import for endpoint {} in framework {} is being failed",
             		 _endpointDescription.getId(), 
-            		 _hostBundleContext.getProperty("org.osgi.framework.uuid)"), reason});
+            		 _hostBundleContext.getProperty("org.osgi.framework.uuid)"), reason);
 
             try {
             	if(_serviceRegistration != null) _serviceRegistration.unregister();
@@ -349,10 +432,10 @@ public class ImportRegistrationImpl implements ImportRegistration {
             }
             _exception = reason;
             
-            _handlerFactory.close(this);
-            
-            _rsa.notifyImportError(this, _endpointDescription.getId());
 		}
+		_clientConnectionManager.notifyClosing(this);
+		
+		_rsa.notifyImportError(this, _endpointDescription.getId());
 	}
 
 	EndpointDescription getEndpointDescription() {
@@ -390,5 +473,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 		}
 	}
 
-
+	public Channel getChannel() {
+		return _channel;
+	}
 }

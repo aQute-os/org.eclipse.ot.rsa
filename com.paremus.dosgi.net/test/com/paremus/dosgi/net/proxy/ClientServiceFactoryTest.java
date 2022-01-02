@@ -14,6 +14,8 @@ package com.paremus.dosgi.net.proxy;
 
 import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -24,13 +26,14 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -38,7 +41,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.FrameworkUtil2;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
@@ -51,9 +53,13 @@ import org.osgi.util.promise.Deferred;
 import org.osgi.util.promise.Promise;
 
 import com.paremus.dosgi.net.impl.ImportRegistrationImpl;
-import com.paremus.dosgi.net.proxy.ClientServiceFactory;
-import com.paremus.dosgi.net.proxy.MethodCallHandler;
-import com.paremus.dosgi.net.proxy.MethodCallHandlerFactory;
+import com.paremus.dosgi.net.serialize.freshvanilla.VanillaRMISerializerFactory;
+
+import io.netty.channel.Channel;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timer;
+import io.netty.util.concurrent.DefaultEventExecutor;
+import io.netty.util.concurrent.EventExecutor;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -62,9 +68,7 @@ public class ClientServiceFactoryTest {
     private final String[] _serviceObjectClass = new String[]{Foo.class.getName()};
 
     @Mock
-    private MethodCallHandlerFactory _methodCallHandlerFactory;
-    @Mock
-    private MethodCallHandler _methodCallHandler;
+    private Channel _channel;
     @Mock
     private ImportRegistrationImpl _importRegistration;
     @Mock
@@ -79,11 +83,17 @@ public class ClientServiceFactoryTest {
     private EndpointDescription _endpointDescription;
     
     private ClientServiceFactory _csf;
-
     
-    @BeforeEach
+    private EventExecutor executor;
+
+    private Timer timer;
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    @BeforeEach
 	public void setUp() throws Exception {
+        executor = new DefaultEventExecutor();
+        timer = new HashedWheelTimer();
+        
         Map<String, Object> map = new HashMap<String, Object>();
         map.put(RemoteConstants.ENDPOINT_ID, "my.endpoint.id");
         map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
@@ -96,7 +106,8 @@ public class ClientServiceFactoryTest {
         methods.put(2, "getName[]");
         when(_importRegistration.getMethodMappings()).thenReturn(methods);
 
-        _csf = new ClientServiceFactory(_importRegistration, _endpointDescription, _methodCallHandlerFactory, 3000);
+        _csf = new ClientServiceFactory(_importRegistration, _endpointDescription, _channel,
+        		new VanillaRMISerializerFactory(), new AtomicLong(3000), executor, timer);
         
 
         when(_callingBundle.getBundleContext()).thenReturn(_callingContext);
@@ -114,8 +125,6 @@ public class ClientServiceFactoryTest {
         });
         _bundleClassSpace.put(Foo.class.getName(), Foo.class);
 
-        when(_callingContext.getBundle()).thenReturn(_callingBundle);
-        
         when(_asyncExportingBundle.adapt(BundleWiring.class)).thenReturn(_asyncExportingBundleWiring);
         
         when(_asyncExportingBundleWiring.getCapabilities("osgi.wiring.package")).thenReturn(
@@ -133,13 +142,15 @@ public class ClientServiceFactoryTest {
 			}
         });
 
-        
-        when(_methodCallHandlerFactory.create(_callingBundle)).thenReturn(_methodCallHandler);
     }
     
-    public void tearDown() {
-    	FrameworkUtil2.clear();
-    }
+    @AfterEach
+	public void tearDown() throws Exception {
+		FrameworkUtil.clear();
+		
+		timer.stop();
+		executor.shutdownGracefully(500, 1000, MILLISECONDS).await(1, SECONDS);
+	}
 
     @Test
     public void testGetServiceNoPromiseOrAsync() throws Exception {
@@ -186,10 +197,10 @@ public class ClientServiceFactoryTest {
         assertTrue(o instanceof Foo);
         assertTrue(o instanceof AsyncDelegate);
     }
-
-    @Test
+    
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public void testGetServiceSamePromiseNoAsync() throws Exception {
+	@Test
+    public void testGetServiceSamePromiseNoAsync() throws Exception {
     	Mockito.when(_callingBundle.loadClass(Promise.class.getName()))
     		.thenReturn((Class)Promise.class);
     	Mockito.when(_callingBundle.loadClass(AsyncDelegate.class.getName()))
@@ -205,8 +216,8 @@ public class ClientServiceFactoryTest {
     	assertTrue(o instanceof AsyncDelegate);
     }
 
-    @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
     public void testGetServiceSamePromiseNoAsyncSingleBundleProvider() throws Exception {
     	Mockito.when(_callingBundle.loadClass(Promise.class.getName()))
     		.thenReturn((Class)Promise.class);
@@ -214,11 +225,9 @@ public class ClientServiceFactoryTest {
     		.thenThrow(new ClassNotFoundException());
     	
     	_bundleClassSpace.put(Promise.class.getName(), Promise.class);
-    	FrameworkUtil2.registerBundleFor(Promise.class, _asyncExportingBundle);
+    	FrameworkUtil.registerBundleFor(Promise.class, _asyncExportingBundle);
     	Mockito.when(_asyncExportingBundle.loadClass(AsyncDelegate.class.getName()))
     		.thenReturn((Class) AsyncDelegate.class);
-    	
-    	when(_callingContext.getBundles()).thenReturn(new Bundle[]{_asyncExportingBundle, _callingBundle});
     	
     	Object o = _csf.getService(_callingBundle, null);
     	
@@ -226,8 +235,8 @@ public class ClientServiceFactoryTest {
     	assertTrue(o instanceof AsyncDelegate);
     }
 
-    @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
     public void testGetServiceSamePromiseAndAsync() throws Exception {
     	Mockito.when(_callingBundle.loadClass(Promise.class.getName()))
     		.thenReturn((Class)Promise.class);
@@ -243,8 +252,8 @@ public class ClientServiceFactoryTest {
     	assertTrue(o instanceof AsyncDelegate);
     }
 
-    @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
     public void testGetServiceDifferentPromiseAndAsync() throws Exception {
     	
     	ClassLoader differentSpace = getSeparateClassLoader();
@@ -287,8 +296,8 @@ public class ClientServiceFactoryTest {
         assertTrue(differentAsyncBundle.adapt(BundleWiring.class).getClassLoader().loadClass(AsyncDelegate.class.getName()).isInstance(o));
     }
 
-    @Test
     @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test
 	public void testGetServiceSamePromiseNoAsyncOverridesPreferral() throws Exception {
     	Mockito.when(_callingBundle.loadClass(Promise.class.getName()))
     		.thenReturn((Class)Promise.class);

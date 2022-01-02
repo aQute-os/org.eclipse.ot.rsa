@@ -22,8 +22,10 @@ import java.nio.channels.SocketChannel;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
@@ -31,6 +33,8 @@ import javax.net.ssl.SSLEngineResult.Status;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.mockito.Mockito;
+
+import io.netty.handler.ssl.SslHandler;
 
 public abstract class AbstractSSLServerConnectionManagerTest extends AbstractServerConnectionManagerTest {
 	
@@ -45,8 +49,6 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("test-resources/fabric.keystore"), "paremus".toCharArray());
 		keyManagerFactory.init(ks, "paremus".toCharArray());
-		
-		Mockito.when(esf.getSSLKeyManagerFactory()).thenReturn(keyManagerFactory);
 
 		trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -55,7 +57,15 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 		ks.load(new FileInputStream("test-resources/fabric.truststore"), "paremus".toCharArray());
 		trustManagerFactory.init(ks);
 		
-		Mockito.when(esf.getSSLTrustManagerFactory()).thenReturn(trustManagerFactory);
+		
+		Mockito.when(tls.hasCertificate()).thenReturn(true);
+		Mockito.when(tls.getTLSServerHandler()).then(i -> {
+			SSLContext instance = SSLContext.getInstance("TLSv1.2");
+			instance.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+			SSLEngine engine = instance.createSSLEngine();
+			engine.setUseClientMode(false);
+			return new SslHandler(engine);
+		});
 	}
 
 	protected ByteChannel getCommsChannel(URI uri) {

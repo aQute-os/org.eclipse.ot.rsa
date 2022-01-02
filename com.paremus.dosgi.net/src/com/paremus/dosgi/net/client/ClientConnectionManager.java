@@ -12,114 +12,84 @@
  */
 package com.paremus.dosgi.net.client;
 
-import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toMap;
 import static org.osgi.framework.ServiceException.REMOTE;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.URI;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.osgi.framework.ServiceException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.paremus.dosgi.net.config.Config;
 import com.paremus.dosgi.net.config.ProtocolScheme;
-import com.paremus.dosgi.net.proxy.MethodCallHandlerFactory;
-import com.paremus.dosgi.net.serialize.SerializerFactory;
-import com.paremus.dosgi.net.tcp.LengthFieldPopulator;
+import com.paremus.dosgi.net.config.TransportConfig;
+import com.paremus.dosgi.net.impl.ImportRegistrationImpl;
 import com.paremus.dosgi.net.tcp.VersionCheckingLengthFieldBasedFrameDecoder;
-import com.paremus.net.encode.EncodingSchemeFactory;
+import com.paremus.netty.tls.ParemusNettyTLS;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timer;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
-import io.netty.util.concurrent.FastThreadLocalThread;
 import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 
 public class ClientConnectionManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientConnectionManager.class);
 	
-	private final AtomicInteger ioThreadId = new AtomicInteger(1);
-	private final AtomicInteger workerThreadId = new AtomicInteger(1);
-	
-	final ConcurrentMap<InetSocketAddress, Channel> activeChannels = new ConcurrentHashMap<>();
+	private final ConcurrentMap<InetSocketAddress, Channel> activeChannels = new ConcurrentHashMap<>();
 
-	final ConcurrentMap<UUID, MethodCallHandlerFactoryImpl> activeHandlers = new ConcurrentHashMap<>();
-
-	private final ConcurrentMap<Channel, Set<MethodCallHandlerFactoryImpl>> channelsToHandlers = new ConcurrentHashMap<>();
+	private final ConcurrentMap<Channel, Set<ImportRegistrationImpl>> channelsToServices = new ConcurrentHashMap<>();
 	
 	private final EventLoopGroup clientIo;
-	private final EventExecutorGroup clientWorkers;
 	
 	private final ByteBufAllocator allocator;
 
-	private final EncodingSchemeFactory esf;
-	private final Map<String, Function<Consumer<Channel>, Bootstrap>> configuredTransports;
+	private final ParemusNettyTLS tls;
+	private final Map<String, BiFunction<Consumer<Channel>, InetSocketAddress, ChannelFuture>> connectors;
 
+	private final EventExecutorGroup clientWorkers;
 	private final Timer timer;
+	
+	boolean closed;
 
-	public ClientConnectionManager(Config config, EncodingSchemeFactory esf, ByteBufAllocator allocator) {
-		this.esf = esf;
+
+	public ClientConnectionManager(TransportConfig config, ParemusNettyTLS tls, ByteBufAllocator allocator,
+			EventLoopGroup clientIo, EventExecutorGroup clientWorkers, Timer timer) {
+		this.tls = tls;
 		this.allocator = allocator;
-		clientIo = new NioEventLoopGroup(config.client_io_threads(), r -> {
-			Thread thread = new FastThreadLocalThread(r, 
-					"Paremus RSA distribution client IO: " + ioThreadId.getAndIncrement());
-			thread.setDaemon(true);
-			return thread;
-		}); 
-			
-		clientWorkers = new DefaultEventExecutorGroup(config.client_worker_threads(), r -> {
-					Thread thread = new FastThreadLocalThread(r, 
-							"Paremus RSA distribution client Worker: " + workerThreadId.getAndIncrement());
-					thread.setDaemon(true);
-					return thread;
-				});
+		this.clientWorkers = clientWorkers;
+		this.timer = timer;
 		
-		timer = new HashedWheelTimer(r -> {
-			Thread thread = new FastThreadLocalThread(r, 
-					"Paremus RSA distribution client timeout worker");
-			thread.setDaemon(true);
-			return thread;
-		}, 100, MILLISECONDS, 16384);
+		this.clientIo = clientIo;
 		
-		configuredTransports = config.client_protocols().stream()
+		String[] protocols = config.client_protocols();
+		connectors = Arrays.stream(protocols)
+				.map(ProtocolScheme::new)
 				.filter(p -> {
 					if(config.allow_insecure_transports() || p.getProtocol().isSecure()) {
 						return true;
@@ -128,18 +98,18 @@ public class ClientConnectionManager {
 							p.getProtocol());
 					return false;
 				})
-			.collect(toMap(p -> p.getProtocol().getUriScheme(), p -> createBootstrapConfigFor(p)));
+			.collect(toMap(p -> p.getProtocol().getUriScheme(), p -> createConnectionTo(config, p)));
 		
+		if(connectors.isEmpty() && protocols.length > 0) {
+			LOG.error("There are no client transports available for this provider. Please check the configuration");
+			throw new IllegalArgumentException("The transport configuration created no valid client transports");
+		}
 	}
 
-	private Function<Consumer<Channel>, Bootstrap> createBootstrapConfigFor(ProtocolScheme p) {
+	@SuppressWarnings("deprecation")
+	private BiFunction<Consumer<Channel>, InetSocketAddress, ChannelFuture> createConnectionTo(TransportConfig config, ProtocolScheme p) {
 		
-		if(p.getPort() != 0) {
-			LOG.warn("The client protocol configuration {} for transport {} contains a port assignment. Clients do not listen for connections and so this property will be ignored",
-						p.getConfigurationString(), p.getProtocol());
-		}
-		
-		return customizer -> {
+		return (customizer, remoteAddress) -> {
 			Bootstrap b = new Bootstrap();
 			b.group(clientIo)
 				.option(ChannelOption.ALLOCATOR, allocator)
@@ -153,46 +123,39 @@ public class ClientConnectionManager {
 					clientAuth = true;
 				case TCP_TLS :
 					boolean useClientAuth = clientAuth;
-					KeyManagerFactory sslKeyManagerFactory = esf.getSSLKeyManagerFactory();
-					TrustManagerFactory sslTrustManagerFactory = esf.getSSLTrustManagerFactory();
-					if(sslTrustManagerFactory == null || (useClientAuth && sslKeyManagerFactory == null)) {
-						LOG.error("The secure transport {} cannot be configured as the necessary certificate configuration is unavailable. Please check the configuration of the com.paremus.net.encode provider.",
+					
+					if(!tls.hasTrust() || (useClientAuth && !tls.hasCertificate())) {
+						LOG.error("The secure transport {} cannot be configured as the necessary certificate configuration is unavailable. Please check the configuration of the TLS provider.",
 								p.getProtocol());
 						return null;
 					}
 					
 					c = c.andThen(ch -> {
-						String ciphers = p.getOption("ciphers", String.class);
-						ciphers = ciphers == null ? "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" : ciphers;
-						String protocols = p.getOption("protocols", String.class);
-						protocols = protocols == null ? "TLSv1.2" : ciphers;
 						
-						SslContext sslContext;
-						try {
-							SslContextBuilder builder = SslContextBuilder.forClient();
-							if(useClientAuth) builder.keyManager(sslKeyManagerFactory);
-							sslContext = builder
-								.trustManager(sslTrustManagerFactory)
-								.ciphers(asList(ciphers.split(",")))
-								.build();
-						} catch (Exception e) {
-							LOG.error("There was an error creating a secure transport.", e);
-							throw new RuntimeException("Unable to create the SSL Engine", e);
+						SslHandler clientHandler = tls.getTLSClientHandler();
+						
+						SSLEngine engine = clientHandler.engine();
+						
+						String ciphers = p.getOption("ciphers", String.class);
+						if(ciphers != null) {
+							engine.setEnabledCipherSuites(ciphers.split(","));
 						}
-						SSLEngine engine = sslContext.newEngine(allocator);
+						
+						String protocols = p.getOption("protocols", String.class);
+						if(protocols != null) {
+							engine.setEnabledProtocols(protocols.split(","));
+						}
+						
 						engine.setWantClientAuth(useClientAuth);
 						engine.setNeedClientAuth(useClientAuth);
-						engine.setEnabledProtocols(protocols.split(","));
 						
-						SslHandler sslHandler = new SslHandler(engine);
-
 						Integer handshakeTimeout = p.getOption("handshake.timeout", Integer.class);
 						if(handshakeTimeout != null) {
 							if(handshakeTimeout < 1 || handshakeTimeout > 10000) {
 								LOG.warn("The connection timeout {} for {} is not supported. The value must be greater than 0 and less than 10000 It will be set to 3000");
 								handshakeTimeout = 8000;
 							}
-							sslHandler.setHandshakeTimeoutMillis(handshakeTimeout);
+							clientHandler.setHandshakeTimeoutMillis(handshakeTimeout);
 						}
 						Integer closeNotifyTimeout = p.getOption("close.notify.timeout", Integer.class);
 						if(closeNotifyTimeout != null) {
@@ -200,10 +163,10 @@ public class ClientConnectionManager {
 								LOG.warn("The connection timeout {} for {} is not supported. The value must be greater than 0 and less than 10000 It will be set to 3000");
 								closeNotifyTimeout = 3000;
 							}
-							sslHandler.setCloseNotifyTimeoutMillis(closeNotifyTimeout);
+							clientHandler.setCloseNotifyTimeoutMillis(closeNotifyTimeout);
 						}
 						
-						ch.pipeline().addLast(sslHandler);
+						ch.pipeline().addLast(clientHandler);
 					});
 					
 				case TCP :
@@ -219,10 +182,8 @@ public class ClientConnectionManager {
 							.option(ChannelOption.TCP_NODELAY, p.getOption("nodelay", Boolean.class))
 							.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, connectionTimeout);
 					c = c.andThen(ch -> {
-				        	// Outgoing
-				        	ch.pipeline().addLast(new LengthFieldPopulator());
 				        	//Incoming
-				        	ch.pipeline().addLast(new VersionCheckingLengthFieldBasedFrameDecoder(1 << 24, 1, 3));
+				        	ch.pipeline().addLast(ImmediateEventExecutor.INSTANCE, new VersionCheckingLengthFieldBasedFrameDecoder());
 						});
 					break;
 				default : 
@@ -236,12 +197,12 @@ public class ClientConnectionManager {
 					fullPipeline.accept(ch);
 				}
 			});
-			return b;
+			InetSocketAddress bindAddress = p.getBindAddress() == null ? new InetSocketAddress(config.server_bind_address(), 0) : p.getBindAddress();
+			return b.connect(remoteAddress, bindAddress);
 		};
 	}
 
-	public MethodCallHandlerFactory getFactoryFor(URI uri, EndpointDescription endpointDescription, 
-			SerializerFactory serializerFactory, Map<Integer, String> methodMappings) {
+	public Channel getChannelFor(URI uri, EndpointDescription endpointDescription) {
 		
 		UUID serviceId =  UUID.fromString(endpointDescription.getId());
 		InetSocketAddress remoteAddress = new InetSocketAddress(uri.getHost(), uri.getPort());
@@ -249,15 +210,25 @@ public class ClientConnectionManager {
 		// We must not use computeIfAbsent as this holds a table lock in the activeChannels Map
 		// This can block the close listener of another channel (doing a remove), which prevents
 		// that thread from completing the connect in getChannelFor -> DEADLOCK!
-		Channel channel = activeChannels.get(remoteAddress);
+		boolean isOpen;
+		Channel channel;
+		synchronized (this) {
+			isOpen = !closed;
+			channel = activeChannels.get(remoteAddress);
+		}
 		
-		if(channel == null) {
-			Channel newChannel = ofNullable(configuredTransports.get(uri.getScheme()))
+		if(channel == null && isOpen) {
+			Channel newChannel = ofNullable(connectors.get(uri.getScheme()))
 				.map(b -> getChannelFor(b,remoteAddress))
 				.orElse(null);
 			if(newChannel != null) {
-				channel = activeChannels.putIfAbsent(remoteAddress, newChannel);
-				if(channel == null) {
+				synchronized (this) {
+					isOpen = !closed;
+					if(isOpen) {
+						channel = activeChannels.putIfAbsent(remoteAddress, newChannel);
+					}
+				}
+				if(channel == null && isOpen) {
 					channel = newChannel;
 				} else {
 					newChannel.close();
@@ -272,42 +243,41 @@ public class ClientConnectionManager {
 		}
 		
 		Channel toUse = channel;
-		MethodCallHandlerFactoryImpl impl = activeHandlers.computeIfAbsent(serviceId, 
-				k -> new MethodCallHandlerFactoryImpl(toUse, allocator, k, serializerFactory, 
-						methodMappings, this, timer));
-		
-		channelsToHandlers.merge(channel, Collections.singleton(impl), (k,v) -> {
-			Set<MethodCallHandlerFactoryImpl> related = new HashSet<>(v);
-			related.add(impl);
-			return related;
-		});
 		
 		channel.closeFuture().addListener(x -> {
 			Throwable failure = x.cause();
 			clientWorkers.execute(() -> {
 				String message = "The connection to the remote node " + toUse.remoteAddress() + " was lost";
-				impl.failAll(failure == null ? new ServiceException(message, REMOTE) : 
+				failAll(toUse, failure == null ? new ServiceException(message, REMOTE) : 
 					new ServiceException(message, REMOTE, failure));
 			});
 		});
 		
-		return impl;
+		return toUse;
 	}
 
-	private Channel getChannelFor(Function<Consumer<Channel>, Bootstrap> f, InetSocketAddress remoteAddress) {
+	private Channel getChannelFor(BiFunction<Consumer<Channel>, InetSocketAddress, ChannelFuture> f, InetSocketAddress remoteAddress) {
 		ChannelFuture future = null;
 		try {
 			future = f.apply(ch -> {
-			        	ch.pipeline().addLast(clientWorkers, new ClientResponseHandler());
-			        }).connect(remoteAddress);
+				ClientResponseHandler clientResponseHandler = new ClientResponseHandler(this, timer);
+						ch.pipeline().addLast(ImmediateEventExecutor.INSTANCE, clientResponseHandler);
+						ch.pipeline().addLast(ImmediateEventExecutor.INSTANCE, new ClientRequestSerializer(clientResponseHandler));
+			        }, remoteAddress);
 			future.await();
 			
 			if(future.isSuccess()) {
 				Channel channel = future.channel();
 				
 				channel.closeFuture().addListener(x -> {
-						activeChannels.remove(channel.remoteAddress(), channel);
-						channelsToHandlers.remove(channel);
+						activeChannels.remove(remoteAddress, channel);
+						ofNullable(channelsToServices.remove(channel))
+							.ifPresent(s -> s.stream().forEach(ir -> {
+									Throwable failure = x.cause();
+									String message = "The connection to the remote node " + remoteAddress + " was lost";
+									ir.asyncFail(failure == null ? new ServiceException(message, REMOTE) : 
+														new ServiceException(message, REMOTE, failure));
+								}));
 					});
 				
 				ChannelHandler first = channel.pipeline().first();
@@ -338,50 +308,92 @@ public class ClientConnectionManager {
 			return null;
 		}
 	}
-	
-	@Sharable
-	private class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 
-		@Override
-		public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
-			ByteBuf buf = (ByteBuf)o;
-			try {
-				byte command = buf.readByte();
-				UUID serviceId = new UUID(buf.readLong(), buf.readLong());
-				MethodCallHandlerFactoryImpl handler = activeHandlers.get(serviceId);
-				if(handler != null) {
-					handler.response(buf.readInt(), command, buf);
-				}
-			} finally {
-				buf.release();
-			}
+	private void failAll(Channel channel, Throwable t) {
+		synchronized (this) {
+			if(closed) return;
 		}
+		
+		ofNullable(channelsToServices.get(channel))
+			.ifPresent(s -> s.stream()
+					.forEach(ir -> ir.asyncFail(t)));
 	}
 
-	void notifyClosing(UUID serviceId, MethodCallHandlerFactoryImpl mcfhi) {
-		activeHandlers.remove(serviceId, mcfhi);
-		Channel channel = mcfhi.getChannel();
-		Set<MethodCallHandlerFactoryImpl> remaining = channelsToHandlers.computeIfPresent(channel, (k,v) -> {
-			Set<MethodCallHandlerFactoryImpl> newSet = new HashSet<>(v);
-			newSet.remove(mcfhi);
-			return newSet.isEmpty() ? null : newSet;
-		});
-		if(remaining == null) {
-			activeChannels.remove(channel.remoteAddress());
-			channel.close();
+	public void addImportRegistration(ImportRegistrationImpl ir) {
+		String failure = null;
+		Channel channel = ir.getChannel();
+		if(channel == null) {
+			failure = "The import has no associated channel";
+		} else {
+			synchronized (this) {
+				if (!channel.isOpen()) {
+					failure = "The import's channel is already closed";
+				} else if (closed) {
+					failure = "The handler for the import has been asynchronously closed";
+				} else {
+					channelsToServices.compute(channel, (k,v) -> {
+						Set<ImportRegistrationImpl> newSet = v == null ? new HashSet<>() : new HashSet<>(v);
+						newSet.add(ir);
+						return newSet;
+					});
+				}
+			}
 		}
+		if(failure != null) {
+			throw new ServiceException(failure, ServiceException.REMOTE);
+		}
+	}
+	
+	public void notifyClosing(ImportRegistrationImpl ir) {
+		Channel channel = ir.getChannel();
+		
+		if(channel != null) {
+			boolean closeChannel = false;
+			synchronized (this) {
+				Set<ImportRegistrationImpl> remaining = channelsToServices.computeIfPresent(channel, (k,v) -> {
+					Set<ImportRegistrationImpl> newSet = new HashSet<>(v);
+					newSet.remove(ir);
+					return newSet.isEmpty() ? null : newSet;
+				});
+				if(remaining == null) {
+					SocketAddress remoteAddress = channel.remoteAddress();
+					// This will be null if the channel is already closed, if so there is nothing to do
+					if(remoteAddress != null) {
+						activeChannels.remove(remoteAddress);
+						closeChannel = true;
+					}
+				}
+			}
+			if(closeChannel) {
+				channel.close();
+			}
+		}
+		
 	}
 
 	public void close() {
+		synchronized (this) {
+			if(closed) return;
+			closed = true;
+		}
+		
+		Throwable closing = new ServiceException("The RSA client is closing.", ServiceException.REMOTE);
+		channelsToServices.values().stream()
+			.flatMap(Set::stream)
+			.forEach(ir -> ir.asyncFail(closing));
+		 
 		activeChannels.values().stream()
 			.forEach(Channel::close);
-		Future<?> ioFuture = clientIo.shutdownGracefully(250, 1000, MILLISECONDS);
-		Future<?> workerFuture = clientWorkers.shutdownGracefully(250, 1000, MILLISECONDS);
-		
-		try {
-			ioFuture.await(2000);
-			workerFuture.await(2000);
-		} catch (InterruptedException ie) {
+	}
+
+	public void notifyFailedService(Channel channel, UUID serviceId, ServiceException se) {
+		synchronized (this) {
+			if(closed) return;
 		}
+		clientWorkers.execute(() -> 
+			ofNullable(channelsToServices.get(channel))
+				.map(Set::stream)
+				.flatMap(s -> s.filter(ir -> serviceId.equals(ir.getId())).findFirst())
+				.ifPresent(ir -> ir.asyncFail(se)));
 	}
 }

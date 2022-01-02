@@ -52,4 +52,8 @@ public interface WireFormat {
     
     public void registerPojo(Object o);
 
+	public int getPojoIndex();
+
+	public void registerPojo(int idx, Object o);
+
 }

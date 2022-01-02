@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -38,22 +40,25 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.service.async.delegate.AsyncDelegate;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
-import org.osgi.util.promise.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.paremus.dosgi.net.impl.ImportRegistrationImpl;
+import com.paremus.dosgi.net.impl.RemoteServiceAdminImpl;
+import com.paremus.dosgi.net.serialize.SerializerFactory;
+
+import io.netty.channel.Channel;
+import io.netty.util.Timer;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * ClientServiceFactory acts as access point for imported remote services. A
  * {@link RemoteServiceAdmin} registers instances of this class in the OSGi framework with
  * the same interface(s) as the remote service. Any service lookup (e.g. via
  * {@link BundleContext#getService(org.osgi.framework.ServiceReference)}) will return a
- * per-client proxy to the remote service, created by the associated
- * {@link RemoteServiceAdminInstanceCustomizer}.
+ * per-client proxy to the remote service.
  * <p>
  * A note on class resolution. This class is a {@link ServiceFactory} since it needs
  * access to a calling bundle for correct class loading according to each client's class
@@ -62,13 +67,21 @@ import com.paremus.dosgi.net.impl.ImportRegistrationImpl;
  * resolved are <b>skipped</b>. This allows access to services which advertise multiple
  * interfaces when a client only needs (and imports) a subset of these interfaces.
  * 
- * @see {@link ServiceFactory}, {@link RemoteServiceAdminInstanceCustomizer}
  */
 public class ClientServiceFactory implements ServiceFactory<Object> {
 
     private static final String ASYNC_DELEGATE_PACKAGE = "org.osgi.service.async.delegate";
 
+    static final String ASYNC_DELEGATE_TYPE = ASYNC_DELEGATE_PACKAGE + ".AsyncDelegate";
+
 	private static final String PROMISE_PACKAGE = "org.osgi.util.promise";
+
+	private static final String PROMISE_TYPE = PROMISE_PACKAGE + ".Promise";
+
+	private static final String PUSHSTREAM_PACKAGE = "org.osgi.util.pushstream";
+	
+	private static final String PUSHSTREAM_TYPE = PUSHSTREAM_PACKAGE + ".PushStream";
+	private static final String PUSH_EVENT_SOURCE_TYPE = PUSHSTREAM_PACKAGE + ".PushEventSource";
 
 	private static final String OSGI_WIRING_PACKAGE = "osgi.wiring.package";
 
@@ -78,20 +91,38 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
     
     private final ImportRegistrationImpl _importRegistration;
 
-    private final MethodCallHandlerFactory _handlerFactory;
+    private final Channel _channel;
+    
+    private SerializerFactory _serializerFactory;
 
-	private int _serviceCallTimeout;
+	private final EventExecutorGroup _executor;
+    
+    private final Timer _timer;
 
-    /**
+	private final AtomicLong _serviceCallTimeout;
+	
+	private final AtomicInteger _callIdCounter = new AtomicInteger(0);
+
+	/**
      * Default constructor, used by
-     * {@link RemoteServiceAdminInstance#importService(EndpointDescription)}.
+     * {@link RemoteServiceAdminImpl}.
+     * @param importRegistration The import registration
+     * @param endpoint The endpoint description
+     * @param channel The communications channel to talk to the server
+     * @param serializerFactory the serializer to use when sending arguments
+     * @param serviceCallTimeout the timeout for service calls
+     * @param executor the worker for client calls
+     * @param timer the worker for triggering scheduled calls
      */
     public ClientServiceFactory(ImportRegistrationImpl importRegistration, EndpointDescription endpoint,
-    		MethodCallHandlerFactory handlerFactory, int serviceCallTimeout) {
+    		Channel channel, SerializerFactory serializerFactory, AtomicLong serviceCallTimeout, EventExecutorGroup executor, Timer timer) {
         _endpointDescription = endpoint;
         _importRegistration = importRegistration;
-        _handlerFactory = handlerFactory;
+        _channel = channel;
+		_serializerFactory = serializerFactory;
         _serviceCallTimeout = serviceCallTimeout;
+        _executor = executor;
+        _timer = timer;
     }
 
     public Object getService(Bundle requestingBundle, ServiceRegistration<Object> serviceRegistration) {
@@ -127,14 +158,18 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
                 		}
                 	}
                 }
+                
+                Class<?> pushStream = locatePushStreamType(requestingBundle, PUSHSTREAM_TYPE);
+                Class<?> pushEventSource = locatePushStreamType(requestingBundle, PUSH_EVENT_SOURCE_TYPE);
 
                 Class<?> proxyClass = Proxy.getProxyClass(getClassLoader(requestingBundle, 
                 		asyncDelegate, promise, interfaces), interfaces.toArray(new Class[0]));
                 
                 ServiceInvocationHandler proxyHandler = new ServiceInvocationHandler(
-                		_importRegistration, _endpointDescription, requestingBundle, proxyClass,
-                		interfaces, promise, asyncDelegate != null, 
-                		_handlerFactory.create(requestingBundle), _serviceCallTimeout);
+                		_importRegistration, _endpointDescription, requestingBundle, 
+                		proxyClass, interfaces, promise, asyncDelegate != null, pushStream, pushEventSource, 
+                		_channel, _serializerFactory.create(requestingBundle), () -> _callIdCounter.getAndIncrement(), 
+                		_serviceCallTimeout, _executor, _timer);
                 
                 return proxyClass.getConstructor(InvocationHandler.class).newInstance(proxyHandler);
             };
@@ -167,7 +202,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
     }
 
     private Class<?> locateAsyncDelegate(Bundle requestingBundle, Class<?> promiseClass) {
-		Class<?> asyncDelegate = resolveClass(requestingBundle, AsyncDelegate.class.getName());
+		Class<?> asyncDelegate = resolveClass(requestingBundle, ASYNC_DELEGATE_TYPE);
 		Version minAcceptable = new Version(1,0,0);
 		Version minUnacceptable = new Version(2,0,0);
 		if(asyncDelegate != null) {
@@ -212,7 +247,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 							.anyMatch(v -> v.compareTo(minUnacceptable) < 0))
 					.collect(Collectors.toSet());
 				
-				if(resolveClass(promiseBundle, AsyncDelegate.class.getName()) != null) {
+				if(resolveClass(promiseBundle, ASYNC_DELEGATE_TYPE) != null) {
 					asyncExporters.add(wiring);
 				}
 				asyncDelegate = getMostAppropriateAsyncDelegate(asyncExporters, promiseClass);
@@ -253,7 +288,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 					return diff == 0 ? b.getBundle().compareTo(a.getBundle()) : diff;
 				}).map(bw -> {
 						try {
-							return bw.getClassLoader().loadClass(AsyncDelegate.class.getName());
+							return bw.getClassLoader().loadClass(ASYNC_DELEGATE_TYPE);
 						} catch (ClassNotFoundException cnfe) {
 							return null;
 						}
@@ -273,13 +308,23 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 	}
 
 	private Class<?> locatePromise(Bundle requestingBundle) {
-		Class<?> promiseClass = resolveClass(requestingBundle, Promise.class.getName());
+		Class<?> promiseClass = resolveClass(requestingBundle, PROMISE_TYPE);
 		
 		if(promiseClass != null) {
 			promiseClass = checkAcceptableVersion(requestingBundle, promiseClass, 
 					PROMISE_PACKAGE, new Version(1,0,0), new Version(2,0,0));
 		}
 		return promiseClass;
+	}
+
+	private Class<?> locatePushStreamType(Bundle requestingBundle, String type) {
+		Class<?> pushStreamTypeClass = resolveClass(requestingBundle, type);
+		
+		if(pushStreamTypeClass != null) {
+			pushStreamTypeClass = checkAcceptableVersion(requestingBundle, pushStreamTypeClass, 
+					PUSHSTREAM_PACKAGE, new Version(1,0,0), new Version(2,0,0));
+		}
+		return pushStreamTypeClass;
 	}
 
 	private Class<?> checkAcceptableVersion(Bundle requestingBundle, Class<?> apiClass, String apiPackage,
@@ -327,10 +372,10 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 			@Override
 			protected Class<?> findClass(String name)
 					throws ClassNotFoundException {
-				if(Promise.class.getName().equals(name) && promise != null) {
+				if(PROMISE_TYPE.equals(name) && promise != null) {
 					return promise;
 				}
-				if(AsyncDelegate.class.getName().equals(name) && async != null) {
+				if(ASYNC_DELEGATE_TYPE.equals(name) && async != null) {
 					return async;
 				} 
 				for(Class<?> clz : interfaces) {

@@ -18,21 +18,32 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ProtocolScheme {
 	
-	private final Protocol protocol;
+	private static final Logger LOG = LoggerFactory.getLogger(ProtocolScheme.class);
 	
-	private final int port;
+	private final Pattern COLON = Pattern.compile(":");
+	
+	private final Protocol protocol;
 	
 	private final int receiveBufferSize;
 	
 	private final int sendBufferSize;
 
-	private final InetAddress bindAddress;
+	private final InetSocketAddress bindAddress;
+	
+	private final Map<String, Integer> toAdvertise = new LinkedHashMap<>();
 	
 	private final Map<String, String> specificSocketOptions = new HashMap<String, String>();
 
@@ -48,7 +59,7 @@ public class ProtocolScheme {
 		int portDef = 0;
 		int rcvBuf = 1 << 18;
 		int sendBuf = 1 << 18;
-		InetAddress bindAddress = null;
+		InetSocketAddress bindAddress = null;
 		
 		for(int i = 1; i < stanzas.length; i++) {
 			String[] stanza = stanzas[i].split("=",2);
@@ -58,42 +69,90 @@ public class ProtocolScheme {
 					if(portDef < 0 || portDef > 65535)  {
 						throw new IllegalArgumentException("" + portDef + " is not a valid port number");
 					}
+					continue;
 				case "bind" :
 					try {
-						bindAddress = InetAddress.getByName(stanza[1]);
-						if(NetworkInterface.getByInetAddress(bindAddress) == null && 
-								!bindAddress.isAnyLocalAddress()) {
+						bindAddress = handleAddress(spec, stanza[1]);
+						InetAddress address = bindAddress.getAddress();
+						if(NetworkInterface.getByInetAddress(address) == null && 
+								!address.isAnyLocalAddress()) {
 							throw new IllegalArgumentException("The bind address " + 
 									stanza[1] + " is not local to this machine.");
 						}
 					} catch (Exception e) {
 						throw new IllegalArgumentException("Unable to bind to the address " + stanza[1], e);
 					}
+					continue;
+				case "advertise" :
+					InetSocketAddress isa = handleAddress(spec, stanza[1]);
+					toAdvertise.put(isa.getHostString(), isa.getPort());
+					continue;
 				default:
 					specificSocketOptions.put(stanza[0], stanza[1]);
 			}
 		}
 		
-		port = portDef;
 		receiveBufferSize = rcvBuf;
 		sendBufferSize = sendBuf;
 		this.bindAddress = bindAddress;
+	}
+
+	private InetSocketAddress handleAddress(String spec, String value) {
+		
+		int portDelimiter = value.lastIndexOf(':');
+		
+		Matcher colonCounter = COLON.matcher(value);
+		
+		boolean hasMultipleColons = colonCounter.find() && colonCounter.find();
+		
+		boolean hasPort;
+		if(value.startsWith("[") ) {
+			// IPv6
+			int endOfAddress = value.lastIndexOf(']');
+			hasPort = portDelimiter > endOfAddress;
+		} else if(hasMultipleColons) {
+			LOG.warn("The protocol definition {} contains an address {} which uses IPV6 notation but is not surrounded by \"[]\". No port information can be detected using this syntax and it should be avoided.", spec, value);
+			hasPort = false;
+		} else {
+			hasPort = portDelimiter > 0;
+		}
+		
+		try {
+			int port;
+			String address;
+			if(hasPort) {
+				port = Integer.parseInt(value.substring(portDelimiter + 1));
+				if(port < 0 || port > 65535)  {
+					LOG.error("The protocol definition {} contains an address {} which declares an invalid port", spec, value);
+					throw new IllegalArgumentException("The " + port + " is not a valid port number");
+				}
+				address = value.substring(0, portDelimiter);
+			} else {
+				port = 0;
+				address = value;
+			}
+			
+			// Check for valid syntax when creating
+			return new InetSocketAddress(InetAddress.getByName(address), port);
+		} catch (Exception e) {
+			throw new RuntimeException("The protocol specification " + spec + " contains an invalid clause " + value);
+		}
 	}
 
 	public Protocol getProtocol() {
 		return protocol;
 	}
 
-	public int getPort() {
-		return port;
-	}
-
 	public int getSendBufferSize() {
 		return sendBufferSize;
 	}
 	
-	public InetAddress getBindAddress() {
+	public InetSocketAddress getBindAddress() {
 		return bindAddress;
+	}
+
+	public Map<String, Integer> getAddressesToAdvertise() {
+		return new LinkedHashMap<>(toAdvertise);
 	}
 
 	public int getReceiveBufferSize() {

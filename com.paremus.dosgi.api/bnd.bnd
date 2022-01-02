@@ -1,0 +1,6 @@
+-buildpath: \
+	org.osgi.annotation.bundle,\
+	org.osgi.annotation.versioning,\
+	org.osgi.framework,\
+	org.osgi.service.remoteserviceadmin
+Bundle-Version: 1.1.1.SNAPSHOT

@@ -60,10 +60,10 @@ public class BinaryWireFormat implements WireFormat {
     private final MetaClasses _metaClasses;
     private final PojoSerializer _serializer;
 
-    public BinaryWireFormat(MetaClasses metaclasses) {
+    public BinaryWireFormat(MetaClasses metaclasses, PojoSerializer serializer) {
         super();
         _metaClasses = metaclasses;
-        _serializer = new VanillaPojoSerializer(metaclasses);
+        _serializer = serializer;
     }
 
     public void flush(DataSocket ds, ByteBuf writeBuffer) throws IOException {
@@ -649,9 +649,6 @@ public class BinaryWireFormat implements WireFormat {
         writeSTag(writeBuffer, stag);
         writeNum(writeBuffer, collection.size());
         for (Object o : collection)
-            if (o instanceof String)
-                writeTag(writeBuffer, (String)o);
-            else
                 writeObject(writeBuffer, o);
     }
 
@@ -827,9 +824,7 @@ public class BinaryWireFormat implements WireFormat {
             if (ch == 255) {
                 hichars = true;
             }
-            else {
-                chars[i] = ch;
-            }
+            chars[i] = ch;
         }
 
         if (hichars) {
@@ -908,13 +903,25 @@ public class BinaryWireFormat implements WireFormat {
 		seenReadableObjects.add(o);
 	}
 
+    @Override
+    public int getPojoIndex() {
+    	return seenReadableObjects.size();
+    }
+
+    @Override
+    public void registerPojo(int idx, Object o) {
+    	seenReadableObjects.add(idx, o);
+    }
+
 	public static class Builder extends VanillaResource implements ObjectBuilder<WireFormat> {
 
         private final MetaClasses _metaClasses;
+		private final PojoSerializer _serializer;
 
-        public Builder(String name, MetaClasses metaclasses) {
+        public Builder(String name, MetaClasses metaclasses, PojoSerializer serializer) {
             super(name);
             _metaClasses = metaclasses;
+			_serializer = serializer;
         }
 
         protected void finalize() throws Throwable {
@@ -928,7 +935,7 @@ public class BinaryWireFormat implements WireFormat {
 
         public WireFormat create() {
             checkedClosed();
-            return new BinaryWireFormat(_metaClasses);
+            return new BinaryWireFormat(_metaClasses, _serializer);
         }
     }
 

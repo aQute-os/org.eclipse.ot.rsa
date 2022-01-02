@@ -57,7 +57,8 @@ public class MetaClasses {
         return PRIMITIVES.contains(clazz);
     }
 
-    public static <Pojo1, Pojo2> boolean equals(MetaClasses metaclasses, Pojo1 pojo1, Pojo2 pojo2) {
+    @SuppressWarnings("unlikely-arg-type")
+	public static <Pojo1, Pojo2> boolean equals(MetaClasses metaclasses, Pojo1 pojo1, Pojo2 pojo2) {
         if (pojo1 == null) {
             return pojo2 == null;
         }

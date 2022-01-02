@@ -1,0 +1,24 @@
+{
+  ":configurator:resource-version": 1,
+  
+	"com.paremus.dosgi.discovery.cluster~DIM": 
+  	{
+		"root.cluster": "DIMC"
+	},
+	"com.paremus.gossip.netty~DIM": 
+  	{
+		"initial.peers": "127.0.0.1",
+		"cluster.name": "DIMC"
+	},
+	"com.paremus.netty.tls": 
+  	{
+  		"insecure":true
+	},
+	"com.paremus.dosgi.net":
+	{
+		"server.bind.address": "127.0.0.1",
+		"allow.insecure.transports": true,
+		"server.protocols": "TCP;nodelay=true",
+		"nodelay": true
+  	}
+}

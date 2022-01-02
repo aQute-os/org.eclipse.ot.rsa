@@ -12,29 +12,31 @@
  */
 package com.paremus.dosgi.net.tcp;
 
-import java.nio.ByteOrder;
+import java.util.List;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.CorruptedFrameException;
-import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-public class VersionCheckingLengthFieldBasedFrameDecoder extends LengthFieldBasedFrameDecoder {
-
-	public VersionCheckingLengthFieldBasedFrameDecoder(int maxFrameLength, int lengthFieldOffset,
-			int lengthFieldLength) {
-		super(maxFrameLength, lengthFieldOffset, lengthFieldLength, 0, lengthFieldLength + 1);
-	}
+public class VersionCheckingLengthFieldBasedFrameDecoder extends ByteToMessageDecoder {
 
 	@Override
-	protected long getUnadjustedFrameLength(ByteBuf buf, int offset, int length, ByteOrder order) {
-		
-		short version = buf.getUnsignedByte(offset - 1);
-        if(version > 1) {
-        	throw new CorruptedFrameException("Unacceptable message version (" + version + ")"); 
+	protected void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+		while (buf.readableBytes() > 4) {
+			final int offset = buf.readerIndex();
+			final short version = buf.getUnsignedByte(offset);
+	        if(version > 2) {
+	        	throw new CorruptedFrameException("Unacceptable message version (" + version + ")"); 
+	        }
+	        final int length = buf.getUnsignedMedium(offset + 1);
+	        
+	        if(!buf.isReadable(length + 4)) {
+	        	break;
+	        }
+	        
+        	out.add(buf.retainedSlice(offset + 4, length));
+        	buf.skipBytes(length + 4); 
         }
-		return super.getUnadjustedFrameLength(buf, offset, length, order);
 	}
-
-	
-
 }

@@ -19,7 +19,7 @@ package org.freshvanilla.lang.misc;
 import java.lang.reflect.Field;
 
 class Unsafe implements Accessor {
-    static final sun.misc.Unsafe unsafe;
+	static final sun.misc.Unsafe unsafe;
 
     static {
         try {
@@ -35,7 +35,8 @@ class Unsafe implements Accessor {
     /* (non-Javadoc)
 	 * @see org.freshvanilla.lang.misc.Accessor#newInstance(java.lang.Class)
 	 */
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
 	public <T> T newInstance(Class<T> clazz) throws InstantiationException {
         return (T)unsafe.allocateInstance(clazz);
     }

@@ -12,24 +12,19 @@
  */
 package com.paremus.dosgi.net.config;
 
-import java.net.URI;
-import java.util.List;
+import static com.paremus.dosgi.net.serialize.SerializationType.FAST_BINARY;
 
 import com.paremus.dosgi.net.serialize.SerializationType;
 
-import aQute.bnd.annotation.metatype.Meta.AD;
+public @interface ImportedServiceConfig {
+	String[] com_paremus_dosgi_net() default {};
 
-public interface ImportedServiceConfig {
-	@AD
-	List<URI> com_paremus_dosgi_net();
+	SerializationType com_paremus_dosgi_net_serialization() default FAST_BINARY;
 
-	@AD(required=false, deflt="FAST_BINARY")
-	SerializationType com_paremus_dosgi_net_serialization();
+	int com_paremus_dosgi_net_timeout() default -1;
+	
+	long osgi_basic_timeout() default -1;
 
-	@AD(required=false, deflt="-1")
-	int com_paremus_dosgi_net_timeout();
-
-	@AD
-	List<String> com_paremus_dosgi_net_methods();
+	String[] com_paremus_dosgi_net_methods() default {};
 	
 }

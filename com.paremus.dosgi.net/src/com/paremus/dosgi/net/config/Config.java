@@ -12,36 +12,34 @@
  */
 package com.paremus.dosgi.net.config;
 
-import java.util.List;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-import aQute.bnd.annotation.metatype.Meta.AD;
 
-public interface Config {
+@ObjectClassDefinition(pid="com.paremus.dosgi.net")
+public @interface Config {
 	
-	@AD(required=false, deflt="4")
-	int client_io_threads();
-	@AD(required=false, deflt="8")
-	int client_worker_threads();
+	int client_worker_threads() default 8;
+	int client_io_threads() default 4;
+	int client_task_queue_depth() default 1024;
 
-	@AD(required=false, deflt="8")
-	int server_worker_threads();
-	@AD(required=false, deflt="16")
-	int server_io_threads();
-	@AD(required=false, deflt="1024")
-	int server_task_queue_depth();
-	
-	@AD(required=false, deflt="false")
-	boolean allow_insecure_transports();
-	
-	@AD(required=false, deflt="TCP;nodelay=true|TCP_CLIENT_AUTH;nodelay=true;connect.timeout=3000")
-	List<ProtocolScheme> client_protocols();
-	
-	@AD(required=false, deflt="TCP;nodelay=true|TCP_CLIENT_AUTH;nodelay=true")
-	List<ProtocolScheme> server_protocols();
-	
-	@AD(required=false, deflt="0.0.0.0")
-	String server_bind_address();
+	int server_worker_threads() default 8;
+	int server_io_threads() default 4;
+	int server_task_queue_depth() default 1024;
 
-	@AD(required=false, deflt="30000")
-	int client_default_timeout();
+	boolean share_io_threads() default true;
+
+	boolean share_worker_threads() default true;
+	
+	boolean allow_insecure_transports() default false;
+	
+	String[] client_protocols() default {"TCP;nodelay=true", "TCP_CLIENT_AUTH;nodelay=true;connect.timeout=3000"};
+	
+	String[] server_protocols() default {"TCP;nodelay=true", "TCP_CLIENT_AUTH;nodelay=true"};
+	
+	String server_bind_address() default "0.0.0.0";
+
+	int client_default_timeout() default 30000;
+	
+	String encoding_scheme_target() default "";
+
 }

@@ -1,0 +1,10 @@
+-buildpath: \
+	io.netty.common,\
+	org.osgi.util.promise;version='1.0',\
+	org.osgi.util.function;version='1.0'
+
+Bundle-Version: 1.1.1.SNAPSHOT
+Import-Package: \
+	org.osgi.util.promise;version='[1.0.0,1.1.0)',\
+	*
+Export-Package: com.paremus.dosgi.net.promise

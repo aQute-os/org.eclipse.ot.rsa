@@ -12,34 +12,25 @@
  */
 package com.paremus.dosgi.net.config;
 
-import java.util.Collection;
-import java.util.List;
+import static com.paremus.dosgi.net.serialize.SerializationType.FAST_BINARY;
 
 import com.paremus.dosgi.net.serialize.SerializationType;
 
-import aQute.bnd.annotation.metatype.Meta.AD;
+public @interface ExportedServiceConfig {
+	
+	String[] objectClass() default {};
+	
+	String[] service_exported_interfaces() default {};
+	
+	String[] service_exported_configs() default {};
+	
+	String[] service_exported_intents() default {};
+	
+	String[] service_exported_intents_extra() default {};
+	
+	String[] com_paremus_dosgi_net_transports() default {};
 
-public interface ExportedServiceConfig {
-	@AD
-	List<String> objectClass();
-	@AD
-	List<String> service_exported_interfaces();
+	String[] service_intents() default {};
 	
-	@AD(required = false)
-	Collection<String> service_exported_configs();
-	
-	@AD(required = false)
-	Collection<String> service_exported_intents();
-	
-	@AD(required = false)
-	Collection<String> service_exported_intents_extra();
-	
-	@AD(required = false) 
-	List<String> com_paremus_dosgi_net_transports();
-
-	@AD(required = false) 
-	Collection<String> service_intents();
-	
-	@AD(required=false, deflt="FAST_BINARY")
-	SerializationType com_paremus_dosgi_net_serialization();
+	SerializationType com_paremus_dosgi_net_serialization() default FAST_BINARY;
 }

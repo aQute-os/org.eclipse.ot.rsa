@@ -12,13 +12,13 @@
  */
 package com.paremus.dosgi.net.proxy;
 
-import static com.paremus.dosgi.net.proxy.MethodCallHandler.CallType.WITH_RETURN;
+import static com.paremus.dosgi.net.client.ClientMessageType.WITH_RETURN;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.deepEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -27,35 +27,51 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.internal.verification.Description;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
 import org.osgi.util.promise.Promise;
-import org.osgi.util.promise.Promises;
 
+import com.paremus.dosgi.net.client.ClientInvocation;
+import com.paremus.dosgi.net.client.ClientMessageType;
 import com.paremus.dosgi.net.impl.ImportRegistrationImpl;
+import com.paremus.dosgi.net.serialize.Serializer;
 
+import io.netty.channel.Channel;
+import io.netty.channel.DefaultChannelPromise;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timer;
+import io.netty.util.concurrent.DefaultEventExecutor;
+import io.netty.util.concurrent.EventExecutor;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class PromiseReturningServiceInvocationHandlerTest {
 
     @Mock
     private ImportRegistrationImpl _importRegistration;
     @Mock
-    MethodCallHandler _mch;
+    Channel _ch;
+    @Mock
+    Serializer _serializer;
     @Mock
     Bundle _callingContext;
     
@@ -68,31 +84,50 @@ public class PromiseReturningServiceInvocationHandlerTest {
 	private List<Class<?>> _proxyClassWithDifferentPromiseInterfaces;
 	private Class<?> _differentPromise;
     
-	@BeforeEach
-    public void setUp() throws ClassNotFoundException {
+	private EventExecutor executor;
+
+    private Timer timer;
+    
+    @BeforeEach
+	public void setUp() throws Exception {
+        executor = new DefaultEventExecutor();
+        timer = new HashedWheelTimer();
+        
+        Mockito.when(_ch.newPromise()).then(x -> new DefaultChannelPromise(_ch, executor));
+        
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put(RemoteConstants.ENDPOINT_ID, "my.endpoint.id");
+        map.put(RemoteConstants.ENDPOINT_ID, new UUID(123, 456).toString());
         map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
-        map.put(Constants.OBJECTCLASS, new String[] {TestReturnsPromise.class.getName()});
-        map.put("com.paremus.dosgi.net.methods", new String[] {"1=coprime[long,long]"});
+        map.put(Constants.OBJECTCLASS, new String[] {TestReturnsAsyncTypes.class.getName()});
+        map.put("com.paremus.dosgi.net.methods", new String[] {"1=coprime[long,long]",
+        		"2=isPrime[long]", "3=countGrainsOfSand[java.lang.String]"});
         _endpointDescription = new EndpointDescription(map);
 
-        _proxyClass = Proxy.getProxyClass(new ClassLoader(){}, TestReturnsPromise.class);
-        _proxyClassInterfaces = asList(TestReturnsPromise.class);
+        _proxyClass = Proxy.getProxyClass(new ClassLoader(){}, TestReturnsAsyncTypes.class);
+        _proxyClassInterfaces = asList(TestReturnsAsyncTypes.class);
         
         ClassLoader differentClassLoader = getSeparateClassLoader();
         
         _proxyClassWithDifferentPromise = Proxy.getProxyClass(differentClassLoader, 
-        		differentClassLoader.loadClass(TestReturnsPromise.class.getName()));
+        		differentClassLoader.loadClass(TestReturnsAsyncTypes.class.getName()));
         _proxyClassWithDifferentPromiseInterfaces = asList(
-        		differentClassLoader.loadClass(TestReturnsPromise.class.getName()));
+        		differentClassLoader.loadClass(TestReturnsAsyncTypes.class.getName()));
         _differentPromise = differentClassLoader.loadClass(Promise.class.getName());
         
         Map<Integer, String> methods = new HashMap<>();
         methods.put(1, "coprime[long,long]");
+        methods.put(2, "isPrime[long]");
+        methods.put(3, "countGrainsOfSand[java.lang.String]");
         when(_importRegistration.getMethodMappings()).thenReturn(methods);
+        when(_importRegistration.getId()).thenReturn(new UUID(123, 456));
     }
 
+    @AfterEach
+	public void tearDown() throws Exception {
+		timer.stop();
+		executor.shutdownGracefully();
+		executor.awaitTermination(1, TimeUnit.SECONDS);
+	}
     
 	private ClassLoader getSeparateClassLoader() {
 		return new ClassLoader() {
@@ -137,51 +172,96 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		} 
 	}
 	
-	ArgumentMatcher<Object[]> isArrayOf(Object... o) {
+    ArgumentMatcher<Object[]> isArrayOf(Object... o) {
 		return new ArgumentMatcher<Object[]>() {
 	
-			private Object check;
-			
 			@Override
 			public boolean matches(Object[] item) {
-				return (o.length == 0 && item == null) || 
-						(item instanceof Object[] ? deepEquals(o, (Object[]) item) : false);
-			}
-	
-			public void describeTo(Description description) {
-				description.description(String.format("The object arrays were not equal. Expected %s but got %s",
-						Arrays.toString(o), check instanceof Object[] ? Arrays.toString((Object[]) check) :
-							String.valueOf(check)));
+				return (o.length == 0 && item == null) || deepEquals(o, item);
 			}
 		};
 	}
 
-	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void testSuccessfulInvocation() throws Exception {
+    @Test
+	public void testSuccessfulInvocationPromise() throws Exception {
     	
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, _mch, 3000);
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, null, null, _ch, 
+        		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
-        TestReturnsPromise proxy = (TestReturnsPromise) createProxy(_proxyClass, sih);
+        TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
         
-        when(_mch.call(eq(WITH_RETURN), eq(1), argThat(isArrayOf(7L, 42L)), eq(3000)))
-        	.thenReturn((Promise) Promises.resolved(false));
+        when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, 
+        		TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class).toString(), 
+        		new Object[] {7L, 42L})), any()))
+			.then(i -> {
+				i.<ClientInvocation>getArgument(0).getResult()
+        			.setSuccess(false);
+				return null;
+			});
         
         assertFalse(proxy.coprime(7, 42).getValue());
     }
+
+    @Test
+	public void testSuccessfulInvocationFuture() throws Exception {
+		
+		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
+				_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, null, null, _ch, 
+        		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
+		
+		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
+		
+		when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, 
+        		TestReturnsAsyncTypes.class.getMethod("isPrime", long.class).toString(), 
+        		new Object[] {17L})), any()))
+			.then(i -> {
+				i.<ClientInvocation>getArgument(0).getResult()
+        			.setSuccess(false);
+				return null;
+			});
+		
+		assertFalse(proxy.isPrime(17).get());
+	}
+
+    @Test
+	public void testSuccessfulInvocationCompletableFuture() throws Exception {
+		
+		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, null, null, _ch, 
+        		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
+
+        TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
+        
+        when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, 
+        		TestReturnsAsyncTypes.class.getMethod("countGrainsOfSand", String.class).toString(), 
+        		new Object[] {"Foo"})), any()))
+			.then(i -> {
+				i.<ClientInvocation>getArgument(0).getResult()
+        			.setSuccess(false);
+				return null;
+			});
+        
+        assertFalse(proxy.countGrainsOfSand("Foo").get());
+	}
 	
-	@Test
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
 	public void testSuccessfulInvocationDifferentPromise() throws Exception {
     	
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassWithDifferentPromiseInterfaces, _differentPromise, false, _mch, 3000);
+        		_callingContext, _proxyClass, _proxyClassWithDifferentPromiseInterfaces, _differentPromise, false, null, null, _ch, 
+        		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
         Object proxy = createProxy(_proxyClassWithDifferentPromise, sih);
         
-        when(_mch.call(eq(WITH_RETURN), eq(1), argThat(isArrayOf(14L,15L)), eq(3000)))
-        	.thenReturn((Promise) Promises.resolved(true));
+        when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, 
+        		TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class).toString(), 
+        		new Object[] {14L, 15L})), any()))
+			.then(i -> {
+				i.<ClientInvocation>getArgument(0).getResult()
+        			.setSuccess(true);
+				return null;
+			});
         
         Method m = _proxyClassWithDifferentPromise.getMethod("coprime", long.class, long.class);
         
@@ -189,4 +269,17 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		
         assertTrue((Boolean) _differentPromise.getMethod("getValue").invoke(returnedPromise));
     }
+	
+	private ArgumentMatcher<ClientInvocation> isInvocationWith(ClientMessageType callType, 
+			String method, Object[] args) {
+		return new ArgumentMatcher<ClientInvocation>() {
+	
+				@Override
+				public boolean matches(ClientInvocation clientInvocation) {
+					return clientInvocation.getType() == callType &&
+							clientInvocation.getMethodName().equals(method) &&
+							deepEquals(args, clientInvocation.getArgs());
+				}
+			};
+	}
 }

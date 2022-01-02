@@ -14,7 +14,6 @@ package com.paremus.dosgi.net.serialize.freshvanilla;
 
 import org.freshvanilla.lang.MetaClasses;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.wiring.BundleWiring;
 
 import com.paremus.dosgi.net.serialize.Serializer;
 import com.paremus.dosgi.net.serialize.SerializerFactory;
@@ -24,6 +23,6 @@ public class VanillaRMISerializerFactory implements SerializerFactory {
 	@Override
 	public Serializer create(Bundle classSpace) {
 		return new VanillaRMISerializer(new MetaClasses(new MetaClassesClassLoader(
-						classSpace.adapt(BundleWiring.class).getClassLoader())));
+						classSpace)));
 	}
 }

@@ -12,7 +12,6 @@
  */
 package com.paremus.dosgi.net.impl;
 
-import static aQute.bnd.annotation.metatype.Configurable.createConfigurable;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -21,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,23 +35,21 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.mockito.stubbing.Answer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -63,21 +59,21 @@ import org.osgi.framework.ServiceException;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.wiring.BundleWiring;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.osgi.service.remoteserviceadmin.ExportRegistration;
 import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteConstants;
-import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
+import org.osgi.util.converter.Converters;
 
 import com.paremus.dosgi.net.client.ClientConnectionManager;
-import com.paremus.dosgi.net.config.Config;
+import com.paremus.dosgi.net.config.TransportConfig;
 import com.paremus.dosgi.net.server.RemotingProvider;
 
+import io.netty.util.Timer;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,6 +81,9 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class RemoteServiceAdminImplTest {
 
     private RemoteServiceAdminImpl _rsa;
+
+    @Mock
+    private RemoteServiceAdminFactoryImpl _factory;
 
     @Mock
     private Framework _framework, _childFramework;
@@ -112,36 +111,26 @@ public class RemoteServiceAdminImplTest {
     ClientConnectionManager _clientConnectionManager;
     @Mock
     ProxyHostBundleFactory _proxyHostBundleFactory;
-    @Mock
+
     EventExecutorGroup _serverWorkers;
+    EventExecutorGroup _clientWorkers;
+    
+    @Mock
+    Timer _timer;
     
     UUID _rootFrameworkId = UUID.randomUUID();
     UUID _childFrameworkId = UUID.randomUUID();
 
 	private List<String> intents;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
 	public void setUp() throws Exception {
-        Dictionary<String, String> d = new Hashtable<String, String>();
-        when(_rsaBundle.getHeaders()).thenReturn(d);
-        when(_rsaBundle.getBundleId()).thenReturn(1L);
-        when(_rsaBundle.getSignerCertificates(Bundle.SIGNERS_ALL)).thenReturn(
-        		Collections.emptyMap());
-        when(_rsaBundle.getSymbolicName()).thenReturn("RSABundle");
-        when(_rsaBundle.getVersion()).thenReturn(new Version(1, 0, 0));
-
-        when(_rsaContext.createFilter(objClassFor(RemoteServiceAdminListener.class))).thenReturn(_filter);
-        when(_rsaContext.createFilter(objClassFor(EventAdmin.class))).thenReturn(_filter);
-        when(_rsaContext.getBundle()).thenReturn(_rsaBundle);
-        when(_rsaContext.getProperty(Constants.FRAMEWORK_UUID)).thenReturn(new UUID(123, 456).toString());
-
+        _serverWorkers = new DefaultEventExecutorGroup(1);
+        _clientWorkers = new DefaultEventExecutorGroup(1);
+        
         when(_serviceBundle.getBundleContext()).thenReturn(_serviceContext);
-        when(_serviceBundle.loadClass(anyString())).thenAnswer(loadClass());
         when(_serviceBundle.adapt(BundleWiring.class)).thenReturn(_wiring);
-
-        when(_serviceContext.getBundle()).thenReturn(_serviceBundle);
-        when(_serviceContext.getServiceReferences(Mockito.anyString(), Mockito.eq("(service.id=42)")))
-        	.thenReturn(new ServiceReference<?>[] {_serviceReference});
 
         when(_serviceReference.getBundle()).thenReturn(_serviceBundle);
         when(_serviceReference.getPropertyKeys()).thenReturn(
@@ -153,14 +142,12 @@ public class RemoteServiceAdminImplTest {
 
         when(_secureProvider.isSecure()).thenReturn(true);
         when(_secureProvider.registerService(Mockito.any(), Mockito.any()))
-        	.thenReturn(new URI("ptcps://localhost:12345"));
+        	.thenReturn(Collections.singleton(new URI("ptcps://localhost:12345")));
         when(_insecureProvider.registerService(Mockito.any(), Mockito.any()))
-        	.thenReturn(new URI("ptcp://localhost:23456"));
+        	.thenReturn(Collections.singleton(new URI("ptcp://localhost:23456")));
         
         when(_framework.getBundleContext()).thenReturn(_frameworkContext);
-        when(_childFramework.getBundleContext()).thenReturn(_childFrameworkContext);
         when(_frameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(_rootFrameworkId.toString());
-        when(_childFrameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(_childFrameworkId.toString());
         
         when(_proxyHostBundleFactory.getProxyBundle(Mockito.any())).thenReturn(_proxyBundle);
         when(_proxyBundle.getBundleContext()).thenReturn(_proxyContext);
@@ -169,17 +156,27 @@ public class RemoteServiceAdminImplTest {
         when(_importedRef.getProperty(Constants.SERVICE_ID)).thenReturn(5L);
         
         intents = new ArrayList<>(Collections.singletonList("asyncInvocation"));
-		_rsa = new RemoteServiceAdminImpl(_framework, _publisher, asList(_insecureProvider, _secureProvider), 
+        
+        _rsa = new RemoteServiceAdminImpl(_factory, _framework, _publisher, asList(_insecureProvider, _secureProvider), 
         		_clientConnectionManager, intents, _proxyHostBundleFactory,
-        		_serverWorkers, createConfigurable(Config.class, Collections.emptyMap()));
+        		_serverWorkers, _clientWorkers, _timer, Converters.standardConverter().convert(
+        				Collections.emptyMap()).to(TransportConfig.class));
+        
+        Mockito.when(_factory.getRemoteServiceAdmins()).thenReturn(Collections.singletonList(_rsa));
+    }
+    
+    @AfterEach
+    public void tearDown() {
+    	_clientWorkers.shutdownGracefully();
+    	_serverWorkers.shutdownGracefully();
     }
 
     @Test
     public void testNoExportOfNullService() throws Exception {
         when(_serviceContext.getService(_serviceReference)).thenReturn(null);
         Throwable t = doNoExport(_serviceReference, null);
-        assertTrue(t instanceof ServiceException, ()->"T is of the wrong type: " + t.getClass());
-        assertTrue(t.getMessage().contains("service object was null"), ()->t.getMessage());
+        assertTrue(t instanceof ServiceException, "T is of the wrong type: " + t.getClass());
+        assertTrue(t.getMessage().contains("service object was null"), t.getMessage());
     }
 
     @Test
@@ -214,16 +211,15 @@ public class RemoteServiceAdminImplTest {
         assertSame(t, serviceException);
     }
 
-    @Test
     private Throwable doNoExport(ServiceReference<?> sref, Throwable serviceException) throws Exception {
         // must not return an empty list
         Collection<ExportRegistration> exRefs = _rsa.exportService(sref, null);
-        assertNotNull(exRefs, ()->"returned export list must never be null");
+        assertNotNull(exRefs, "returned export list must never be null");
         assertEquals(1, exRefs.size());
         ExportRegistration failed = exRefs.iterator().next();
         // failed export must have the passed exception
         Throwable t = failed.getException();
-        assertNotNull(t, ()->"failed export must have exception");
+        assertNotNull(t, "failed export must have exception");
         // registered exports must still be empty
         assertEquals(0, _rsa.getExportedServices().size());
         return t;
@@ -323,7 +319,6 @@ public class RemoteServiceAdminImplTest {
     @Test
 	public void testNoExportForWrongConfigurationType() throws Exception {
     	// we need a valid service for this test
-    	when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
     	when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_CONFIGS))
     		.thenReturn("unsupported.config.type");
     	
@@ -369,7 +364,6 @@ public class RemoteServiceAdminImplTest {
     @Test
 	public void testNoExportWithUnsupportedIntents() throws Exception {
     	// we need a valid service for this test
-    	when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
     	when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTENTS))
     		.thenReturn("unsupported.intent");
     	
@@ -388,7 +382,6 @@ public class RemoteServiceAdminImplTest {
     @Test
 	public void testNoExportWithUnsupportedExtraIntents() throws Exception {
 		// we need a valid service for this test
-		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
 		when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA))
 		.thenReturn("unsupported.intent");
 		
@@ -569,8 +562,8 @@ public class RemoteServiceAdminImplTest {
         p.put("com.paremus.dosgi.net.methods", new String[] {"1=length[]","2=subSequence[int,int]"});
         EndpointDescription epd = new EndpointDescription(p);
         
-        Mockito.when(_clientConnectionManager.getFactoryFor( Mockito.eq(new URI("ptcp://localhost:1234")), Mockito.any(), 
-        		Mockito.any(), Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
+        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -594,8 +587,8 @@ public class RemoteServiceAdminImplTest {
         assertEquals(0, _rsa.getImportedEndpoints().size());
     }
     
-    @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
+    @Test
 	public void testUpdateImport() throws Exception {
         Map<String, Object> p = new HashMap<String, Object>();
         p.put(RemoteConstants.ENDPOINT_ID, new UUID(78, 910).toString());
@@ -606,8 +599,8 @@ public class RemoteServiceAdminImplTest {
         EndpointDescription epd = new EndpointDescription(p);
         
         
-        Mockito.when(_clientConnectionManager.getFactoryFor(Mockito.eq(new URI("ptcp://localhost:1234")), 
-        		Mockito.any(), Mockito.any(), Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
+        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -639,8 +632,8 @@ public class RemoteServiceAdminImplTest {
         p.put("com.paremus.dosgi.net.methods", new String[] {"1=length[]","2=subSequence[int,int]"});
         EndpointDescription epd = new EndpointDescription(p);
         
-        Mockito.when(_clientConnectionManager.getFactoryFor( Mockito.eq(new URI("ptcp://localhost:1234")), Mockito.any(), 
-        		Mockito.any(), Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
+        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -655,21 +648,5 @@ public class RemoteServiceAdminImplTest {
         
         assertEquals(0, _rsa.getImportedEndpoints().size());
         assertNotNull(ireg.getException());
-    }
-
-    private static String objClassFor(Class<?> clazz) {
-        return objClassFor(clazz.getName());
-    }
-
-    private static String objClassFor(String value) {
-        return "(" + Constants.OBJECTCLASS + "=" + value + ")";
-    }
-
-    private Answer<Class<?>> loadClass() {
-        return new Answer<Class<?>>() {
-            public Class<?> answer(InvocationOnMock invocation) throws Throwable {
-                return getClass().getClassLoader().loadClass((String)invocation.getArguments()[0]);
-            }
-        };
     }
 }

@@ -12,28 +12,22 @@
  */
 package com.paremus.dosgi.net.server;
 
-import static java.util.Arrays.asList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.paremus.dosgi.net.config.Config;
 import com.paremus.dosgi.net.config.ProtocolScheme;
-import com.paremus.dosgi.net.tcp.LengthFieldPopulator;
+import com.paremus.dosgi.net.config.TransportConfig;
 import com.paremus.dosgi.net.tcp.VersionCheckingLengthFieldBasedFrameDecoder;
-import com.paremus.net.encode.EncodingSchemeFactory;
+import com.paremus.netty.tls.ParemusNettyTLS;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
@@ -43,44 +37,33 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.util.concurrent.FastThreadLocalThread;
+import io.netty.util.Timer;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 
 public class ServerConnectionManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ServerConnectionManager.class);
 	
 	private final EventLoopGroup serverIo;
-	private final AtomicInteger ioThreadId = new AtomicInteger(1);
 	
 	private final ByteBufAllocator allocator;
 
-	private final EncodingSchemeFactory esf;
+	private final ParemusNettyTLS tls;
 	private final List<RemotingProviderImpl> configuredTransports;
 
-	public ServerConnectionManager(Config config, EncodingSchemeFactory esf, ByteBufAllocator allocator) {
-		this.esf = esf;
+	public ServerConnectionManager(TransportConfig config, ParemusNettyTLS tls, ByteBufAllocator allocator, 
+			EventLoopGroup serverIo, Timer timer) {
+		this.tls = tls;
 		this.allocator = allocator;
-		serverIo = new NioEventLoopGroup(config.server_io_threads(), r -> {
-				Thread thread = new FastThreadLocalThread(r, 
-						"Paremus RSA distribution server IO: " + ioThreadId.getAndIncrement());
-				thread.setDaemon(true);
-				return thread;
-			});
+		this.serverIo = serverIo;
 				
-		InetAddress defaultBindAddress;
-		try {
-			defaultBindAddress = InetAddress.getByName(config.server_bind_address());
-		} catch (UnknownHostException e) {
-			throw new IllegalArgumentException("The default bind address " + 
-					config.server_bind_address() + " is not valid.");
-		} 
+		InetSocketAddress defaultBindAddress = new InetSocketAddress(config.server_bind_address(), 0);
 		
-		configuredTransports = config.server_protocols().stream()
+		String[] protocols = config.server_protocols();
+		configuredTransports = Arrays.stream(protocols)
+			.map(ProtocolScheme::new)
 			.filter(p -> {
 				if(config.allow_insecure_transports() || p.getProtocol().isSecure()) {
 					return true;
@@ -93,13 +76,13 @@ public class ServerConnectionManager {
 			.filter(rp -> rp != null)
 			.collect(toList());
 		
-		if(configuredTransports.isEmpty()) {
-			LOG.error("There are no server transports available for this provider. Please check the configuration {}", 
-					config.server_protocols());
+		if(configuredTransports.isEmpty() && protocols.length > 0) {
+			LOG.error("There are no server transports available for this provider. Please check the configuration");
+			throw new IllegalArgumentException("The transport configuration created no valid client transports");
 		}
 	}
 
-	private RemotingProviderImpl createProviderFor(ProtocolScheme p, InetAddress defaultBindAddress) {
+	private RemotingProviderImpl createProviderFor(ProtocolScheme p, InetSocketAddress defaultBindAddress) {
 		
 		ServerBootstrap b = new ServerBootstrap();
 		
@@ -115,34 +98,32 @@ public class ServerConnectionManager {
 				clientAuth = true;
 			case TCP_TLS :
 				boolean useClientAuth = clientAuth;
-				KeyManagerFactory sslKeyManagerFactory = esf.getSSLKeyManagerFactory();
-				TrustManagerFactory sslTrustManagerFactory = esf.getSSLTrustManagerFactory();
-				if(sslTrustManagerFactory == null || (useClientAuth && sslKeyManagerFactory == null)) {
-					LOG.error("The secure transport {} cannot be configured as the necessary certificate configuration is unavailable. Please check the configuration of the com.paremus.net.encode provider.",
+				
+				if(!tls.hasCertificate()) {
+					LOG.error("The secure transport {} cannot be configured as the necessary certificate configuration is unavailable. Please check the configuration of the TLS provider.",
 							p.getProtocol());
 					return null;
 				}
 				c = c.andThen(ch -> {
-					String ciphers = p.getOption("ciphers", String.class);
-					ciphers = ciphers == null ? "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256" : ciphers;
-					String protocols = p.getOption("protocols", String.class);
-					protocols = protocols == null ? "TLSv1.2" : ciphers;
 					
-					SslContext sslContext;
-					try {
-						sslContext = SslContextBuilder.forServer(sslKeyManagerFactory)
-							.trustManager(sslTrustManagerFactory)
-							.ciphers(asList(ciphers.split(",")))
-							.build();
-					} catch (Exception e) {
-						throw new RuntimeException("Unable to create the SSL Engine", e);
+					SslHandler serverHandler = tls.getTLSServerHandler();
+					
+					SSLEngine engine = serverHandler.engine();
+					
+					String ciphers = p.getOption("ciphers", String.class);
+					if(ciphers != null) {
+						engine.setEnabledCipherSuites(ciphers.split(","));
 					}
-					SSLEngine engine = sslContext.newEngine(allocator);
+					
+					String protocols = p.getOption("protocols", String.class);
+					if(protocols != null) {
+						engine.setEnabledProtocols(protocols.split(","));
+					}
+					
 					engine.setWantClientAuth(useClientAuth);
 					engine.setNeedClientAuth(useClientAuth);
-					engine.setEnabledProtocols(protocols.split(","));
-					ch.pipeline().addLast(new SslHandler(engine));
-							
+
+					ch.pipeline().addLast(serverHandler);
 				});
 			case TCP :
 				b.channel(NioServerSocketChannel.class)
@@ -151,10 +132,8 @@ public class ServerConnectionManager {
 					.childOption(ChannelOption.TCP_NODELAY, p.getOption("nodelay", Boolean.class));
 				
 				c = c.andThen(ch -> {
-			        	// Outgoing
-			        	ch.pipeline().addLast(new LengthFieldPopulator());
 			        	//Incoming
-			        	ch.pipeline().addLast(new VersionCheckingLengthFieldBasedFrameDecoder(1 << 24, 1, 3));
+			        	ch.pipeline().addLast(new VersionCheckingLengthFieldBasedFrameDecoder());
 					});
 				break;
 			default : 
@@ -162,9 +141,12 @@ public class ServerConnectionManager {
 		}
 		
 		ServerRequestHandler srh = new ServerRequestHandler(p);
+		ServerResponseSerializer srs = new ServerResponseSerializer();
 		ChannelGroup group = new DefaultChannelGroup(serverIo.next());
 		
-		Consumer<Channel> fullPipeline = c.andThen(ch -> ch.pipeline().addLast(srh));
+		Consumer<Channel> fullPipeline = c.andThen(ch -> ch.pipeline()
+				.addLast(srh)
+				.addLast(ImmediateEventExecutor.INSTANCE, srs));
 		b.childHandler(new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel ch) throws Exception {
@@ -174,11 +156,10 @@ public class ServerConnectionManager {
 		});
 		
 		try {
-			Channel server = b.bind(p.getBindAddress() == null ? defaultBindAddress : p.getBindAddress(), 
-					p.getPort()).sync().channel();
+			Channel server = b.bind(p.getBindAddress() == null ? defaultBindAddress : p.getBindAddress())
+					.sync().channel();
 			group.add(server);
-			return new RemotingProviderImpl(p.getProtocol().isSecure(), p.getProtocol().getUriScheme(), srh, 
-					server, group);
+			return new RemotingProviderImpl(p, srh, server, group);
 		} catch (InterruptedException ie) {
 			LOG.warn("Interruped while configuring the transport {} with configuration {}", 
 					p.getProtocol(), p.getConfigurationString());
@@ -193,10 +174,5 @@ public class ServerConnectionManager {
 	public void close() {
 		configuredTransports.stream()
 			.forEach(RemotingProviderImpl::close);
-		try {
-			serverIo.shutdownGracefully(250, 1000, MILLISECONDS).await(2000);
-		} catch (InterruptedException ie) {
-			ie.printStackTrace();
-		}
 	}
 }

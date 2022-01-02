@@ -15,7 +15,10 @@ package com.paremus.dosgi.net.serialize.freshvanilla;
 import java.io.IOException;
 
 import org.freshvanilla.lang.MetaClasses;
+import org.freshvanilla.lang.misc.AccessUtils;
 import org.freshvanilla.net.BinaryWireFormat;
+import org.freshvanilla.net.VanillaPojoSerializer;
+import org.freshvanilla.net.VersionAwareVanillaPojoSerializer;
 
 import com.paremus.dosgi.net.serialize.Serializer;
 
@@ -29,7 +32,9 @@ public class VanillaRMISerializer implements Serializer {
 	private final FastThreadLocal<BinaryWireFormat> wireFormats = 
 			new FastThreadLocal<BinaryWireFormat>(){
 				protected BinaryWireFormat initialValue() {
-					return new BinaryWireFormat(metaClasses);
+					return new BinaryWireFormat(metaClasses, AccessUtils.isSafe() ?
+							new VersionAwareVanillaPojoSerializer(metaClasses) :
+							new VanillaPojoSerializer(metaClasses));
 				}
 			};
 

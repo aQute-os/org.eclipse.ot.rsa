@@ -12,12 +12,25 @@
  */
 package com.paremus.dosgi.net.serialize.freshvanilla;
 
+import org.osgi.framework.Bundle;
+
 public class MetaClassesClassLoader extends ClassLoader {
 
-	public MetaClassesClassLoader() {}
+	private static final class BundleToClassLoader extends ClassLoader {
+		private final Bundle classSpace;
+		
+		public BundleToClassLoader(Bundle classSpace) {
+			this.classSpace = classSpace;
+		}
+		
+		protected Class<?> findClass(String className) throws ClassNotFoundException {
+			return classSpace.loadClass(className);
+		}
+	}
+	
 
-	public MetaClassesClassLoader(ClassLoader parent) {
-		super(parent);
+	public MetaClassesClassLoader(Bundle classSpace) {
+		super(new BundleToClassLoader(classSpace));
 	}
 	
 	protected Class<?> findClass(String className) throws ClassNotFoundException {

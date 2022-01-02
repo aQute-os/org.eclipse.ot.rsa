@@ -14,11 +14,16 @@ package com.paremus.dosgi.dsw.net.serialization;
 
 import static com.paremus.dosgi.dsw.net.serialization.MyEnum.BAR;
 import static com.paremus.dosgi.dsw.net.serialization.MyEnum.FOO;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,26 +32,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.freshvanilla.lang.MetaClasses;
+import org.freshvanilla.net.BinaryWireFormat;
+import org.freshvanilla.net.VersionAwareVanillaPojoSerializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleWiring;
 
+import com.paremus.dosgi.net.serialize.freshvanilla.MetaClassesClassLoader;
 import com.paremus.dosgi.net.serialize.freshvanilla.VanillaRMISerializer;
 import com.paremus.dosgi.net.serialize.freshvanilla.VanillaRMISerializerFactory;
+import com.paremus.fabric.v2.dto.Fibre;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import aQute.lib.converter.Converter;
+
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class SerializationTest  {
+public class SerializationTest {
 
 	@Mock
 	private Bundle bundle;
@@ -57,8 +69,6 @@ public class SerializationTest  {
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		Mockito.when(bundle.adapt(BundleWiring.class)).thenReturn(wiring);
-		Mockito.when(wiring.getClassLoader()).thenReturn(SerializationTest.class.getClassLoader());
 
 		serializer = (VanillaRMISerializer) new VanillaRMISerializerFactory().create(bundle);
 	}
@@ -482,4 +492,106 @@ public class SerializationTest  {
 		assertTrue(Arrays.equals(d[1], d2[1]));
 	}
 	
+	@Test
+	public void testVersionAware() throws IOException, ClassNotFoundException {
+		Version v = new Version(1,2,3,"foo");
+		
+		ByteBuf bb = Unpooled.buffer(16384);
+		serializer.serializeReturn(bb, v);
+		
+		bb.markReaderIndex();
+		
+		assertEquals(v, serializer.deserializeReturn(bb));
+		assertFalse(bb.isReadable());
+		
+		bb.resetReaderIndex();
+		
+		MetaClasses mc = new MetaClasses(new MetaClassesClassLoader(bundle));
+		
+		BinaryWireFormat newWF = new BinaryWireFormat(mc, new VersionAwareVanillaPojoSerializer(mc));
+		
+		assertEquals(v, newWF.readObject(bb));
+		assertFalse(bb.isReadable());
+		
+		newWF.reset();
+	
+		// Now without a qualifier
+		v = new Version(1,2,3);
+		
+		bb.clear();
+		serializer.serializeReturn(bb, v);
+		
+		bb.markReaderIndex();
+		
+		assertEquals(v, serializer.deserializeReturn(bb));
+		assertFalse(bb.isReadable());
+		
+		bb.resetReaderIndex();
+		
+		assertEquals(v, newWF.readObject(bb));
+		assertFalse(bb.isReadable());
+
+		newWF.reset();
+		
+		// Now with an array
+		Version[] vArray = new Version[] {new Version(2,3,4), new Version(3,4,5)};
+		
+		bb.clear();
+		serializer.serializeReturn(bb, vArray);
+		
+		bb.markReaderIndex();
+		
+		v = new Version(1,2,3);
+		assertArrayEquals(vArray, (Version[]) serializer.deserializeReturn(bb));
+		assertFalse(bb.isReadable());
+		
+		bb.resetReaderIndex();
+		
+		assertArrayEquals(vArray, (Version[]) newWF.readObject(bb));
+		assertFalse(bb.isReadable());
+
+		newWF.reset();
+	}
+	
+	/**
+	 * This test is based on a real object which failed to serialize because
+	 * it contained Strings with characters outside the base unicode block...
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testComplexDTOWhichBlewUp() throws Exception {
+	
+		Map<String,Object> map;
+		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("test-resources/fibre.obj"))) {
+			map = (Map<String, Object>) ois.readObject();
+		}
+
+		Fibre fibre = Converter.cnv(Fibre.class, map);
+		
+		
+		assertEquals("debian-aarch64.1", fibre.id);
+		
+		assertEquals(166, fibre.certificateSerialNumbers.size());
+		
+		
+		ByteBuf bb = Unpooled.buffer(32768);
+		serializer.serializeReturn(bb, fibre);
+		
+		Fibre fibre2 = (Fibre) serializer.deserializeReturn(bb);
+		
+		assertEquals(fibre, fibre2);
+	}
+	
+	@Test
+	public void testStringWithNonASCIIChars() throws Exception {
+		//Use an interrobang to upset the serializer 
+		String toTest = "Hello World\u203D";
+		
+		ByteBuf bb = Unpooled.buffer(16384);
+		serializer.serializeReturn(bb, toTest);
+		
+		assertEquals(toTest, serializer.deserializeReturn(bb));
+	}
 }

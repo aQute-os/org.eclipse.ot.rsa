@@ -32,7 +32,7 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 
 /**
- * This class dynamically creates & installs a "virtual" {@link Bundle} to host service
+ * This class dynamically creates and installs a "virtual" {@link Bundle} to host service
  * proxies for imported services. This is necessary to properly enable "magic" package
  * wiring and service visibility rules in the OSGi framework.<br>
  * For background information please see <a
@@ -49,11 +49,11 @@ public class ProxyHostBundleFactory {
      * Finds or installs a virtual {@link Bundle} with no exported or imported packages.
      * The {@link BundleContext} of this Bundle must be used for registration of the
      * {@link ServiceFactory} which acts as access point for imported remote services. <br>
-     * The new Bundle has the same version as the argument and shares its
-     * Bundle-SymbolicName, with an additional {@value #PROXY_BUNDLE_SYMBOLICNAME_SUFFIX}
-     * suffix.
+     * The new Bundle has the same version as the dosgi net bundle and has a
+     * Bundle-SymbolicName of {@value #PEER_PROXY_BUNDLE_SYMBOLIC_NAME} or
+     * {@value #CHILD_PROXY_BUNDLE_SYMBOLIC_NAME}
      * 
-     * @param installer the Bundle which is used as prototype and installer
+     * @param target the framework into which the proxy bundle should be installed
      * @return the new virtual bundle
      */
     public Bundle getProxyBundle(Framework target) {

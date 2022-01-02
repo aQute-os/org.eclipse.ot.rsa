@@ -30,9 +30,11 @@ public class AccessUtils {
         try {
             toUse = new Unsafe();
         }
-        catch (Exception e) {
+        catch (Throwable t) {
+        	if (t instanceof OutOfMemoryError) {
+        		throw t;
+        	}
         	toUse = new SafeAccessor();
-            throw new AssertionError(e);
         }
         delegate = toUse;
     }
@@ -45,4 +47,8 @@ public class AccessUtils {
 	public static FieldAccessor getFieldAccessor(Field field) {
         return delegate.getFieldAccessor(field);
     }
+
+	public static boolean isSafe() {
+		return delegate instanceof SafeAccessor;
+	}
 }

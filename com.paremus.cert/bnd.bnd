@@ -1,0 +1,25 @@
+-buildpath: \
+	bcprov,\
+	bcpkix,\
+	bcutil,\
+	org.osgi.framework,\
+	org.osgi.annotation.bundle,\
+	org.osgi.annotation.versioning,\
+	org.osgi.service.metatype.annotations,\
+	org.osgi.service.component.annotations,\
+	org.osgi.service.cm,\
+	org.osgi.util.converter
+	
+-testpath: \
+	org.apache.cxf.cxf-core;version='3.2.7',\
+	org.apache.cxf.cxf-rt-frontend-jaxrs;version='3.2.7',\
+	org.apache.cxf.cxf-rt-transports-http;version='3.2.7',\
+	jakarta.ws.rs-api,\
+	jakarta.annotation-api,\
+	jakarta.xml.bind-api,\
+	jakarta.activation-api,\
+	org.apache.felix.http.jetty,\
+	org.apache.felix.http.servlet-api
+
+Bundle-Version: 1.1.0.SNAPSHOT
+

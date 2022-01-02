@@ -12,7 +12,6 @@
  */
 package com.paremus.dosgi.net.server;
 
-import static aQute.bnd.annotation.metatype.Configurable.createConfigurable;
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.CALL_WITHOUT_RETURN;
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.CALL_WITH_RETURN;
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.FAILURE_NO_METHOD;
@@ -24,13 +23,14 @@ import static com.paremus.dosgi.net.wireformat.Protocol_V1.FAILURE_TO_SERIALIZE_
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.SIZE_WIDTH_IN_BYTES;
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.SUCCESS_RESPONSE;
 import static com.paremus.dosgi.net.wireformat.Protocol_V1.VERSION;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.AdditionalAnswers.delegatesTo;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 import static org.osgi.util.promise.Promises.failed;
 import static org.osgi.util.promise.Promises.resolved;
 
@@ -39,12 +39,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -54,76 +59,96 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.util.converter.Converters;
 import org.osgi.util.promise.Promise;
 import org.osgi.util.promise.Promises;
 
-import com.paremus.dosgi.net.config.Config;
+import com.paremus.dosgi.net.config.TransportConfig;
+import com.paremus.dosgi.net.serialize.CompletedPromise;
+import com.paremus.dosgi.net.serialize.CompletedPromise.State;
 import com.paremus.dosgi.net.serialize.SerializationType;
 import com.paremus.dosgi.net.serialize.Serializer;
-import com.paremus.net.encode.EncodingSchemeFactory;
+import com.paremus.dosgi.net.test.AbstractLeakCheckingTest;
+import com.paremus.dosgi.net.wireformat.Protocol_V2;
+import com.paremus.netty.tls.ParemusNettyTLS;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.DefaultEventLoop;
-import io.netty.util.ResourceLeakDetector;
-import io.netty.util.ResourceLeakDetector.Level;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timer;
 
 @ExtendWith(MockitoExtension.class)
-public abstract class AbstractServerConnectionManagerTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCheckingTest {
 
+	private static final String TEST_STRING = "Hello World!";
+	
 	protected static final UUID SERVICE_ID = new UUID(123, 456);
 	@Mock 
-	protected EncodingSchemeFactory esf;
+	protected ParemusNettyTLS tls;
 	@Mock 
 	protected Bundle hostBundle;
-	@Mock 
-	protected BundleWiring hostBundleWiring;
 	
-	protected CharSequence serviceObject;
-	protected CharSequence mockServiceObject;
+	protected ServerTestService serviceObject;
+	protected ServerTestService mockServiceObject;
 	
 	protected Serializer serializer;
 	
 	protected ServerConnectionManager scm;
 	protected RemotingProvider rp;
 	protected URI serviceUri;
+	protected EventLoopGroup ioWorker;
 	protected DefaultEventLoop worker;
-	protected Map<Integer, Method> methodMappings = new HashMap<>();
+	protected Timer timer;
+	protected Method[] methodMappings;
 	
 	@BeforeEach
-	public void setUp() throws Exception {
+	public final void setUp() throws Exception {
+		System.setProperty("java.net.preferIPv4Stack", "true");
+		
 		childSetUp();
-		ResourceLeakDetector.setLevel(Level.PARANOID);
+		ioWorker = new NioEventLoopGroup(1);
+		worker = new DefaultEventLoop(Executors.newSingleThreadExecutor());
+		timer = new HashedWheelTimer();
 		
-		scm = new ServerConnectionManager(createConfigurable(Config.class, getConfig()), esf, UnpooledByteBufAllocator.DEFAULT);
+		scm = new ServerConnectionManager(Converters.standardConverter()
+				.convert(getConfig()).to(TransportConfig.class), tls, PooledByteBufAllocator.DEFAULT, ioWorker, timer);
 		rp = scm.getConfiguredProviders().get(0);
-		
-		Mockito.when(hostBundle.adapt(BundleWiring.class)).thenReturn(hostBundleWiring);
-		Mockito.when(hostBundleWiring.getClassLoader()).thenReturn(getClass().getClassLoader());
 		
 		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
 		
-		serviceObject = "Hello World!";
-		mockServiceObject = mock(CharSequence.class, withSettings().name("serviceObject")
-				.defaultAnswer(delegatesTo("Hello World!")));
+		serviceObject = new ServerTestServiceImpl(TEST_STRING);
+		mockServiceObject = Mockito.spy(serviceObject);
 		
-		worker = new DefaultEventLoop(Executors.newSingleThreadExecutor());
 		
-		methodMappings.put(1, CharSequence.class.getMethod("length")); 
-		methodMappings.put(2, CharSequence.class.getMethod("subSequence", int.class, int.class)); 
+		methodMappings = new Method[5];
+		methodMappings[0] = CharSequence.class.getMethod("length"); 
+		methodMappings[1] = CharSequence.class.getMethod("subSequence", int.class, int.class); 
+		methodMappings[2] = ServerTestService.class.getMethod("subSequence", Promise.class, CompletionStage.class); 
+		methodMappings[3] = ServerTestService.class.getMethod("streamOfCharacters", int.class); 
+		methodMappings[4] = ServerTestService.class.getMethod("reusableStreamOfCharacters", int.class); 
 		
-		ServiceInvoker invoker = new ServiceInvoker(SERVICE_ID, serializer, serviceObject, methodMappings, worker);
+		ServiceInvoker invoker = new ServiceInvoker(rp, SERVICE_ID, serializer, serviceObject, methodMappings, worker, timer);
 		
-		serviceUri = rp.registerService(SERVICE_ID, invoker);
+		serviceUri = rp.registerService(SERVICE_ID, invoker).iterator().next();
 	}
 	
 	@AfterEach
-	public void tearDown() {
+	public final void tearDown() throws InterruptedException {
 		long start = System.currentTimeMillis();
 		scm.close();
+		timer.stop();
+		ioWorker.shutdownGracefully(100, 500, MILLISECONDS);
+		worker.shutdownGracefully(100, 500, MILLISECONDS);
+		ioWorker.awaitTermination(500, MILLISECONDS);
+		worker.awaitTermination(500, MILLISECONDS);
 		System.out.println("Took: " + (System.currentTimeMillis() - start));
 	}
 
@@ -156,7 +181,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short)0);
 		buffer.put((byte)0);
 		buffer.flip();
 		
@@ -238,7 +263,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
 		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
@@ -269,7 +294,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
 		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {-1, 11});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
@@ -285,7 +310,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
 		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, ()->failure.getClass().getName());
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
 	}
 
 	@Test
@@ -302,7 +327,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		buffer.put((byte)42);
 		buffer.flip();
 		
@@ -331,7 +356,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
 		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
@@ -344,6 +369,9 @@ public abstract class AbstractServerConnectionManagerTest {
 		assertEquals(FAILURE_TO_SERIALIZE_SUCCESS, returned.get());
 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
 		assertEquals(789, returned.getInt());
+		ByteBuf buf = Unpooled.wrappedBuffer(returned);
+		CharSequence message = buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8);
+		assertNotNull(message);
 	}
 
 	@Test
@@ -362,7 +390,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
 		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {-1, 11});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
@@ -375,13 +403,16 @@ public abstract class AbstractServerConnectionManagerTest {
 		assertEquals(FAILURE_TO_SERIALIZE_FAILURE, returned.get());
 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
 		assertEquals(789, returned.getInt());
+		ByteBuf buf = Unpooled.wrappedBuffer(returned);
+		CharSequence message = buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8);
+		assertNotNull(message);
 	}
 	
 	@Test
 	public void testComplexCallFireAndForget() throws IOException, ClassNotFoundException {
 		
 		rp.registerService(SERVICE_ID, 
-				new ServiceInvoker(SERVICE_ID, serializer, mockServiceObject, methodMappings, worker));
+				new ServiceInvoker(rp, SERVICE_ID, serializer, mockServiceObject, methodMappings, worker, timer));
 		
 		ByteChannel channel = getCommsChannel(serviceUri);
 		
@@ -394,7 +425,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short)1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
 		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
@@ -414,11 +445,11 @@ public abstract class AbstractServerConnectionManagerTest {
 		
 		TestService serviceToUse = mock(TestService.class);
 		when(serviceToUse.length()).thenReturn(resolved(42));
-		methodMappings.clear();
-		methodMappings.put(1, serviceToUse.getClass().getMethod("length"));
+		methodMappings = new Method[1];
+		methodMappings[0] = serviceToUse.getClass().getMethod("length");
 		
 		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID, 
-				new ServiceInvoker(SERVICE_ID, serializer, serviceToUse, methodMappings, worker)));
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
 		
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
@@ -429,7 +460,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short)0);
 		buffer.put((byte)0);
 		buffer.flip();
 		
@@ -448,11 +479,11 @@ public abstract class AbstractServerConnectionManagerTest {
 		
 		TestService serviceToUse = mock(TestService.class);
 		when(serviceToUse.length()).thenReturn(failed(new StringIndexOutOfBoundsException()));
-		methodMappings.clear();
-		methodMappings.put(1, serviceToUse.getClass().getMethod("length"));
+		methodMappings = new Method[1];
+		methodMappings[0] = serviceToUse.getClass().getMethod("length");
 		
 		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID, 
-				new ServiceInvoker(SERVICE_ID, serializer, serviceToUse, methodMappings, worker)));
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
 		
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
@@ -463,7 +494,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short)0);
 		buffer.put((byte)0);
 		buffer.flip();
 		
@@ -477,7 +508,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
 		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, ()->failure.getClass().getName());
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
 	}
 
 	@Test
@@ -497,14 +528,13 @@ public abstract class AbstractServerConnectionManagerTest {
 					
 				});
 		
-		when(hostBundleWiring.getClassLoader()).thenReturn(testServiceClass.getClassLoader());
 		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
 		
-		methodMappings.clear();
-		methodMappings.put(1, testServiceClass.getMethod("length"));
+		methodMappings = new Method[1];
+		methodMappings[0] = testServiceClass.getMethod("length");
 		
 		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID, 
-				new ServiceInvoker(SERVICE_ID, serializer, serviceToUse, methodMappings, worker)));
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
 		
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
@@ -515,7 +545,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short)0);
 		buffer.put((byte)0);
 		buffer.flip();
 		
@@ -546,13 +576,12 @@ public abstract class AbstractServerConnectionManagerTest {
 					
 				});
 		
-		when(hostBundleWiring.getClassLoader()).thenReturn(testServiceClass.getClassLoader());
 		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
-		methodMappings.clear();
-		methodMappings.put(1, testServiceClass.getMethod("length"));
+		methodMappings = new Method[1];
+		methodMappings[0] = testServiceClass.getMethod("length");
 		
 		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID, 
-				new ServiceInvoker(SERVICE_ID, serializer, serviceToUse, methodMappings, worker)));
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
 		
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
@@ -563,7 +592,7 @@ public abstract class AbstractServerConnectionManagerTest {
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short)0);
 		buffer.put((byte)0);
 		buffer.flip();
 		
@@ -577,7 +606,347 @@ public abstract class AbstractServerConnectionManagerTest {
 		
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
 		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, ()->failure.getClass().getName());
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
+	}
+	
+	@Test
+	public void testComplexCallReturnsFutureAndAcceptsCompletedAsyncArgs() throws Exception {
+		
+		CompletedPromise start = new CompletedPromise();
+		start.state = State.SUCCEEDED;
+		start.value = 1;
+		
+		CompletedPromise end = new CompletedPromise();
+		end.state = State.SUCCEEDED;
+		end.value = 11;
+		
+		ByteChannel channel = getCommsChannel(serviceUri);
+		
+		ByteBuffer buffer = ByteBuffer.allocate(256);
+		buffer.put(VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort((short)2);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), 
+				new Object[] {start, end});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+		
+		sendData(channel, buffer);
+ 		
+ 		ByteBuffer returned = doRead(channel);
+ 		
+ 		assertEquals(SUCCESS_RESPONSE, returned.get());
+ 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+ 		assertEquals(789, returned.getInt());
+ 		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
+	}
+
+	@Test
+	public void testComplexCallReturnsFutureAndAcceptsUnCompletedAsyncArgs() throws Exception {
+		
+		ByteChannel channel = getCommsChannel(serviceUri);
+		
+		ByteBuffer buffer = ByteBuffer.allocate(64);
+		buffer.put(VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort((short)2);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), 
+				new Object[] {null, null});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		ByteBuffer returned;
+		try {
+			returned = doRead(channel);
+			fail("Should not get a response");
+		} catch (Exception e) {
+			assertEquals("No response received", e.getMessage());
+		}
+		
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.ASYNC_METHOD_PARAM_DATA);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.put((byte) 0);
+		buffer.put((byte) 1);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		try {
+			returned = doRead(channel);
+			fail("Should not get a response");
+		} catch (Exception e) {
+			assertEquals("No response received", e.getMessage());
+		}
+		
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.ASYNC_METHOD_PARAM_DATA);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.put((byte) 1);
+		buffer.put((byte) 11);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		returned = doRead(channel);
+		
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
+	}
+	
+	@Test
+	public void testSimpleCallReturnsPushStream() throws Exception {
+		doTestSimpleCallReturnsStream((short)3);
+	}
+	
+	private void doTestSimpleCallReturnsStream(short method) throws Exception {
+		
+		ByteChannel channel = getCommsChannel(serviceUri);
+		
+		ByteBuffer buffer = ByteBuffer.allocate(64);
+		buffer.put(VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort(method);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {32});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+		
+		sendData(channel, buffer);
+ 		
+ 		ByteBuffer returned = doRead(channel);
+ 		
+ 		assertEquals(SUCCESS_RESPONSE, returned.get());
+ 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+ 		assertEquals(789, returned.getInt());
+ 		Object[] result = (Object[]) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
+ 		assertEquals(SERVICE_ID, result[0]);
+ 		assertEquals(789, result[1]);
+ 		
+ 		
+ 		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.CLIENT_OPEN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		
+		for(Character c : TEST_STRING.toCharArray()) {
+			checkData(channel, c);
+		}
+
+ 		returned = doRead(channel, (byte) 2);
+ 		
+ 		assertEquals(Protocol_V2.SERVER_CLOSE_EVENT, returned.get());
+ 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+ 		assertEquals(789, returned.getInt());
+	}
+
+	@Test
+	public void testSimpleCallReturnsPushStreamEarlyCloseFromClient() throws Exception {
+		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short)3);
+	}
+	
+	private void doTestSimpleCallReturnsStreamEarlyCloseFromClient(short method) throws Exception {
+		
+		ByteChannel channel = getCommsChannel(serviceUri);
+		
+		ByteBuffer buffer = ByteBuffer.allocate(64);
+		buffer.put(VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort(method);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {32});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		ByteBuffer returned = doRead(channel);
+		
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		Object[] result = (Object[]) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
+		assertEquals(SERVICE_ID, result[0]);
+		assertEquals(789, result[1]);
+		
+		
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.CLIENT_OPEN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		
+		for(Character c : TEST_STRING.substring(0, 5).toCharArray()) {
+			checkData(channel, c);
+		}
+		
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.CLIENT_CLOSE);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		buffer = ByteBuffer.allocate(1024);
+		for (int i = 0; i < 20; i++) {
+			buffer.clear();
+			assertEquals(0, channel.read(buffer));
+			Thread.sleep(100);
+		}
+	}
+	
+	@Test
+	public void testSimpleCallReturnsPushStreamEarlyCloseWithError() throws Exception {
+		doTestSimpleCallReturnsStreamEarlyCloseWithError((short)3);
+	}
+	
+	private void doTestSimpleCallReturnsStreamEarlyCloseWithError(short method) throws Exception {
+		
+		ByteChannel channel = getCommsChannel(serviceUri);
+		
+		ByteBuffer buffer = ByteBuffer.allocate(64);
+		buffer.put(VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort(method);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {8});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		ByteBuffer returned = doRead(channel);
+		
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		Object[] result = (Object[]) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
+		assertEquals(SERVICE_ID, result[0]);
+		assertEquals(789, result[1]);
+		
+		
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte)0);
+		}
+		buffer.put(Protocol_V2.CLIENT_OPEN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.flip();
+		
+		sendData(channel, buffer);
+		
+		
+		for(Character c : TEST_STRING.substring(0, 8).toCharArray()) {
+			checkData(channel, c);
+		}
+		
+		returned = doRead(channel, (byte) 2);
+ 		
+ 		assertEquals(Protocol_V2.SERVER_ERROR_EVENT, returned.get());
+ 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+ 		assertEquals(789, returned.getInt());
+ 		ArrayIndexOutOfBoundsException aioobe = (ArrayIndexOutOfBoundsException) serializer
+ 				.deserializeReturn(Unpooled.wrappedBuffer(returned));
+ 		assertEquals("Failed after 8", aioobe.getMessage());
+	}
+	
+	@Test
+	public void testSimpleCallReturnsPushEventSource() throws Exception {
+		doTestSimpleCallReturnsStream((short)4);
+	}
+	
+	@Test
+	public void testSimpleCallReturnsPushEventSourceEarlyCloseFromClient() throws Exception {
+		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short)4);
+	}
+	
+	@Test
+	public void testSimpleCallReturnsPushEventSourceEarlyCloseWithError() throws Exception {
+		doTestSimpleCallReturnsStreamEarlyCloseWithError((short)4);
+	}
+
+	private void checkData(ByteChannel channel, Character character) throws IOException, ClassNotFoundException {
+		ByteBuffer returned;
+		returned = doRead(channel, (byte) 2);
+ 		
+		assertEquals(Protocol_V2.SERVER_DATA_EVENT, returned.get());
+ 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+ 		assertEquals(789, returned.getInt());
+ 		assertEquals(character, serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
 	}
 	
 	private void sendData(ByteChannel channel, ByteBuffer buffer) throws IOException {
@@ -586,13 +955,17 @@ public abstract class AbstractServerConnectionManagerTest {
 	}
 
 	private ByteBuffer doRead(ByteChannel channel) throws IOException {
- 		ByteBuffer buffer = ByteBuffer.allocate(4096);
+		return doRead(channel, (byte) 1);
+	}
+	
+	private ByteBuffer doRead(ByteChannel channel, byte version) throws IOException {
+ 		ByteBuffer buffer = ByteBuffer.allocate(8192);
  		
  		int loopCount = 0;  
  		do {
  			channel.read(buffer);
  			if(buffer.position() >= 4) {
- 				if(buffer.get(0) != 1) {
+ 				if(buffer.get(0) != version) {
  					throw new IllegalArgumentException("" + buffer.get(0));
  				}
  				if(buffer.getShort(2) == (buffer.position() - 4)) {
@@ -652,6 +1025,19 @@ public abstract class AbstractServerConnectionManagerTest {
 				return c;
 			}
 		};
+	}
+
+	protected String selectProtocol(String ipv6, String ipv4) {
+		String protocol;
+		try(DatagramSocket ds = new DatagramSocket(0, InetAddress.getByName("::"))) {
+			protocol = ipv6;
+		} catch (SocketException e) {
+			System.out.println("IPV6 not supported");
+			protocol = ipv4;
+		} catch (Exception e) {
+			throw new IllegalArgumentException(e);
+		}
+		return protocol;
 	}
 	
 }

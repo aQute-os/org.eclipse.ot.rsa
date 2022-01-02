@@ -46,7 +46,7 @@ public class VanillaResource implements SimpleResource {
         }
     }
 
-    protected void finalize() throws Throwable {
+	protected void finalize() throws Throwable {
         try {
             if (!_closed) {
                 close();

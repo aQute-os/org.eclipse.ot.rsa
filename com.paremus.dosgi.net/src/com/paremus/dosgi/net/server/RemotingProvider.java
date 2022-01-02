@@ -13,14 +13,21 @@
 package com.paremus.dosgi.net.server;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.UUID;
+
+import com.paremus.dosgi.net.pushstream.PushStreamFactory.DataStream;
+
+import io.netty.channel.Channel;
 
 public interface RemotingProvider {
 
 	boolean isSecure();
 
-	URI registerService(UUID id, ServiceInvoker invoker);
+	Collection<URI> registerService(UUID id, ServiceInvoker invoker);
 
 	void unregisterService(UUID id);
+	
+	void registerStream(Channel ch, UUID id, int callId, DataStream stream);
 
 }

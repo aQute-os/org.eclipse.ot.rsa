@@ -27,7 +27,7 @@ import org.freshvanilla.lang.MetaField;
 
 public class VanillaPojoSerializer implements PojoSerializer {
 
-    private final MetaClasses _metaClasses;
+    protected final MetaClasses _metaClasses;
 
     public VanillaPojoSerializer(MetaClasses metaclasses) {
         super();
@@ -61,7 +61,12 @@ public class VanillaPojoSerializer implements PojoSerializer {
             throw new ClassNotFoundException(classWithParameters);
         }
 
-        Pojo pojo;
+        return deserialize(rb, wf, clazz);
+    }
+
+	protected <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf, MetaClass<Pojo> clazz)
+			throws NotSerializableException, ClassNotFoundException, IOException {
+		Pojo pojo;
 
         try {
             pojo = clazz.newInstance();
@@ -76,6 +81,6 @@ public class VanillaPojoSerializer implements PojoSerializer {
         }
 
         return pojo;
-    }
+	}
 
 }

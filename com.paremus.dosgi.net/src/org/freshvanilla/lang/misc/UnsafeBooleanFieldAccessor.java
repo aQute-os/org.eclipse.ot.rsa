@@ -7,7 +7,7 @@ class UnsafeBooleanFieldAccessor implements FieldAccessor<Boolean> {
         this.offset = offset;
     }
 
-    public <Pojo> Boolean getField(Pojo pojo) {
+	public <Pojo> Boolean getField(Pojo pojo) {
         return Unsafe.unsafe.getBoolean(pojo, offset);
     }
 

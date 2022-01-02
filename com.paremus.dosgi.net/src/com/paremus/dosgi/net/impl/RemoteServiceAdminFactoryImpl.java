@@ -13,13 +13,15 @@
 package com.paremus.dosgi.net.impl;
 
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.framework.Bundle;
@@ -28,15 +30,15 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.launch.Framework;
 
 import com.paremus.dosgi.net.client.ClientConnectionManager;
-import com.paremus.dosgi.net.config.Config;
+import com.paremus.dosgi.net.config.TransportConfig;
 import com.paremus.dosgi.net.server.RemotingProvider;
 import com.paremus.dosgi.net.server.ServerConnectionManager;
-import com.paremus.net.encode.EncodingSchemeFactory;
+import com.paremus.netty.tls.ParemusNettyTLS;
 
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.channel.EventLoopGroup;
+import io.netty.util.Timer;
 import io.netty.util.concurrent.EventExecutorGroup;
-import io.netty.util.concurrent.FastThreadLocalThread;
 
 public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServiceAdminImpl> {
 
@@ -58,21 +60,24 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 	private final ConcurrentMap<Framework, Tuple> publisherReferenceCounts
 		= new ConcurrentHashMap<>();
 	
-	private final AtomicInteger threadId = new AtomicInteger(1);
-	private final EventExecutorGroup serverWorkers;
-	private Config config;
+	private final List<RemoteServiceAdminImpl> impls = new CopyOnWriteArrayList<>();
 	
-	public RemoteServiceAdminFactoryImpl(Config config, EncodingSchemeFactory esf, ByteBufAllocator allocator) {
+	private final EventExecutorGroup serverWorkers;
+	private final EventExecutorGroup clientWorkers;
+	private final Timer timer;
+	private final TransportConfig config;
+	
+	public RemoteServiceAdminFactoryImpl(TransportConfig config, ParemusNettyTLS tls, 
+			ByteBufAllocator allocator, EventLoopGroup serverIo, EventLoopGroup clientIo,
+			EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, Timer timer) {
 		this.config = config;
-		clientConnectionManager = new ClientConnectionManager(config, esf, allocator);
-		serverConnectionManager = new ServerConnectionManager(config, esf, allocator);
-		 
-		serverWorkers = new DefaultEventExecutorGroup(config.server_worker_threads(), r -> {
-								Thread thread = new FastThreadLocalThread(r, 
-										"Paremus RSA distribution server Worker " + threadId.getAndIncrement());
-								thread.setDaemon(true);
-								return thread;
-							});
+		this.timer = timer;
+		
+		this.serverWorkers = serverWorkers;
+		this.clientWorkers = clientWorkers;
+		
+		clientConnectionManager = new ClientConnectionManager(config, tls, allocator, clientIo, clientWorkers, timer);
+		serverConnectionManager = new ServerConnectionManager(config, tls, allocator, serverIo, timer);
 	}
 	
 	
@@ -92,14 +97,17 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 		
 		rsaep.start();
 		
-		return new RemoteServiceAdminImpl(framework, rsaep, serverConnectionManager.getConfiguredProviders(), 
+		RemoteServiceAdminImpl impl = new RemoteServiceAdminImpl(this, framework, rsaep, serverConnectionManager.getConfiguredProviders(), 
 				clientConnectionManager, getSupportedIntents(), new ProxyHostBundleFactory(), serverWorkers, 
-				config);
+				clientWorkers, timer, config);
+		impls.add(impl);
+		return impl;
 	}
 
 	@Override
 	public void ungetService(Bundle bundle, ServiceRegistration<RemoteServiceAdminImpl> registration,
 			RemoteServiceAdminImpl service) {
+		impls.remove(service);
 		service.close();
 		
 		Framework framework = bundleFrameworks.remove(bundle);
@@ -123,21 +131,24 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 	public void close() {
 		serverConnectionManager.close();
 		clientConnectionManager.close();
-		try {
-			serverWorkers.shutdownGracefully(250, 1000, MILLISECONDS).await(2000);
-		} catch (InterruptedException ie) {
-			
-		}
 	}
 
 	public List<String> getSupportedIntents() {
 		List<String> intents = new ArrayList<>();
 		intents.add("asyncInvocation");
+		intents.add("osgi.basic");
+		intents.add("osgi.async");
+		intents.addAll(Arrays.asList(config.additional_intents()));
 		if(serverConnectionManager.getConfiguredProviders().stream()
 			.anyMatch(RemotingProvider::isSecure)) {
 			intents.add("confidentiality.message");
+			intents.add("osgi.confidential");
 		}
 		return intents;
+	}
+	
+	Collection<RemoteServiceAdminImpl> getRemoteServiceAdmins() {
+		return impls.stream().collect(toList());
 	}
 	
 }
