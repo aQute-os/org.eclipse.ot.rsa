@@ -3,11 +3,13 @@
   
 	"com.paremus.dosgi.discovery.cluster~DIM": 
   	{
-		"root.cluster": "DIMC"
+		"root.cluster": "DIMC",
+		"infra": "false"
 	},
 	"com.paremus.gossip.netty~DIM": 
   	{
-		"initial.peers": "127.0.0.1",
+		"initial.peers": ["127.0.0.1:9033", "127.0.0.1:9035"],
+		"bind.address": "127.0.0.1",
 		"udp.port": 9035,
 		"tcp.port": 9036,
 		"cluster.name": "DIMC"
