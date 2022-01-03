@@ -21,12 +21,15 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.junit.jupiter.api.Disabled;
+
 import com.paremus.netty.dtls.adapter.DtlsEngine;
 import com.paremus.netty.dtls.adapter.JdkDtlsEngineAdapter;
 import com.paremus.netty.test.AbstractMultiplexingDTLSTest;
 
 import io.netty.channel.ChannelHandler;
 
+@Disabled
 public class MultiplexingJsseDTLSTest extends AbstractMultiplexingDTLSTest {
 
     @Override

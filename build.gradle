@@ -18,6 +18,18 @@ sonarqube {
   }
 }
 
+subprojects {
+test {
+    useJUnitPlatform()
+    reports {
+	junitXml {
+		outputPerTestCase = true
+		mergeReruns = true
+	}
+    }
+}
+}
+
 tasks.named('wrapper') {
   jarFile = rootProject.file('.gradle-wrapper/gradle-wrapper.jar')
 }

@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.paremus.netty.dtls.adapter.JdkDtlsEngineAdapter;
@@ -38,83 +39,84 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.concurrent.Future;
 
+@Disabled
 public class JsseDTLSTest extends AbstractDTLSTest {
 
-    @Test
-    public void testECCertificate() throws Exception {
-        setupEC();
-        sayHello();
-    }
+	@Test
+	public void testECCertificate() throws Exception {
+		setupEC();
+		sayHello();
+	}
 
-    @Test
-    public void testRSACertificate() throws Exception {
-        setupRSA();
-        sayHello();
-    }
+	@Test
+	public void testRSACertificate() throws Exception {
+		setupRSA();
+		sayHello();
+	}
 
-    private void sayHello() throws InterruptedException, Exception {
-       
-            udpBootstrap.handler( new ChannelInitializer<Channel>() {
-                @Override
-                protected void initChannel(Channel ch) throws Exception {
-                    SSLContext instance = SSLContext.getInstance("DTLSv1.2");
-                    instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
-                    
-                    SSLEngine engine = instance.createSSLEngine();
-                    engine.setUseClientMode(true);
-                    ch.pipeline().addFirst(new ParemusClientDTLSHandler(new JdkDtlsEngineAdapter(engine)));
-                }
-            });
-        
-        
-        Channel alice = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
-        
-        udpBootstrap.handler( new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                SSLContext instance = SSLContext.getInstance("DTLSv1.2");
-                instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
-                
-                SSLEngine engine = instance.createSSLEngine();
-                engine.setUseClientMode(false);
-                ch.pipeline().addFirst(new ParemusServerDTLSHandler(new JdkDtlsEngineAdapter(engine)));
-            }
-        });
-        
-        
-        Channel bob = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
-        
-        BlockingQueue<String> aliceMessages = new LinkedBlockingQueue<>();
-        BlockingQueue<String> bobMessages = new LinkedBlockingQueue<>();
-        
-        alice.pipeline().addLast(new CapturingHandler(aliceMessages));
-        bob.pipeline().addLast(new CapturingHandler(bobMessages));
-        
-        
-        alice.connect(bob.localAddress()).sync();
-        
-        Future<Channel> handshakeFuture = alice.pipeline().get(ParemusClientDTLSHandler.class).handshakeFuture();
-        assertTrue(handshakeFuture.await(1000));
-        handshakeFuture.get(0, TimeUnit.MILLISECONDS);
+	private void sayHello() throws InterruptedException, Exception {
 
-        handshakeFuture = bob.pipeline().get(ParemusServerDTLSHandler.class).handshakeFuture();
-        assertTrue(handshakeFuture.await(1000));
-        handshakeFuture.get(0, TimeUnit.MILLISECONDS);
-        
-     
-        ByteBuf buffer = Unpooled.buffer();
-        buffer.writeCharSequence("Hello from Alice", UTF_8);
-        assertTrue(alice.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) bob.localAddress())).await(2000)); 
-        
-        buffer = Unpooled.buffer();
-        buffer.writeCharSequence("Hello from Bob", UTF_8);
-        assertTrue(bob.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) alice.localAddress())).await(2000)); 
-        
-        assertEquals("Hello from Alice", bobMessages.poll(100, TimeUnit.MILLISECONDS));
-        assertEquals("Hello from Bob", aliceMessages.poll(100, TimeUnit.MILLISECONDS));
-        
-        assertTrue(alice.close().await(1000));
-        assertTrue(bob.close().await(1000));
-    }
-    
+		udpBootstrap.handler( new ChannelInitializer<Channel>() {
+			@Override
+			protected void initChannel(Channel ch) throws Exception {
+				SSLContext instance = SSLContext.getInstance("DTLSv1.2");
+				instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+
+				SSLEngine engine = instance.createSSLEngine();
+				engine.setUseClientMode(true);
+				ch.pipeline().addFirst(new ParemusClientDTLSHandler(new JdkDtlsEngineAdapter(engine)));
+			}
+		});
+
+
+		Channel alice = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
+
+		udpBootstrap.handler( new ChannelInitializer<Channel>() {
+			@Override
+			protected void initChannel(Channel ch) throws Exception {
+				SSLContext instance = SSLContext.getInstance("DTLSv1.2");
+				instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+
+				SSLEngine engine = instance.createSSLEngine();
+				engine.setUseClientMode(false);
+				ch.pipeline().addFirst(new ParemusServerDTLSHandler(new JdkDtlsEngineAdapter(engine)));
+			}
+		});
+
+
+		Channel bob = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
+
+		BlockingQueue<String> aliceMessages = new LinkedBlockingQueue<>();
+		BlockingQueue<String> bobMessages = new LinkedBlockingQueue<>();
+
+		alice.pipeline().addLast(new CapturingHandler(aliceMessages));
+		bob.pipeline().addLast(new CapturingHandler(bobMessages));
+
+
+		alice.connect(bob.localAddress()).sync();
+
+		Future<Channel> handshakeFuture = alice.pipeline().get(ParemusClientDTLSHandler.class).handshakeFuture();
+		assertTrue(handshakeFuture.await(1000));
+		handshakeFuture.get(0, TimeUnit.MILLISECONDS);
+
+		handshakeFuture = bob.pipeline().get(ParemusServerDTLSHandler.class).handshakeFuture();
+		assertTrue(handshakeFuture.await(1000));
+		handshakeFuture.get(0, TimeUnit.MILLISECONDS);
+
+
+		ByteBuf buffer = Unpooled.buffer();
+		buffer.writeCharSequence("Hello from Alice", UTF_8);
+		assertTrue(alice.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) bob.localAddress())).await(2000)); 
+
+		buffer = Unpooled.buffer();
+		buffer.writeCharSequence("Hello from Bob", UTF_8);
+		assertTrue(bob.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) alice.localAddress())).await(2000)); 
+
+		assertEquals("Hello from Alice", bobMessages.poll(100, TimeUnit.MILLISECONDS));
+		assertEquals("Hello from Bob", aliceMessages.poll(100, TimeUnit.MILLISECONDS));
+
+		assertTrue(alice.close().await(1000));
+		assertTrue(bob.close().await(1000));
+	}
+
 }
