@@ -38,9 +38,11 @@
 	org.apache.felix.scr;version='[2.1.28,2.1.29)',\
 	org.apache.geronimo.specs.geronimo-json_1.1_spec;version='[1.5.0,1.5.1)',\
 	org.apache.johnzon.core;version='[1.2.15,1.2.16)',\
-	org.gecko.rsa.test;version=snapshot,\
 	org.gecko.rsa.test.api;version=snapshot,\
 	org.gecko.rsa.test.config.provider;version=snapshot,\
+	org.gecko.rsa.test.provider;version=snapshot,\
+	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
 	org.paremus.netty.tls;version=snapshot,\
 	slf4j.api;version='[1.7.25,1.7.26)',\
@@ -54,8 +56,8 @@
 	bnd.identity;id='com.paremus.dosgi.net',\
 	bnd.identity;id='com.paremus.discovery.cluster',\
 	bnd.identity;id='com.paremus.dosgi.topology.simple',\
-	bnd.identity;id='org.gecko.rsa.test',\
-	bnd.identity;id='org.gecko.rsa.test.config.provider'
+	bnd.identity;id='org.gecko.rsa.test.config.provider',\
+	bnd.identity;id='org.gecko.rsa.test.provider'
 	
 -runee: JavaSE-11
 -resolve: manual

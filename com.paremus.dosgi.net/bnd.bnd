@@ -79,6 +79,7 @@ Export-Package: \
 	org.osgi.util.promise,\
 	org.osgi.util.function,\
 	com.paremus.dosgi.net.message,\
+	com.paremus.dosgi.net.serialize,\
 	com.paremus.dosgi.net.promise,\
 	com.paremus.dosgi.net.pushstream
 		 		
