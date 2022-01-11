@@ -1,0 +1,6 @@
+
+Require-Capability: osgi.extender;filter:='(osgi.extender=osgi.configurator)'
+
+-includepackage             biz.aQute.rsa.test.consumer
+-includeresource            OSGI-INF=resources/OSGI-INF
+

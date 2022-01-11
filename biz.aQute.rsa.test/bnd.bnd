@@ -1,0 +1,10 @@
+-sub *.bnd
+-buildpath: \
+	org.osgi.annotation.versioning,\
+	org.osgi.annotation.bundle,\
+	org.osgi.service.component.annotations,\
+	org.apache.felix.gogo.runtime,\
+	slf4j.api,\
+	org.osgi.service.cm,\
+	org.osgi.framework,\
+	org.osgi.service.component

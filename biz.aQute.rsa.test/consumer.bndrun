@@ -1,0 +1,46 @@
+-include ~shared.bndrun
+
+-runproperties.config: \
+    org.osgi.service.http.port=8081, \
+    udp.port=9081, \
+    tcp.port=9081
+
+-resolve.effective: active;skip:=osgi.service
+
+-runrequires: \
+	    bnd.identity;id='biz.aQute.rsa.test.consumer',\
+	
+-runbundles: \
+	bcprov;version='[1.64.0,1.64.1)',\
+	bctls;version='[1.64.0,1.64.1)',\
+	biz.aQute.gogo.commands.provider;version='[1.8.0,1.8.1)',\
+	biz.aQute.rsa.test.api;version=snapshot,\
+	biz.aQute.rsa.test.consumer;version=snapshot,\
+	biz.aQute.rsagogo;version=snapshot,\
+	com.paremus.cluster.api;version=snapshot,\
+	com.paremus.discovery.cluster;version=snapshot,\
+	com.paremus.dosgi.api;version=snapshot,\
+	com.paremus.dosgi.net;version=snapshot,\
+	com.paremus.dosgi.topology.common;version=snapshot,\
+	com.paremus.dosgi.topology.simple;version=snapshot,\
+	com.paremus.gossip.netty;version=snapshot,\
+	io.netty.buffer;version='[4.1.72,4.1.73)',\
+	io.netty.codec;version='[4.1.72,4.1.73)',\
+	io.netty.common;version='[4.1.72,4.1.73)',\
+	io.netty.handler;version='[4.1.72,4.1.73)',\
+	io.netty.resolver;version='[4.1.72,4.1.73)',\
+	io.netty.tcnative-classes;version='[2.0.46,2.0.47)',\
+	io.netty.transport;version='[4.1.72,4.1.73)',\
+	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
+	org.apache.felix.converter;version='[1.0.14,1.0.15)',\
+	org.apache.felix.eventadmin;version='[1.6.2,1.6.3)',\
+	org.apache.felix.gogo.command;version='[1.1.2,1.1.3)',\
+	org.apache.felix.gogo.runtime;version='[1.1.4,1.1.5)',\
+	org.apache.felix.gogo.shell;version='[1.1.4,1.1.5)',\
+	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
+	org.paremus.netty.tls;version=snapshot,\
+	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
+	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\
+	org.apache.felix.log;version='[1.2.4,1.2.5)',\
+	org.apache.sling.commons.johnzon;version='[1.2.14,1.2.15)',\
+	org.apache.felix.scr;version='[2.1.30,2.1.31)'

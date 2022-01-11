@@ -1,0 +1,30 @@
+-runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runprovidedcapabilities: ${native_capability}
+
+-resolve.effective: active
+-runpath: slf4j.simple, slf4j.api
+-runvm   -Dorg.slf4j.simpleLogger.defaultLogLevel=info
+-runee: JavaSE-1.8
+-resolve: manual
+-runtrace true
+
+-runproperties.base =   \
+    cluster.name=DIMC, \
+    peer.1 = 127.0.0.1:9080, \
+    peer.2 = 127.0.0.1:9081, \
+    peer.3 = 127.0.0.1:9082, \
+    bind.address=127.0.0.1
+
+-runrequires.base: \
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.eventadmin)',\
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
+    bnd.identity;id='com.paremus.dosgi.net',\
+    bnd.identity;id='com.paremus.dosgi.topology.simple',\
+    bnd.identity;id='com.paremus.discovery.cluster',\
+    osgi.identity;filter:='(osgi.identity=biz.aQute.rsagogo)',\
+    osgi.identity;filter:='(osgi.identity=biz.aQute.gogo.commands.provider)',\
+    osgi.identity;filter:='(osgi.identity=biz.aQute.rsagogo)',\
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
+    osgi.identity;filter:='(osgi.identity=org.apache.felix.configurator)'
