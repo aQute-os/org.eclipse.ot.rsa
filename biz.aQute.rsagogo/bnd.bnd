@@ -1,0 +1,11 @@
+Bundle-Version: 1.1.0.SNAPSHOT
+
+
+-buildpath: \
+	org.osgi.service.component.annotations,\
+	org.osgi.service.remoteserviceadmin,\
+	com.paremus.cluster.api,\
+	org.apache.felix.gogo.runtime,\
+	org.osgi.framework
+	
+	
