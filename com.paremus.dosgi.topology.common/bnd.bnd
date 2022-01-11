@@ -1,9 +1,5 @@
+Bundle-Description                  API/library bundle for topology manager
+
 -buildpath: \
 	org.osgi.framework,\
-	org.osgi.service.remoteserviceadmin,\
-	slf4j.api
-
-
-Bundle-Version: 1.1.1.SNAPSHOT
-
-Export-Package: com.paremus.dosgi.topology.common
+	org.osgi.service.remoteserviceadmin

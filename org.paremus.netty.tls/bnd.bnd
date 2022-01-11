@@ -1,8 +1,4 @@
 -buildpath: \
-	org.osgi.annotation.versioning,\
-	org.osgi.annotation.bundle,\
-	org.osgi.service.metatype.annotations,\
-	org.osgi.service.component.annotations,\
 	io.netty.buffer,\
 	io.netty.transport,\
 	io.netty.common,\
@@ -12,16 +8,5 @@
 	bcprov,\
 	bcpkix,\
 	bcutil,\
-	bctls,\
-	slf4j.api
+	bctls
 	
-Bundle-Version: 1.1.0.SNAPSHOT
-
--includeresource: resources
-
-Export-Package: com.paremus.netty.tls
--privatepackage: \
-	com.paremus.netty.dtls.adapter,\
-	com.paremus.netty.dtls.jsse,\
-	com.paremus.netty.tls,\
-	com.paremus.netty.tls.impl

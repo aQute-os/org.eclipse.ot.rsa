@@ -1,25 +1,22 @@
+Bundle-Description  Provides access to security sensitive data like information from keystores. \
+    The interface SecurityDomainConfiguration allows the information about keystores to be \
+    configured. 
+
 -buildpath: \
+    org.osgi.framework,\
+    org.osgi.service.cm,\
+    org.osgi.util.converter, \
 	bcprov,\
-	bcpkix,\
-	bcutil,\
-	org.osgi.framework,\
-	org.osgi.annotation.bundle,\
-	org.osgi.annotation.versioning,\
-	org.osgi.service.metatype.annotations,\
-	org.osgi.service.component.annotations,\
-	org.osgi.service.cm,\
-	org.osgi.util.converter
+	bcpkix
 	
 -testpath: \
-	org.apache.cxf.cxf-core;version='3.2.7',\
-	org.apache.cxf.cxf-rt-frontend-jaxrs;version='3.2.7',\
-	org.apache.cxf.cxf-rt-transports-http;version='3.2.7',\
+	org.apache.cxf.cxf-core,\
+	org.apache.cxf.cxf-rt-frontend-jaxrs,\
+	org.apache.cxf.cxf-rt-transports-http,\
 	jakarta.ws.rs-api,\
 	jakarta.annotation-api,\
 	jakarta.xml.bind-api,\
 	jakarta.activation-api,\
 	org.apache.felix.http.jetty,\
-	org.apache.felix.http.servlet-api
-
-Bundle-Version: 1.1.0.SNAPSHOT
-
+	org.apache.felix.http.servlet-api,\
+	org.apache.servicemix.specs.jsr311-api-1.1.1

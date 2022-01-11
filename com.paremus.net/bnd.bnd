@@ -1,12 +1,7 @@
-Bundle-Version: 1.0.0.${tstamp}
-
 -buildpath: \
 	org.osgi.framework,\
 	org.osgi.service.cm,\
-	org.osgi.annotation.versioning,\
-	org.osgi.annotation.bundle,\
-	biz.aQute.bnd.annotation;version='6.0',\
-	slf4j.api
+	org.osgi.util.converter
 
 Private-Package:  \
 	com.paremus.net.encode.impl

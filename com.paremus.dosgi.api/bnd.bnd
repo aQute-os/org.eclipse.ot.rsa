@@ -1,6 +1,6 @@
+Bundle-Description              API for the DOSGI implementation. This provides a proprietary interface to Remote Service \
+        Admin that works across frameworks and an API to manage _scopes_. 
+
 -buildpath: \
-	org.osgi.annotation.bundle,\
-	org.osgi.annotation.versioning,\
 	org.osgi.framework,\
 	org.osgi.service.remoteserviceadmin
-Bundle-Version: 1.1.1.SNAPSHOT
