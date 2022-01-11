@@ -6,4 +6,8 @@ cnf/cache/
 cnf/local/
 .metadata
 
+bin/
+bin_test/
+generated/
+
 
