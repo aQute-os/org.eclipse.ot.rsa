@@ -19,12 +19,14 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
+import org.osgi.util.converter.Converter;
+import org.osgi.util.converter.Converters;
 
-import aQute.bnd.annotation.metatype.Configurable;
 
 import com.paremus.net.encode.EncodingSchemeFactory;
 
 public class ManagedServiceImpl implements ManagedService {
+	private final Converter converter = Converters.standardConverter();
 
 	private final UUID frameworkUUID;
 	
@@ -52,7 +54,7 @@ public class ManagedServiceImpl implements ManagedService {
 			}
 			
 			ServiceRegistration<EncodingSchemeFactory> newReg;
-			Config config = properties == null ? null : Configurable.createConfigurable(Config.class, properties);
+			Config config = properties == null ? null : converter.convert(properties).to(Config.class);
 			newReg = context.registerService(EncodingSchemeFactory.class, new EncodingSchemeFactoryImpl(config), null);
 			
 			synchronized (frameworkUUID) {
