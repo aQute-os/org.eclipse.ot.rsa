@@ -1,1 +1,61 @@
--groupid: org.geckoprojects.rsa
+#
+# Build file for the Paremus (now geckoprojects) Distributed OSGi implementation
+#
+
+base.version                    1.0.0
+
+Bundle-Version                  ${base.version}
+Bundle-DocURL                   https://github.com/geckoprojects-org/org.geckoprojects.rsa
+Bundle-SCM:                     url=https://github.com/geckoprojects-org/org.geckoprojects.rsa, \
+    connection=scm:git:https://github.com/geckoprojects-org/org.geckoprojects.rsa.git, \
+    developerConnection=scm:git:git@github.com:geckoprojects-org/org.geckoprojects.rsa.git
+    
+
+src                             src,resources
+bin                             bin
+testsrc                         test
+testbin                         bin_test
+target-dir:                     generated
+
+javac.target                    1.8
+javac.source                    1.8
+
+-buildpath.base: \
+    org.osgi.annotation.versioning,\
+    org.osgi.annotation.bundle, \
+    org.osgi.service.component.annotations,\
+    org.osgi.service.metatype.annotations, \
+    slf4j.api
+
+-testpath.base \
+    junit-platform-commons;version=latest,\
+    junit-platform-engine;version=latest,\
+    junit-jupiter-api, \
+    junit-jupiter-engine, \
+    junit-jupiter-params,\
+    junit-vintage-engine;version=latest, \
+    org.opentest4j;version=latest,\
+    org.mockito.mockito-core,\
+    org.mockito.junit-jupiter,\
+    assertj-core;version=latest,\
+    biz.aQute.wrapper.hamcrest;version=latest,\
+    org.apache.servicemix.bundles.junit;version=latest,\
+    net.bytebuddy.byte-buddy;version=latest,\
+    net.bytebuddy.byte-buddy-agent;version=latest,\
+    org.objenesis;version=latest
+
+    
+
+
+-groupid                        org.geckoprojects.rsa
+-pom                            version=${base.version}-SNAPSHOT
+
+-require-bnd                    "(version>=6.0.0)"
+
+-plugin: \
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        index=${.}/central.mvn; \
+        readOnly=true; \
+        name="Central"
