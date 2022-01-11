@@ -31,8 +31,6 @@ public @interface Config {
 	String[] additional_filters() default {};
 	
 	String local_id_filter_extension() default "";
-
-	String tls_target() default "";
 	
 	String[] base_scopes() default {};
 
