@@ -10,10 +10,14 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.osgi.framework;
+package org.osgi.frameworkx;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.osgi.framework.Filter;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.InvalidSyntaxException;
 
 public class FrameworkUtil {
 
