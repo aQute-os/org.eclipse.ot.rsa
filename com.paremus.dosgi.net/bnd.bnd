@@ -2,7 +2,6 @@ Bundle-Description                  The implementation of Remote Service Admin a
         supports a number of serialization techniques.
 
 -buildpath: \
-	com.paremus.net,\
 	io.netty.buffer,\
 	io.netty.codec,\
 	io.netty.common,\
@@ -29,52 +28,15 @@ Bundle-Description                  The implementation of Remote Service Admin a
 	io.netty.common,\
 	aQute.libg
 
-Private-Package: \
-	com.paremus.dosgi.net.activator,\
-	com.paremus.dosgi.net.client,\
-	com.paremus.dosgi.net.config,\
-	com.paremus.dosgi.net.impl,\
-	com.paremus.dosgi.net.proxy,\
-	com.paremus.dosgi.net.serialize,\
-	com.paremus.dosgi.net.serialize.freshvanilla,\
-	com.paremus.dosgi.net.serialize.java,\
-	com.paremus.dosgi.net.serialize.protobuf,\
-	com.paremus.dosgi.net.server,\
-	com.paremus.dosgi.net.tcp,\
-	com.paremus.dosgi.net.wireformat,\
-	io.netty.buffer;-split-package:=merge-first,\
-	org.freshvanilla.net,\
-	org.freshvanilla.lang,\
-	org.freshvanilla.lang.misc,\
-	org.freshvanilla.utils
+-includepackage: \
+	com.paremus.dosgi.net.*,\
+	org.freshvanilla.*
 	
-Conditional-Package: io.netty.*;-split-package:=merge-first,\
-					 aQute.bnd.annotation.metatype
 Bundle-Activator: com.paremus.dosgi.net.activator.Activator
 
-Import-Package: \
-	!com.oracle.*,\
-	!javassist,\
-	!org.apache.commons.logging,\
-	!org.apache.log4j,\
-	!org.apache.logging.log4j,\
-	!org.apache.tomcat.jni,\
-	!org.bouncycastle.*,\
-	!org.eclipse.jetty.*,\
-	!sun.security.*,\
-	reactor.blockhound.*;'resolution:'=optional,\
-	org.conscrypt;'resolution:'=optional,\
-	org.apache.logging.*;'resolution:'=optional,\
-	io.netty.internal.*;'resolution:'=optional,\
-	sun.misc;'resolution:'=optional,\
-	*
 
 Export-Package: \
 	com.paremus.dosgi.topology.scoped,\
-	org.osgi.service.remoteserviceadmin;'-split-package:'=first,\
-	org.osgi.service.async.delegate,\
-	org.osgi.util.promise,\
-	org.osgi.util.function,\
 	com.paremus.dosgi.net.message,\
 	com.paremus.dosgi.net.serialize,\
 	com.paremus.dosgi.net.promise,\

@@ -334,9 +334,9 @@ public class EncodingSchemeImpl implements EncodingScheme {
 			baos.write(-1);
 		}
 		
-		CipherOutputStream cos = new CipherOutputStream(baos, cipher);
-		cos.write(toSend, offset, length);
-		cos.close();
+		try (CipherOutputStream cos = new CipherOutputStream(baos, cipher)) {
+			cos.write(toSend, offset, length);
+		}
 		byte[] encryptedBody = baos.toByteArray();
 		
 		byte[] macBytes = macCreator.apply(header, encryptedBody);

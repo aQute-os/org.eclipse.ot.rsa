@@ -62,9 +62,7 @@ import com.paremus.gossip.v1.messages.SnapshotType;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.FastThreadLocalThread;
-import io.netty.util.concurrent.ImmediateEventExecutor;
-import io.netty.util.concurrent.Promise;
-import io.netty.util.concurrent.PromiseCombiner;
+import io.netty.util.concurrent.Future;
 
 public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 	
@@ -218,27 +216,25 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 	}
 	
 	public void destroy() {
-		open.set(false);
+		if ( open.getAndSet(false)==false)
+			return;
 		
-		@SuppressWarnings("deprecation")
-		PromiseCombiner pc = new PromiseCombiner();
-		
-		pc.add(internalListener.destroy());
+		List<Future<?>> l = new ArrayList<>();
+		l.addAll(internalListener.destroy());
 		
 		members.values().forEach(MemberInfo::close);
 		members.clear();
 		
 		listeners.keySet().removeIf((r) -> context.ungetService(r) || true);
 
-		Promise<Void> finish = ImmediateEventExecutor.INSTANCE.newPromise();
 		
-		pc.add(gossipWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
-		pc.add(listenerWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
+		l.add(gossipWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
+		l.add(listenerWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
 		
-		pc.finish(finish);
 		
 		try {
-			finish.await(1100, TimeUnit.MILLISECONDS);
+			for ( Future<?> f : l)
+				f.await(15000);
 		} catch (InterruptedException e) {
 			// Just exit now
 		}

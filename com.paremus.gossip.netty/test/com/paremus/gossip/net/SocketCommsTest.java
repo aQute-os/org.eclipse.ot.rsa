@@ -143,6 +143,9 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 	@Test
 	public void testStopListening() throws Exception {
 		socketComms.destroy();
+		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {
+			//
+		}
 		
 		try (DatagramSocket s = new DatagramSocket()) {
 			s.send(new DatagramPacket(new byte[] {2, 1, 1, 0x7F}, 4, getLoopbackAddress(), 
@@ -158,7 +161,13 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 			fail("Should be prevented from binding");
 		} catch (BindException be) {}
 		
-		socketComms.destroy().sync();
+		socketComms.destroy().forEach( f ->{
+			try {
+				f.sync();
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		});
 		
 		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {}
 		

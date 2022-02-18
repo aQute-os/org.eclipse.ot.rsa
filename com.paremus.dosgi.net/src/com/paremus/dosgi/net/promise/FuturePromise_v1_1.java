@@ -36,7 +36,9 @@ import io.netty.util.concurrent.EventExecutor;
  * @param <T>
  */
 class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
-
+	@SuppressWarnings("rawtypes")
+	org.osgi.util.promise.Promise p;
+	
 	FuturePromise_v1_1(EventExecutor executor, Timer timer) {
 		super(executor, timer);
 	}

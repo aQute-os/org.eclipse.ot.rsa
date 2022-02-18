@@ -55,7 +55,7 @@ public class ConsumerImpl {
 	// "tcp.port": 9034,
 	// "cluster.name": "DIMC"
 	// },
-	private void configure(ConfigurationAdmin cm, BundleContext context) throws IOException {
+	static void configure(ConfigurationAdmin cm, BundleContext context) throws IOException {
 		Hashtable<String, Object> properties = new Hashtable<>();
 
 		List<String> peers = new ArrayList<>();

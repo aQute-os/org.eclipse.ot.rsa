@@ -86,7 +86,9 @@ public class CertificateSigningRequestSubmitterTest {
 
         HttpConfiguration https = new HttpConfiguration();
         https.addCustomizer(new SecureRequestCustomizer());
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        @SuppressWarnings("deprecation")
+        // TODO fix this
+		SslContextFactory sslContextFactory = new SslContextFactory();
         sslContextFactory.setKeyStorePath(storeInfo.location);
         sslContextFactory.setKeyStorePassword(storeInfo.password);
         sslContextFactory.setKeyManagerPassword(storeInfo.password);

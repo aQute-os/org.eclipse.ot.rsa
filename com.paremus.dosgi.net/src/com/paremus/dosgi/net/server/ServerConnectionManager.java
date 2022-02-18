@@ -77,7 +77,7 @@ public class ServerConnectionManager {
 			.collect(toList());
 		
 		if(configuredTransports.isEmpty() && protocols.length > 0) {
-			LOG.error("There are no server transports available for this provider. Please check the configuration");
+			LOG.error("There are no server transports available for this provider. Please check the configuration. Config was " + Arrays.toString(config.server_protocols()));
 			throw new IllegalArgumentException("The transport configuration created no valid client transports");
 		}
 	}

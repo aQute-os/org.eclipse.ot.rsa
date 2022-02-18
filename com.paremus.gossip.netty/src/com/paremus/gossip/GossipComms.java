@@ -15,6 +15,7 @@ package com.paremus.gossip;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.List;
 
 import com.paremus.gossip.cluster.impl.MemberInfo;
 import com.paremus.gossip.v1.messages.Snapshot;
@@ -29,7 +30,7 @@ public interface GossipComms {
 	public Future<Void> replicate(MemberInfo member,
 			Collection<Snapshot> snapshots);
 
-	public Future<?> destroy();
+	public List<Future<?>> destroy();
 
 	public InetAddress getBindAddress();
 	

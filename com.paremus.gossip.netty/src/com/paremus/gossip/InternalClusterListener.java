@@ -13,6 +13,7 @@
 package com.paremus.gossip;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.paremus.gossip.cluster.impl.MemberInfo;
 import com.paremus.gossip.v1.messages.Snapshot;
@@ -21,6 +22,6 @@ import io.netty.util.concurrent.Future;
 
 public interface InternalClusterListener {
 	void localUpdate(Snapshot s);
-	Future<?> destroy();
+	List<Future<?>> destroy();
 	void darkNodes(Collection<MemberInfo> darkNodes);
 }

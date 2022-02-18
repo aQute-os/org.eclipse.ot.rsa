@@ -74,37 +74,37 @@ import io.netty.util.concurrent.EventExecutorGroup;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class SocketCommsTest {
 
-	private static final UUID COMMS_ID = new UUID(123,456);
-	private static final UUID REMOTE_ID = new UUID(234,567);
-	
+	private static final UUID	COMMS_ID	= new UUID(123, 456);
+	private static final UUID	REMOTE_ID	= new UUID(234, 567);
+
 	@Mock
-	RemoteDiscoveryNotifier notifier;
+	RemoteDiscoveryNotifier		notifier;
 	@Mock
-	ClusterInformation clusterInformation;
+	ClusterInformation			clusterInformation;
 	@Mock
-	ParemusNettyTLS tls;
+	ParemusNettyTLS				tls;
 	@Mock
-	ClusterNetworkInformation fni;
+	ClusterNetworkInformation	fni;
 	@Mock
-	LocalDiscoveryListener localListener;
-	
-	Semaphore s = new Semaphore(0);
-	
-	SocketComms comms;
-	
-	Config config;
-	private NioEventLoopGroup group; 
-	private EventExecutorGroup worker; 
-	
+	LocalDiscoveryListener		localListener;
+
+	Semaphore					s			= new Semaphore(0);
+
+	SocketComms					comms;
+
+	Config						config;
+	private NioEventLoopGroup	group;
+	private EventExecutorGroup	worker;
+
 	@BeforeEach
 	public void setUp() throws Exception {
-		
+
 		group = new NioEventLoopGroup(1);
-		
+
 		worker = new DefaultEventExecutorGroup(1);
-		
-		comms =  new SocketComms(COMMS_ID, group, tls, localListener, notifier, worker);
-		
+
+		comms = new SocketComms(COMMS_ID, group, tls, localListener, notifier, worker);
+
 		Mockito.doAnswer(i -> {
 			s.release();
 			return null;
@@ -113,12 +113,12 @@ public class SocketCommsTest {
 			s.release();
 			return null;
 		}).when(notifier).revocationEvent(Mockito.anyString(), Mockito.anyInt());
-		
+
 		Mockito.when(fni.getBindAddress()).thenReturn(InetAddress.getLoopbackAddress());
-		
+
 		config = standardConverter().convert(new HashMap<>()).to(Config.class);
 	}
-	
+
 	@AfterEach
 	public void tearDown() throws Exception {
 		comms.destroy().sync();
@@ -132,31 +132,31 @@ public class SocketCommsTest {
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
 			comms.publishEndpoint(ed, 5, REMOTE_ID, (InetSocketAddress) ds.getLocalSocketAddress());
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
+
 			checkPlainEndpointAnnounce(ed, dp);
 		}
 	}
 
 	@Test
-	public void testRevokeEndpoint() throws Exception{
+	public void testRevokeEndpoint() throws Exception {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, true);
 			comms.revokeEndpoint(ed.getId(), 5, REMOTE_ID, (InetSocketAddress) ds.getLocalSocketAddress());
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
+
 			ByteArrayInputStream bais = new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength());
-			
-			//Version 2, plain text
+
+			// Version 2, plain text
 			assertEquals(2, bais.read());
-			
+
 			DataInput di = new DataInputStream(bais);
 			assertEquals(MessageType.REVOCATION.ordinal(), di.readByte());
 			assertEquals(ed.getId(), di.readUTF());
@@ -170,56 +170,58 @@ public class SocketCommsTest {
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
 			comms.publishEndpoint(ed, 5, REMOTE_ID, (InetSocketAddress) ds.getLocalSocketAddress());
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
+
 			checkPlainEndpointAnnounce(ed, dp);
-			
-			//Wait a bit
+
+			// Wait a bit
 			Thread.sleep(1000);
-			//We should receive a rebroadcast within a second
+			// We should receive a rebroadcast within a second
 			ds.receive(dp);
 			checkPlainEndpointAnnounce(ed, dp);
 		}
 	}
 
 	@Test
-	public void testNoRepublishWhenAck() throws Exception{
+	public void testNoRepublishWhenAck() throws Exception {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
 			comms.publishEndpoint(ed, 5, REMOTE_ID, (InetSocketAddress) ds.getLocalSocketAddress());
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
+
 			checkPlainEndpointAnnounce(ed, dp);
 
-			//Ack the packet
+			// Ack the packet
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeByte(2);
-			dos.writeByte(ACKNOWLEDGMENT.code());
-			dos.writeLong(REMOTE_ID.getMostSignificantBits());
-			dos.writeLong(REMOTE_ID.getLeastSignificantBits());
-			dos.writeUTF(ed.getId());
-			dos.writeInt(5);
-			dos.close();
-			
-			dp = new DatagramPacket(baos.toByteArray(), baos.size(), InetAddress.getLoopbackAddress(), comms.getUdpPort());
+			try (DataOutputStream dos = new DataOutputStream(baos);) {
+				dos.writeByte(2);
+				dos.writeByte(ACKNOWLEDGMENT.code());
+				dos.writeLong(REMOTE_ID.getMostSignificantBits());
+				dos.writeLong(REMOTE_ID.getLeastSignificantBits());
+				dos.writeUTF(ed.getId());
+				dos.writeInt(5);
+			}
+
+			dp = new DatagramPacket(baos.toByteArray(), baos.size(), InetAddress.getLoopbackAddress(),
+					comms.getUdpPort());
 			ds.send(dp);
-			
-			//Wait a bit
+
+			// Wait a bit
 			Thread.sleep(500);
-			//We should not receive a rebroadcast
-			
+			// We should not receive a rebroadcast
+
 			try {
 				ds.receive(dp);
 				fail("Should not rebroadcast");
-			} catch(SocketTimeoutException ste) {}
+			} catch (SocketTimeoutException ste) {
+			}
 		}
 	}
 
@@ -229,76 +231,78 @@ public class SocketCommsTest {
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
 			comms.publishEndpoint(ed, 5, REMOTE_ID, (InetSocketAddress) ds.getLocalSocketAddress());
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
+
 			checkPlainEndpointAnnounce(ed, dp);
-			
+
 			comms.stopCalling(REMOTE_ID, ds.getLocalSocketAddress());
-			
-			//Wait a bit
+
+			// Wait a bit
 			Thread.sleep(500);
-			//We should not receive a rebroadcast
-			
+			// We should not receive a rebroadcast
+
 			try {
 				ds.receive(dp);
 				fail("Should not rebroadcast");
-			} catch(SocketTimeoutException ste) {}
+			} catch (SocketTimeoutException ste) {
+			}
 		}
 	}
 
 	private void checkPlainEndpointAnnounce(EndpointDescription ed, DatagramPacket dp)
 			throws IOException {
 		ByteBuf buf = Unpooled.wrappedBuffer(dp.getData(), dp.getOffset(), dp.getLength());
-		
-		//Version 2, plain text
+
+		// Version 2, plain text
 		assertEquals(2, buf.readByte());
 		assertEquals(MessageType.ANNOUNCEMENT.code(), buf.readUnsignedByte());
-		
+
 		EndpointDescription received = EndpointSerializer.deserializeEndpoint(buf);
 		assertEquals(ed.getId(), received.getId());
 		assertEquals(5, buf.readInt());
-		
+
 		assertEquals(0, buf.readableBytes());
 	}
-	
+
 	private EndpointDescription getTestEndpointDescription(boolean local, boolean big) {
 		Map<String, Object> m = new LinkedHashMap<String, Object>();
 
-        // required
-        m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});
-        m.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, local ? COMMS_ID.toString() : REMOTE_ID.toString());
-        m.put(RemoteConstants.ENDPOINT_ID, "http://myhost:8080/commands");
-        m.put(RemoteConstants.ENDPOINT_SERVICE_ID, Long.valueOf(42));
-        m.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
-        
-        if(big) {
-        	for(int i = 0; i < 10; i++) {
-        		m.put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
-        	}
-        }
+		// required
+		m.put(OBJECTCLASS, new String[] { "com.acme.HelloService", "some.other.Service" });
+		m.put(RemoteConstants.ENDPOINT_FRAMEWORK_UUID, local ? COMMS_ID.toString() : REMOTE_ID.toString());
+		m.put(RemoteConstants.ENDPOINT_ID, "http://myhost:8080/commands");
+		m.put(RemoteConstants.ENDPOINT_SERVICE_ID, Long.valueOf(42));
+		m.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
 
-        return new EndpointDescription(m);
+		if (big) {
+			for (int i = 0; i < 10; i++) {
+				m.put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+			}
+		}
+
+		return new EndpointDescription(m);
 	}
-	
+
 	@Test
 	public void testDestroy() throws Exception {
 		comms.bind(fni, config);
 		int port = comms.getUdpPort();
-		
+
 		try (DatagramSocket ds = new DatagramSocket(port, InetAddress.getLoopbackAddress())) {
 			fail("Should be taken");
-		} catch (BindException be) {}
-		
+		} catch (BindException be) {
+		}
+
 		comms.destroy().sync();
-		
+
 		Thread.sleep(10);
-		
+
 		try (DatagramSocket ds = new DatagramSocket(port, InetAddress.getLoopbackAddress())) {
 		} catch (BindException be) {
-			if(System.getenv("GITLAB_CI") != null) {
+			if (System.getenv("GITLAB_CI") != null) {
 				System.out.println("The Docker build doesn't always release sockets cleanly.");
 				// Docker sometimes gets in the way here.
 				Thread.sleep(5000);
@@ -315,29 +319,30 @@ public class SocketCommsTest {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
-			
+
 			ByteBuf buffer = Unpooled.buffer();
 			buffer.writeByte(2);
 			buffer.writeByte(ANNOUNCEMENT.code());
 			EndpointSerializer.serialize(ed, buffer);
 			buffer.writeInt(5);
-			
+
 			ds.setSoTimeout(1000);
-			DatagramPacket dp = new DatagramPacket(buffer.array(), buffer.readerIndex(), buffer.readableBytes(), 
+			DatagramPacket dp = new DatagramPacket(buffer.array(), buffer.readerIndex(), buffer.readableBytes(),
 					InetAddress.getLoopbackAddress(), comms.getUdpPort());
 			ds.send(dp);
-			
+
 			assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
-			
+
 			ArgumentCaptor<EndpointDescription> captor = ArgumentCaptor.forClass(EndpointDescription.class);
 			Mockito.verify(notifier).announcementEvent(captor.capture(), Mockito.eq(5));
 			checkPlainEndpointAnnounce(captor.getValue(), dp);
-			
+
 			dp = new DatagramPacket(new byte[65535], 65535);
-			
+
 			ds.receive(dp);
-			
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(ACKNOWLEDGMENT.ordinal(), dis.readByte());
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));
@@ -352,7 +357,7 @@ public class SocketCommsTest {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			EndpointDescription ed = getTestEndpointDescription(true, false);
-			
+
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			try (DataOutputStream dos = new DataOutputStream(baos)) {
 				dos.writeByte(2);
@@ -361,21 +366,22 @@ public class SocketCommsTest {
 				dos.writeInt(5);
 				dos.close();
 			}
-			
+
 			ds.setSoTimeout(1000);
-			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), baos.size(), 
+			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), baos.size(),
 					InetAddress.getLoopbackAddress(), comms.getUdpPort());
 			ds.send(dp);
-			
+
 			assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
-			
+
 			Mockito.verify(notifier).revocationEvent(Mockito.eq(ed.getId()), Mockito.eq(5));
-			
+
 			dp = new DatagramPacket(new byte[65535], 65535);
-			
+
 			ds.receive(dp);
-			
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(ACKNOWLEDGMENT.ordinal(), dis.readByte());
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));
@@ -384,21 +390,22 @@ public class SocketCommsTest {
 			}
 		}
 	}
-	
+
 	@Test
 	public void testSendReminder() throws Exception {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
-			
+
 			EndpointDescription ed = getTestEndpointDescription(true, false);
 			InetSocketAddress isa = (InetSocketAddress) ds.getLocalSocketAddress();
 			comms.sendReminder(Collections.singleton(ed.getId()), 7, REMOTE_ID, isa);
-			
+
 			ds.setSoTimeout(1000);
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(REMINDER.ordinal(), dis.readByte());
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));
@@ -413,43 +420,45 @@ public class SocketCommsTest {
 	public void testRespondToReminder() throws Exception {
 		comms.bind(fni, config);
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
-			
-			EndpointDescription ed = getTestEndpointDescription(true, false);
-			
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(baos);
 
-			dos.writeByte(2);
-			dos.writeByte(REMINDER.ordinal());
-			dos.writeLong(REMOTE_ID.getMostSignificantBits());
-			dos.writeLong(REMOTE_ID.getLeastSignificantBits());
-			dos.writeInt(17);
-			dos.writeShort(1);
-			dos.writeUTF(ed.getId());
-			dos.close();
-			
+			EndpointDescription ed = getTestEndpointDescription(true, false);
+
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			try (DataOutputStream dos = new DataOutputStream(baos)) {
+
+				dos.writeByte(2);
+				dos.writeByte(REMINDER.ordinal());
+				dos.writeLong(REMOTE_ID.getMostSignificantBits());
+				dos.writeLong(REMOTE_ID.getLeastSignificantBits());
+				dos.writeInt(17);
+				dos.writeShort(1);
+				dos.writeUTF(ed.getId());
+			}
+
 			ds.setSoTimeout(1000);
-			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), 0, baos.size(), 
+			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), 0, baos.size(),
 					InetAddress.getLoopbackAddress(), comms.getUdpPort());
 			ds.send(dp);
-			
-			
+
 			dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(ACKNOWLEDGMENT.ordinal(), dis.readByte());
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));
 				assertEquals(COMMS_ID, UUID.fromString(dis.readUTF()));
 				assertEquals(17, dis.readInt());
 			}
-			
+
 			ds.receive(dp);
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(REQUEST_REANNOUNCEMENT.ordinal(), dis.readByte());
-				dis.readLong(); dis.readLong();
+				dis.readLong();
+				dis.readLong();
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));
 				assertEquals(17, dis.readInt());
 				assertEquals(1, dis.readUnsignedShort());
@@ -461,36 +470,36 @@ public class SocketCommsTest {
 	@Test
 	public void testRespondToRequest() throws Exception {
 		comms.bind(fni, config);
-		
+
 		UUID reannouncementId = UUID.randomUUID();
 		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
-			
+
 			EndpointDescription ed = getTestEndpointDescription(true, false);
-			
+
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(baos);
-			
-			dos.writeByte(2);
-			dos.writeByte(REQUEST_REANNOUNCEMENT.ordinal());
-			dos.writeLong(reannouncementId.getMostSignificantBits());
-			dos.writeLong(reannouncementId.getLeastSignificantBits());
-			dos.writeLong(REMOTE_ID.getMostSignificantBits());
-			dos.writeLong(REMOTE_ID.getLeastSignificantBits());
-			dos.writeInt(27);
-			dos.writeShort(1);
-			dos.writeUTF(ed.getId());
-			dos.close();
-			
+			try (DataOutputStream dos = new DataOutputStream(baos)) {
+
+				dos.writeByte(2);
+				dos.writeByte(REQUEST_REANNOUNCEMENT.ordinal());
+				dos.writeLong(reannouncementId.getMostSignificantBits());
+				dos.writeLong(reannouncementId.getLeastSignificantBits());
+				dos.writeLong(REMOTE_ID.getMostSignificantBits());
+				dos.writeLong(REMOTE_ID.getLeastSignificantBits());
+				dos.writeInt(27);
+				dos.writeShort(1);
+				dos.writeUTF(ed.getId());
+			}
+
 			ds.setSoTimeout(1000);
-			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), 0, baos.size(), 
+			DatagramPacket dp = new DatagramPacket(baos.toByteArray(), 0, baos.size(),
 					InetAddress.getLoopbackAddress(), comms.getUdpPort());
 			ds.send(dp);
-			
-			
+
 			dp = new DatagramPacket(new byte[65535], 65535);
 			ds.receive(dp);
-			
-			try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
+
+			try (DataInputStream dis = new DataInputStream(
+					new ByteArrayInputStream(dp.getData(), dp.getOffset(), dp.getLength()))) {
 				assertEquals(2, dis.readByte());
 				assertEquals(ACKNOWLEDGMENT.ordinal(), dis.readByte());
 				assertEquals(COMMS_ID, new UUID(dis.readLong(), dis.readLong()));

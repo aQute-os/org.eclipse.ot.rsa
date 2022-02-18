@@ -151,7 +151,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 				private boolean setup(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS esf, TransportConfig cfg) {
 					RemoteServiceAdminFactoryImpl newRSA;
 					try {
-						newRSA = new RemoteServiceAdminFactoryImpl(config, esf, allocator, serverIo, 
+						newRSA = new RemoteServiceAdminFactoryImpl(context,config, esf, allocator, serverIo, 
 								clientIo, serverWorkers, clientWorkers, timer);
 					} catch (IllegalArgumentException iae) {
 						logger.error("The RSA could not be created with encoding scheme {}", reference, iae);

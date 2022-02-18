@@ -110,13 +110,11 @@ public class PromiseFactory {
 		Bundle b = FrameworkUtil.getBundle(promise);
 
 		if (b == null) {
-			LOG.warn("Unable to determine the version of the Promise as it is not from OSGi");
-			result = Version.emptyVersion;
+			result = V_1_1;
 		} else {
 			BundleRevision revision = b.adapt(BundleRevision.class);
 			if (revision == null) {
-				LOG.warn("Unable to determine the version of the Promise from bundle {} as it is uninstalled", b);
-				result = Version.emptyVersion;
+				result = V_1_1;
 			} else {
 				result = revision.getCapabilities(PACKAGE_NAMESPACE).stream()
 					.map(bc -> bc.getAttributes())

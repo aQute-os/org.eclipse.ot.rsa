@@ -85,18 +85,19 @@ public class ProxyHostBundleFactory {
 			a.put(new Name(Constants.BUNDLE_SYMBOLICNAME), proxySymbolicName);
 			a.put(new Name(Constants.BUNDLE_VERSION), proxyVersion.toString());
 			
-			ByteArrayOutputStream stream = new ByteArrayOutputStream(1024);
-			try (JarOutputStream out = new JarOutputStream(stream, m)){ }
-			// nothing to write, so just close again
-			stream.close();
-			
-			// "materialize" the bundle
-			String location = UUID.randomUUID().toString();
-			InputStream input = new ByteArrayInputStream(stream.toByteArray());
-			Bundle proxy = targetContext.installBundle(location, input);
-			// INSTALLED state is not enough
-			proxy.start();
-			return proxy;
+			try (ByteArrayOutputStream stream = new ByteArrayOutputStream(1024)) {
+				try (JarOutputStream out = new JarOutputStream(stream, m)){ }
+				// nothing to write, so just close again
+				stream.close();
+				
+				// "materialize" the bundle
+				String location = UUID.randomUUID().toString();
+				InputStream input = new ByteArrayInputStream(stream.toByteArray());
+				Bundle proxy = targetContext.installBundle(location, input);
+				// INSTALLED state is not enough
+				proxy.start();
+				return proxy;
+			}
 		} catch (Exception ex) {
 			throw new IllegalArgumentException(ex);
 		}

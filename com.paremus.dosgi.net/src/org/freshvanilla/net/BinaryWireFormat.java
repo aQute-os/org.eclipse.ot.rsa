@@ -417,16 +417,14 @@ public class BinaryWireFormat implements WireFormat {
 
         byte[] bytes = new byte[len];
         readBuffer.readBytes(bytes);
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-        Object ret;
-        try {
-            ret = ois.readObject();
-        }
-        catch (ClassNotFoundException e) {
-            throw new NotSerializableException(e.toString());
-        }
-        ois.close();
-        return ret;
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+			try {
+			    return ois.readObject();
+			}
+			catch (ClassNotFoundException e) {
+			    throw new NotSerializableException(e.toString());
+			}
+		}
     }
 
     public void writeObject(ByteBuf writeBuffer, Object object) throws IOException {
@@ -661,9 +659,10 @@ public class BinaryWireFormat implements WireFormat {
 
     private void writeSerializable0(ByteBuf writeBuffer, Object object) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(BYTES_SIZE);
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(object);
-        oos.close();
+        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			oos.writeObject(object);
+			oos.close();
+		}
         byte[] bytes = baos.toByteArray();
         writeNum(writeBuffer, bytes.length);
         writeBuffer.writeBytes(bytes);

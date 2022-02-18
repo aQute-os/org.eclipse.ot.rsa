@@ -438,7 +438,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	}
 
 	@Override
-	public Future<?> destroy() {
+	public List<Future<?>> destroy() {
 		open.set(false);
 		
 		ServiceRegistration<?> reg = netInfo.getAndSet(null);

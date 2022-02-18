@@ -360,7 +360,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 				apiClass = null;
 			}
 		} else {
-			LOG.warn("Unable to determine the version of the package {} visible to the service {} and the client {}. Errors may occur if the version is incompatible with the range \"[{},{})\".",
+			LOG.debug("Unable to determine the version of the package {} visible to the service {} and the client {}. Errors may occur if the version is incompatible with the range \"[{},{})\".",
 					new Object[] {apiPackage, _endpointDescription.getId(), requestingBundle, minAcceptable, minUnacceptable});
 		}
 		return apiClass;

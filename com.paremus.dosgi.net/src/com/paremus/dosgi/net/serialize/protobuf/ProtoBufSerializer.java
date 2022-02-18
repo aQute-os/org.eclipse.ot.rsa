@@ -450,6 +450,7 @@ public class ProtoBufSerializer implements Serializer {
 				}
 			}
 			case JAVA_OBJECT_TAG : {
+				@SuppressWarnings("resource")
 				ObjectInputStream ois = null;
 				try {
 					ois = new ObjectInputStream(bbis) {

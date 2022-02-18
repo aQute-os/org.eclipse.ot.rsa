@@ -134,7 +134,7 @@ public class ClusterManagerImplTest {
 	
 	@BeforeEach
 	public void setUp() throws Exception {
-		Mockito.when(listener.destroy()).thenReturn(GlobalEventExecutor.INSTANCE.newSucceededFuture(null));
+		Mockito.when(listener.destroy()).thenReturn(Arrays.asList(GlobalEventExecutor.INSTANCE.newSucceededFuture(null)));
 		
 		impl = new ClusterManagerImpl(context, ID, 
 				standardConverter().convert(singletonMap("cluster.name", CLUSTER))

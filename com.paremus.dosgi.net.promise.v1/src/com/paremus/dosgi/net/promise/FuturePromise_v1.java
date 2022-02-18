@@ -15,6 +15,7 @@ package com.paremus.dosgi.net.promise;
 import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 
+import org.osgi.util.function.Consumer;
 import org.osgi.util.function.Function;
 import org.osgi.util.function.Predicate;
 import org.osgi.util.promise.Failure;
@@ -311,6 +312,36 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 		if(o == null) {
 			throw new NullPointerException("Null is not permitted");
 		}
+	}
+
+	@Override
+	public Promise<T> onSuccess(Consumer<? super T> success) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Promise<T> onFailure(Consumer<? super Throwable> failure) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Promise<T> thenAccept(Consumer<? super T> consumer) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Promise<T> timeout(long milliseconds) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Promise<T> delay(long milliseconds) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

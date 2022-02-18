@@ -1221,7 +1221,8 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
     	return runTCPServer(false, validators);
     }
     
-    @SafeVarargs
+    @SuppressWarnings("resource")
+	@SafeVarargs
 	protected final String runTCPServer(boolean closeInbetween, Function<byte[], byte[]>... validators) throws Exception {
     	
     	Semaphore sem = new Semaphore(0);

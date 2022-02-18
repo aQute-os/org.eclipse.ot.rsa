@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.felix.service.command.Converter;
@@ -20,11 +21,13 @@ import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
 import com.paremus.cluster.ClusterInformation;
+import com.paremus.cluster.listener.Action;
+import com.paremus.cluster.listener.ClusterListener;
 
 @GogoCommand(scope = "rsa", function = { "members", "hosts", "cluster", "address", "local", "attributes", "attribute",
 		"update", "rimports", "rexports"})
 @Component(immediate = true, property="endpoint.listener.scope=(objectClass=*)")
-public class RSAGogo implements Converter, EndpointEventListener {
+public class RSAGogo implements Converter, EndpointEventListener, ClusterListener {
 	@Reference
 	RemoteServiceAdmin	admin;
 	@Reference
@@ -132,6 +135,13 @@ public class RSAGogo implements Converter, EndpointEventListener {
 	@Override
 	public void endpointChanged(EndpointEvent event, String filter) {
 		System.out.println("endpt event " + event + " " + filter);
+	}
+
+	@Override
+	public void clusterEvent(ClusterInformation cluster, Action action, UUID id, Set<String> addedKeys,
+			Set<String> removedKeys, Set<String> updatedKeys) {
+		System.out.println(cluster + " action=" + action + " id=" + id + " add=" + addedKeys + " remove=" + removedKeys + " update" + updatedKeys);
+		
 	}
 
 }

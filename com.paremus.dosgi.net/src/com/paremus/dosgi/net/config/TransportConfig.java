@@ -18,7 +18,7 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 @ObjectClassDefinition(factoryPid="com.paremus.dosgi.net.transport")
 public @interface TransportConfig {
 	
-	boolean allow_insecure_transports() default false;
+	boolean allow_insecure_transports() default true;
 	
 	String[] client_protocols() default {"TCP;nodelay=true", "TCP_CLIENT_AUTH;nodelay=true;connect.timeout=3000"};
 	

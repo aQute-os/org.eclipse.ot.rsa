@@ -102,13 +102,17 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 	}
 
 	private void internalClose() {
-		AutoCloseable conn = connection.getAndSet(null);
-		if(conn != null) {
-			try {
-				conn.close();
-			} catch (Exception e) {
-				
+		try (AutoCloseable conn = connection.getAndSet(null)) {
+			if(conn != null) {
+				try {
+					conn.close();
+				} catch (Exception e) {
+					
+				}
 			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 }

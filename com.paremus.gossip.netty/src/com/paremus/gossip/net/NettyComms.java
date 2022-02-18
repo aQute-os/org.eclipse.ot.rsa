@@ -18,8 +18,11 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -164,9 +167,14 @@ public class NettyComms implements GossipComms {
 		
 	}
 	
-	public Future<?> destroy() {
-		open.set(false);
-		return eventLoop.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS);
+	public List<Future<?>> destroy() {
+		if ( open.getAndSet(false)==false)
+			return Collections.emptyList();
+		List<Future<?>> l= new ArrayList<>();
+		l.add(udpChannel.close());
+		l.add(tcpServerChannel.close());
+		l.add(eventLoop.shutdownGracefully(200, 500, TimeUnit.MILLISECONDS));
+		return l;
 	}
 	
 	private Instant lastReportedLargeMessage;

@@ -22,7 +22,7 @@
     osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
     bnd.identity;id='com.paremus.dosgi.net',\
     bnd.identity;id='com.paremus.dosgi.topology.simple',\
-    bnd.identity;id='com.paremus.discovery.cluster',\
+    bnd.identity;id='com.paremus.gossip.netty',\
     osgi.identity;filter:='(osgi.identity=biz.aQute.rsagogo)',\
     osgi.identity;filter:='(osgi.identity=biz.aQute.gogo.commands.provider)',\
     osgi.identity;filter:='(osgi.identity=biz.aQute.rsagogo)',\

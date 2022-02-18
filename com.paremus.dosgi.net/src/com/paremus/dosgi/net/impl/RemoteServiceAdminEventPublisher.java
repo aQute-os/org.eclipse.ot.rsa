@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -40,290 +41,310 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Instances of this class are used by every {@link RemoteServiceAdminImpl} to send
- * various {@link RemoteServiceAdminEvent} types to all registered
- * {@link RemoteServiceAdminListener} and any active {@link EventAdmin} services.
+ * Instances of this class are used by every {@link RemoteServiceAdminImpl} to
+ * send various {@link RemoteServiceAdminEvent} types to all registered
+ * {@link RemoteServiceAdminListener} and any active {@link EventAdmin}
+ * services.
  */
 public class RemoteServiceAdminEventPublisher {
 
-    public static final String RSA_TOPIC_NAME = "org/osgi/service/remoteserviceadmin";
-    public static final String EXCEPTION_CAUSE = "cause";
+	public static final String	RSA_TOPIC_NAME	= "org/osgi/service/remoteserviceadmin";
+	public static final String	EXCEPTION_CAUSE	= "cause";
 
-    public enum RemoteServiceAdminEventType {
+	public enum RemoteServiceAdminEventType {
 
-        UNKNOWN_EVENT, IMPORT_REGISTRATION, EXPORT_REGISTRATION, EXPORT_UNREGISTRATION,
-        IMPORT_UNREGISTRATION, IMPORT_ERROR, EXPORT_ERROR, EXPORT_WARNING, IMPORT_WARNING,
-        IMPORT_UPDATE, EXPORT_UPDATE;
+		UNKNOWN_EVENT, IMPORT_REGISTRATION, EXPORT_REGISTRATION, EXPORT_UNREGISTRATION, IMPORT_UNREGISTRATION, IMPORT_ERROR, EXPORT_ERROR, EXPORT_WARNING, IMPORT_WARNING, IMPORT_UPDATE, EXPORT_UPDATE;
 
-        private final String _topic;
+		private final String _topic;
 
-        public static RemoteServiceAdminEventType valueOf(int type) {
-            return (type < 1 || type >= values().length) ? UNKNOWN_EVENT : values()[type];
-        }
+		public static RemoteServiceAdminEventType valueOf(int type) {
+			return (type < 1 || type >= values().length) ? UNKNOWN_EVENT : values()[type];
+		}
 
-        RemoteServiceAdminEventType() {
-            _topic = RSA_TOPIC_NAME + '/' + name();
-        }
+		RemoteServiceAdminEventType() {
+			_topic = RSA_TOPIC_NAME + '/' + name();
+		}
 
-        public String topicName() {
-            return _topic;
-        }
-    }
-
-    private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminEventPublisher.class);
-
-    private final BundleContext _bundleContext;
-    private final Bundle _rsaBundle = FrameworkUtil.getBundle(getClass());
-    private final ServiceTracker<RemoteServiceAdminListener, RemoteServiceAdminListener> _rsaListenerTracker;
-    private final ServiceTracker<EventAdmin, EventAdmin> _eventAdminTracker;
-
-    public RemoteServiceAdminEventPublisher(BundleContext bc) {
-        _bundleContext = bc;
-        _rsaListenerTracker = new ServiceTracker<>(bc, RemoteServiceAdminListener.class, null);
-        _eventAdminTracker = new ServiceTracker<>(bc, EventAdmin.class.getName(), null);
-    }
-
-	protected void start() {
-		_rsaListenerTracker.open();
-        _eventAdminTracker.open();
+		public String topicName() {
+			return _topic;
+		}
 	}
 
-    protected void destroy() {
-        try {
-            _rsaListenerTracker.close();
-            _eventAdminTracker.close();
-        }
-        finally {
-            LOG.debug("stopped: {}", this);
-        }
-    }
+	private static final Logger																LOG			= LoggerFactory
+			.getLogger(RemoteServiceAdminEventPublisher.class);
 
-    public void notifyExport(ServiceReference<?> service, EndpointDescription endpoint) {
-        ExportReference ref = new AnonymousExportReference(service, endpoint);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-            RemoteServiceAdminEvent.EXPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
+	private final BundleContext																_bundleContext;
+	private final Bundle																	_rsaBundle	= FrameworkUtil
+			.getBundle(getClass());
+	private final ServiceTracker<RemoteServiceAdminListener, RemoteServiceAdminListener>	_rsaListenerTracker;
+	private final ServiceTracker<EventAdmin, EventAdmin>									_eventAdminTracker;
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+	static class IST<T> extends ServiceTracker<T, T> {
 
-    public void notifyImport(ServiceReference<?> service, EndpointDescription endpoint) {
-        ImportReference ref = new AnonymousImportReference(service, endpoint);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-            RemoteServiceAdminEvent.IMPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
+		public IST(BundleContext context, Class<T> clazz) {
+			super(context, clazz, null);
+		}
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+		@Override
+		public T addingService(ServiceReference<T> reference) {
+			System.out.println("Adding " + reference);
+			return super.addingService(reference);
+		}
 
-    public void notifyExportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-        ExportReference ref = new AnonymousExportReference(service, endpoint);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_WARNING,
-            _bundleContext.getBundle(), ref, t);
+		@Override
+		public void removedService(ServiceReference<T> reference, T service) {
+			System.out.println("Removed " + reference);
+			super.removedService(reference, service);
+		}
+	};
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+	public RemoteServiceAdminEventPublisher(BundleContext bc) {
+		_bundleContext = bc;
+		_rsaListenerTracker = new IST<>(bc, RemoteServiceAdminListener.class);
+		_eventAdminTracker = new ServiceTracker<>(bc, EventAdmin.class.getName(), null);
+	}
 
-    public void notifyImportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-        ImportReference ref = new AnonymousImportReference(service, endpoint);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_WARNING,
-            _bundleContext.getBundle(), ref, t);
+	protected void start() {
+		CompletableFuture.runAsync(() -> {
+			_rsaListenerTracker.open();
+			_eventAdminTracker.open();
+		});
+	}
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+	protected void destroy() {
+		try {
+			_rsaListenerTracker.close();
+			_eventAdminTracker.close();
+		} finally {
+			LOG.debug("stopped: {}", this);
+		}
+	}
 
-    public void notifyExportError(ServiceReference<?> service, Throwable t) {
-        ExportReference ref = new AnonymousExportReference(service, null);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_ERROR,
-            _bundleContext.getBundle(), ref, t);
+	public void notifyExport(ServiceReference<?> service, EndpointDescription endpoint) {
+		ExportReference ref = new AnonymousExportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.EXPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    public void notifyImportError(EndpointDescription endpoint, Throwable t) {
-        ImportReference ref = new AnonymousImportReference(null, endpoint);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_ERROR,
-            _bundleContext.getBundle(), ref, t);
+	public void notifyImport(ServiceReference<?> service, EndpointDescription endpoint) {
+		ImportReference ref = new AnonymousImportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.IMPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    public void notifyExportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-        ExportReference ref = new AnonymousExportReference(service, null);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-            RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
+	public void notifyExportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ExportReference ref = new AnonymousExportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_WARNING,
+				_bundleContext.getBundle(), ref, t);
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    public void notifyImportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-        ImportReference ref = new AnonymousImportReference(service, null);
-        RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-            RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
+	public void notifyImportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ImportReference ref = new AnonymousImportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_WARNING,
+				_bundleContext.getBundle(), ref, t);
 
-        notifyListeners(rsae);
-        notifyEventAdmin(rsae);
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    public void notifyExportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-    	ExportReference ref = new AnonymousExportReference(service, endpoint);
-    	RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-    			RemoteServiceAdminEvent.EXPORT_UPDATE, _bundleContext.getBundle(), ref, t);
-    	
-    	notifyListeners(rsae);
-    	notifyEventAdmin(rsae);
-    }
-    
-    public void notifyImportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
-    	ImportReference ref = new AnonymousImportReference(service, endpoint);
-    	RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-    			RemoteServiceAdminEvent.IMPORT_UPDATE, _bundleContext.getBundle(), ref, t);
-    	
-    	notifyListeners(rsae);
-    	notifyEventAdmin(rsae);
-    }
+	public void notifyExportError(ServiceReference<?> service, Throwable t) {
+		ExportReference ref = new AnonymousExportReference(service, null);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_ERROR,
+				_bundleContext.getBundle(), ref, t);
 
-    private void notifyListeners(RemoteServiceAdminEvent rsae) {
-        for (RemoteServiceAdminListener rsaListener : _rsaListenerTracker
-        		.getServices(new RemoteServiceAdminListener[0])) {
-            rsaListener.remoteAdminEvent(rsae);
-        }
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    private void notifyEventAdmin(RemoteServiceAdminEvent rsaEvent) {
-    	EventAdmin[] eventAdmins = _eventAdminTracker.getServices(new EventAdmin[0]);
-        // no need to do anything
-        if (eventAdmins.length == 0) {
-            return;
-        }
+	public void notifyImportError(EndpointDescription endpoint, Throwable t) {
+		ImportReference ref = new AnonymousImportReference(null, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_ERROR,
+				_bundleContext.getBundle(), ref, t);
 
-        Map<String, Object> props = new HashMap<>(16);
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-        Throwable t = rsaEvent.getException();
-        if (t != null) {
-            // see RSA-98 spec bug: "cause" vs. EventConstants
-            setIfNotNull(props, EXCEPTION_CAUSE, t);
-            setIfNotNull(props, EventConstants.EXCEPTION, t);
-            setIfNotNull(props, EventConstants.EXCEPTION_CLASS, t.getClass());
-            setIfNotNull(props, EventConstants.EXCEPTION_MESSAGE, t.getMessage());
-        }
+	public void notifyExportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ExportReference ref = new AnonymousExportReference(service, null);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
 
-        EndpointDescription endpoint = null;
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-        // figure out whether this is an export- or import-related event
-        if (rsaEvent.getImportReference() != null) {
-            endpoint = rsaEvent.getImportReference().getImportedEndpoint();
-        }
-        else if (rsaEvent.getExportReference() != null) {
-            endpoint = rsaEvent.getExportReference().getExportedEndpoint();
-        }
+	public void notifyImportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ImportReference ref = new AnonymousImportReference(service, null);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
 
-        // in case of errors the endpoint description may be null
-        if (endpoint != null) {
-            String[] objClass = endpoint.getInterfaces().toArray(new String[0]);
-            setIfNotNull(props, Constants.OBJECTCLASS, objClass);
-            setIfNotNull(props, RemoteConstants.ENDPOINT_SERVICE_ID, endpoint.getServiceId());
-            setIfNotNull(props, RemoteConstants.ENDPOINT_FRAMEWORK_UUID, endpoint.getFrameworkUUID());
-            setIfNotNull(props, RemoteConstants.ENDPOINT_ID, endpoint.getId());
-            setIfNotNull(props, RemoteConstants.SERVICE_IMPORTED_CONFIGS, endpoint.getConfigurationTypes());
-        }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-        props.put(EventConstants.TIMESTAMP, Long.valueOf(System.currentTimeMillis()));
-        props.put(EventConstants.EVENT, rsaEvent);
+	public void notifyExportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ExportReference ref = new AnonymousExportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.EXPORT_UPDATE, _bundleContext.getBundle(), ref, t);
 
-        props.put(EventConstants.BUNDLE, _rsaBundle);
-        props.put(EventConstants.BUNDLE_ID, _rsaBundle.getBundleId());
-        //The RSA spec uses the wrong case for the symbolic name
-        props.put(EventConstants.BUNDLE_SYMBOLICNAME.toLowerCase(), _rsaBundle.getSymbolicName());
-        props.put(EventConstants.BUNDLE_SYMBOLICNAME, _rsaBundle.getSymbolicName());
-        props.put(EventConstants.BUNDLE_VERSION, _rsaBundle.getVersion());
-        props.put(EventConstants.BUNDLE_SIGNER, getSigners(_rsaBundle));
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-        String topic = RemoteServiceAdminEventType.valueOf(rsaEvent.getType()).topicName();
-        Event event = new Event(topic, props);
+	public void notifyImportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
+		ImportReference ref = new AnonymousImportReference(service, endpoint);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
+				RemoteServiceAdminEvent.IMPORT_UPDATE, _bundleContext.getBundle(), ref, t);
 
-        AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
-	        for (EventAdmin ea : eventAdmins) {
-	            ea.postEvent(event);
-	        }
-	        return null;
-        });
-    }
+		notifyListeners(rsae);
+		notifyEventAdmin(rsae);
+	}
 
-    private void setIfNotNull(Map<String, Object> props, String key, Object o) {
-        if (o != null) {
-            props.put(key, o);
-        }
-    }
+	private void notifyListeners(RemoteServiceAdminEvent rsae) {
+		for (RemoteServiceAdminListener rsaListener : _rsaListenerTracker
+				.getServices(new RemoteServiceAdminListener[0])) {
+			rsaListener.remoteAdminEvent(rsae);
+		}
+	}
 
-    private String[] getSigners(Bundle b) {
-        Objects.requireNonNull(b, "Bundle");
+	private void notifyEventAdmin(RemoteServiceAdminEvent rsaEvent) {
+		EventAdmin[] eventAdmins = _eventAdminTracker.getServices(new EventAdmin[0]);
+		// no need to do anything
+		if (eventAdmins.length == 0) {
+			return;
+		}
 
-        @SuppressWarnings("rawtypes")
-        Map certificates = b.getSignerCertificates(Bundle.SIGNERS_ALL);
-        if (certificates == null || certificates.isEmpty()) {
-            return new String[]{};
-        }
+		Map<String, Object> props = new HashMap<>(16);
 
-        @SuppressWarnings("unchecked")
-        Set<Map.Entry<X509Certificate, List<?>>> certs = certificates.entrySet();
-        String[] signers = new String[certs.size()];
-        int i = 0;
+		Throwable t = rsaEvent.getException();
+		if (t != null) {
+			// see RSA-98 spec bug: "cause" vs. EventConstants
+			setIfNotNull(props, EXCEPTION_CAUSE, t);
+			setIfNotNull(props, EventConstants.EXCEPTION, t);
+			setIfNotNull(props, EventConstants.EXCEPTION_CLASS, t.getClass());
+			setIfNotNull(props, EventConstants.EXCEPTION_MESSAGE, t.getMessage());
+		}
 
-        for (Map.Entry<X509Certificate, List<?>> cert : certs) {
-            signers[i++] = cert.getKey().getIssuerX500Principal().getName();
-        }
+		EndpointDescription endpoint = null;
 
-        return signers;
-    }
+		// figure out whether this is an export- or import-related event
+		if (rsaEvent.getImportReference() != null) {
+			endpoint = rsaEvent.getImportReference().getImportedEndpoint();
+		} else if (rsaEvent.getExportReference() != null) {
+			endpoint = rsaEvent.getExportReference().getExportedEndpoint();
+		}
 
-    @Override
-    public String toString() {
-        return "RSA listener notifier for the Paremus RSA provider";
-    }
+		// in case of errors the endpoint description may be null
+		if (endpoint != null) {
+			String[] objClass = endpoint.getInterfaces().toArray(new String[0]);
+			setIfNotNull(props, Constants.OBJECTCLASS, objClass);
+			setIfNotNull(props, RemoteConstants.ENDPOINT_SERVICE_ID, endpoint.getServiceId());
+			setIfNotNull(props, RemoteConstants.ENDPOINT_FRAMEWORK_UUID, endpoint.getFrameworkUUID());
+			setIfNotNull(props, RemoteConstants.ENDPOINT_ID, endpoint.getId());
+			setIfNotNull(props, RemoteConstants.SERVICE_IMPORTED_CONFIGS, endpoint.getConfigurationTypes());
+		}
 
-    private static class AnonymousExportReference implements ExportReference {
+		props.put(EventConstants.TIMESTAMP, Long.valueOf(System.currentTimeMillis()));
+		props.put(EventConstants.EVENT, rsaEvent);
 
-        private final ServiceReference<?> _service;
-        private final EndpointDescription _endpoint;
+		props.put(EventConstants.BUNDLE, _rsaBundle);
+		props.put(EventConstants.BUNDLE_ID, _rsaBundle.getBundleId());
+		// The RSA spec uses the wrong case for the symbolic name
+		props.put(EventConstants.BUNDLE_SYMBOLICNAME.toLowerCase(), _rsaBundle.getSymbolicName());
+		props.put(EventConstants.BUNDLE_SYMBOLICNAME, _rsaBundle.getSymbolicName());
+		props.put(EventConstants.BUNDLE_VERSION, _rsaBundle.getVersion());
+		props.put(EventConstants.BUNDLE_SIGNER, getSigners(_rsaBundle));
 
-        private AnonymousExportReference(ServiceReference<?> service, EndpointDescription endpoint) {
-            _service = service;
-            _endpoint = endpoint;
-        }
+		String topic = RemoteServiceAdminEventType.valueOf(rsaEvent.getType()).topicName();
+		Event event = new Event(topic, props);
 
-        public ServiceReference<?> getExportedService() {
-            return _service;
-        }
+		AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
+			for (EventAdmin ea : eventAdmins) {
+				ea.postEvent(event);
+			}
+			return null;
+		});
+	}
 
-        public EndpointDescription getExportedEndpoint() {
-            return _endpoint;
-        }
+	private void setIfNotNull(Map<String, Object> props, String key, Object o) {
+		if (o != null) {
+			props.put(key, o);
+		}
+	}
 
-    }
+	private String[] getSigners(Bundle b) {
+		Objects.requireNonNull(b, "Bundle");
 
-    private static class AnonymousImportReference implements ImportReference {
+		@SuppressWarnings("rawtypes")
+		Map certificates = b.getSignerCertificates(Bundle.SIGNERS_ALL);
+		if (certificates == null || certificates.isEmpty()) {
+			return new String[] {};
+		}
 
-        private final ServiceReference<?> _service;
-        private final EndpointDescription _endpoint;
+		@SuppressWarnings("unchecked")
+		Set<Map.Entry<X509Certificate, List<?>>> certs = certificates.entrySet();
+		String[] signers = new String[certs.size()];
+		int i = 0;
 
-        private AnonymousImportReference(ServiceReference<?> service, EndpointDescription endpoint) {
-            _service = service;
-            _endpoint = endpoint;
-        }
+		for (Map.Entry<X509Certificate, List<?>> cert : certs) {
+			signers[i++] = cert.getKey().getIssuerX500Principal().getName();
+		}
 
-        public ServiceReference<?> getImportedService() {
-            return _service;
-        }
+		return signers;
+	}
 
-        public EndpointDescription getImportedEndpoint() {
-            return _endpoint;
-        }
+	@Override
+	public String toString() {
+		return "RSA listener notifier for the Paremus RSA provider";
+	}
 
-    }
+	private static class AnonymousExportReference implements ExportReference {
+
+		private final ServiceReference<?>	_service;
+		private final EndpointDescription	_endpoint;
+
+		private AnonymousExportReference(ServiceReference<?> service, EndpointDescription endpoint) {
+			_service = service;
+			_endpoint = endpoint;
+		}
+
+		public ServiceReference<?> getExportedService() {
+			return _service;
+		}
+
+		public EndpointDescription getExportedEndpoint() {
+			return _endpoint;
+		}
+
+	}
+
+	private static class AnonymousImportReference implements ImportReference {
+
+		private final ServiceReference<?>	_service;
+		private final EndpointDescription	_endpoint;
+
+		private AnonymousImportReference(ServiceReference<?> service, EndpointDescription endpoint) {
+			_service = service;
+			_endpoint = endpoint;
+		}
+
+		public ServiceReference<?> getImportedService() {
+			return _service;
+		}
+
+		public EndpointDescription getImportedEndpoint() {
+			return _endpoint;
+		}
+
+	}
 }

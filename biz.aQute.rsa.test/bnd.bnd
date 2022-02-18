@@ -6,5 +6,12 @@
 	org.apache.felix.gogo.runtime,\
 	slf4j.api,\
 	org.osgi.service.cm,\
-	org.osgi.framework,\
-	org.osgi.service.component
+	org.osgi.service.component,\
+	org.apache.felix.framework
+-testpath: \
+	biz.aQute.launchpad,\
+	slf4j.simple,\
+	com.paremus.cluster.api,\
+	org.osgi.util.promise,\
+	org.osgi.util.function,\
+	org.awaitility

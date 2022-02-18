@@ -35,7 +35,6 @@ class Unsafe implements Accessor {
     /* (non-Javadoc)
 	 * @see org.freshvanilla.lang.misc.Accessor#newInstance(java.lang.Class)
 	 */
-    @SuppressWarnings("unchecked")
 	@Override
 	public <T> T newInstance(Class<T> clazz) throws InstantiationException {
         return (T)unsafe.allocateInstance(clazz);

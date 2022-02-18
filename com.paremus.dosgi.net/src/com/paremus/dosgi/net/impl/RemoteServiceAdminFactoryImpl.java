@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.launch.Framework;
@@ -66,10 +67,12 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 	private final EventExecutorGroup clientWorkers;
 	private final Timer timer;
 	private final TransportConfig config;
+	private final BundleContext context;
 	
-	public RemoteServiceAdminFactoryImpl(TransportConfig config, ParemusNettyTLS tls, 
+	public RemoteServiceAdminFactoryImpl(BundleContext context, TransportConfig config, ParemusNettyTLS tls, 
 			ByteBufAllocator allocator, EventLoopGroup serverIo, EventLoopGroup clientIo,
 			EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, Timer timer) {
+		this.context = context;
 		this.config = config;
 		this.timer = timer;
 		
@@ -90,7 +93,7 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 		RemoteServiceAdminEventPublisher rsaep = publisherReferenceCounts
 				.compute(framework, (k,v) -> {
 						Tuple toReturn = v == null ? new Tuple(
-						new RemoteServiceAdminEventPublisher(framework.getBundleContext()), 1) :
+						new RemoteServiceAdminEventPublisher(context), 1) :
 						new Tuple(v.rp, v.usageCount + 1);
 						return toReturn;
 					}).rp;
