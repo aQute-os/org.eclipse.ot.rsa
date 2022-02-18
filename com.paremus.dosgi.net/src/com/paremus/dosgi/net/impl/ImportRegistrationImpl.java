@@ -119,9 +119,8 @@ public class ImportRegistrationImpl implements ImportRegistration {
 				"The target framework for a remote service import not be null");
 		_hostBundleContext = Objects.requireNonNull(hostBundleContext,
 				"The remote service host bundle must be active to import a remote service");
-		
 
-		 _frameworkUUID=_hostBundleContext.getProperty("org.osgi.framework.uuid");
+		_frameworkUUID = _hostBundleContext.getProperty("org.osgi.framework.uuid");
 		_importReference = new SimpleImportReference();
 		_rsa = Objects.requireNonNull(rsa, "The Remote Service Admin must not be null");
 		_clientConnectionManager = Objects.requireNonNull(ccm, "The Remote Service Admin must not be null");
@@ -255,7 +254,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 		_executor = null;
 		_timer = null;
 		_hostBundleContext = null;
-		_frameworkUUID="<failed endpoint>";
+		_frameworkUUID = "<failed endpoint>";
 		_config = null;
 		_methodMappings = null;
 		_defaultServiceTimeout = -1;
@@ -272,11 +271,11 @@ public class ImportRegistrationImpl implements ImportRegistration {
 				BundleContext context = _targetFramework.getBundleContext();
 				if (context != null) {
 					context.removeServiceListener(this);
-				}
-				synchronized (ImportRegistrationImpl.this) {
-					
-					if (_state == CLOSED || _state == ERROR || context.getBundle().getState()!=Bundle.ACTIVE) {
-						return;
+					synchronized (ImportRegistrationImpl.this) {
+
+						if (_state == CLOSED || _state == ERROR || context.getBundle().getState() != Bundle.ACTIVE) {
+							return;
+						}
 					}
 				}
 				LOG.warn("The imported remote service {} was unregistered by a third party",
