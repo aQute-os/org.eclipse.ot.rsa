@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -47,44 +47,44 @@ import io.netty.util.concurrent.Promise;
 public class BeginStreamingTest {
 
 	private static final Exception MARKER_EXCEPTION = new Exception("marker");
-	
+
 	private final UUID serviceId = UUID.randomUUID();
-	
+
 	private final int callId = 42;
-	
+
 	@Mock
 	Channel channel;
-	
+
 	ChannelPromise promise;
 	ChannelPromise promise2;
-	
+
 	Promise<Void> closePromise = ImmediateEventExecutor.INSTANCE.newPromise();
-	
+
 	List<Object> data = new CopyOnWriteArrayList<>();
-	
+
 	AtomicReference<Exception> failure = new AtomicReference<>(MARKER_EXCEPTION);
-	
+
 	Serializer serializer;
-	
+
 	@BeforeEach
 	public void setUp() {
 		promise = new DefaultChannelPromise(channel, ImmediateEventExecutor.INSTANCE);
 		promise2 = new DefaultChannelPromise(channel, ImmediateEventExecutor.INSTANCE);
-		
+
 		serializer = new VanillaRMISerializer(new MetaClasses(getClass().getClassLoader()));
 	}
-	
+
 	@Test
 	public void testOpenStream() {
-		BeginStreamingInvocation bsi = new BeginStreamingInvocation(serviceId, callId, 
+		BeginStreamingInvocation bsi = new BeginStreamingInvocation(serviceId, callId,
 				serializer, ImmediateEventExecutor.INSTANCE, data::add, failure::set, closePromise);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		bsi.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(channel);
-		
+
 		assertEquals(Protocol_V2.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);

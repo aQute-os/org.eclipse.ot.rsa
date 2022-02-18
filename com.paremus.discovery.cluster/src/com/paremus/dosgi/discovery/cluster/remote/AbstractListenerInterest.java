@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 
 abstract class AbstractListenerInterest {
 	private static final Logger logger = LoggerFactory.getLogger(AbstractListenerInterest.class);
-	
+
 	private List<String> filters;
-	
+
 	public AbstractListenerInterest(ServiceReference<?> ref) {
 		updateFilters(ref);
 	}
@@ -48,13 +48,13 @@ abstract class AbstractListenerInterest {
 		} else if (o instanceof Collection) {
 			filters = new ArrayList<>((Collection<String>)o);
 		} else {
-			logger.warn("The RSA endpoint listener {} does not specify any filters so no endpoints will be passed to it", 
+			logger.warn("The RSA endpoint listener {} does not specify any filters so no endpoints will be passed to it",
 					ref.getProperty("service.id"));
 			filters = Collections.emptyList();
 		}
 		return oldFilters;
 	}
-	
+
 	public synchronized String isInterested(EndpointDescription e) {
 		return filters.stream().filter(f -> {
 				try {
@@ -65,6 +65,6 @@ abstract class AbstractListenerInterest {
 				}
 			}).findFirst().orElse(null);
 	}
-	
+
 	public abstract void sendEvent(EndpointEvent ee, String filter);
 }

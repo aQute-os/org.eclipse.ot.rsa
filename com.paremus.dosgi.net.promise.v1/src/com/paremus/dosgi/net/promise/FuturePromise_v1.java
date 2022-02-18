@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -20,6 +20,7 @@ import org.osgi.util.function.Function;
 import org.osgi.util.function.Predicate;
 import org.osgi.util.promise.Failure;
 import org.osgi.util.promise.Promise;
+import org.osgi.util.promise.PromiseFactory;
 import org.osgi.util.promise.Success;
 
 import io.netty.util.Timer;
@@ -30,8 +31,8 @@ import io.netty.util.concurrent.EventExecutor;
  * This type should never be used directly, but always created using
  * the {@link PromiseFactory} helper. This is because the RSA implementation
  * does not import any Promise API, and should always define this type
- * in some other bundle's class space. 
- * 
+ * in some other bundle's class space.
+ *
  * <p>
  * Note that the dependencies of this type must be carefully restricted,
  * it can only depend on JVM types, org.osgi.util.promise, org.osgi.util.function
@@ -42,7 +43,7 @@ import io.netty.util.concurrent.EventExecutor;
 class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 
 	protected final Timer timer;
-	
+
 	FuturePromise_v1(EventExecutor executor, Timer timer) {
 		super(executor);
 		this.timer = timer;
@@ -51,13 +52,13 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	protected <Z> FuturePromise_v1<Z> newInstance() {
 		return new FuturePromise_v1<>(executor(), timer);
 	}
-	
+
 	@Override
 	public Promise<T> onResolve(Runnable callback) {
 		addListener(f -> callback.run());
 		return this;
 	}
-	
+
 	@Override
 	public <R> Promise<R> then(Success<? super T, ? extends R> success) {
 		return then(success, null);
@@ -66,9 +67,9 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	@Override
 	public <R> Promise<R> then(final Success<? super T, ? extends R> success,
 			final Failure failure) {
-		
-		final FuturePromise_v1<R> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<R> chained = newInstance();
+
 		addListener(f -> then(success, failure, chained));
 
 		return chained;
@@ -119,11 +120,11 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	@Override
 	public Promise<T> filter(final Predicate<? super T> predicate) {
 		checkNull(predicate);
-		
-		final FuturePromise_v1<T> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<T> chained = newInstance();
+
 		addListener(f -> filter(predicate, chained));
-		
+
 		return chained;
 	}
 
@@ -147,11 +148,11 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	@Override
 	public <R> Promise<R> map(final Function<? super T, ? extends R> mapper) {
 		checkNull(mapper);
-		
-		final FuturePromise_v1<R> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<R> chained = newInstance();
+
 		addListener(f -> map(mapper, chained));
-		
+
 		return chained;
 	}
 
@@ -175,11 +176,11 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	public <R> Promise<R> flatMap(
 			final Function<? super T, Promise<? extends R>> mapper) {
 		checkNull(mapper);
-		
-		final FuturePromise_v1<R> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<R> chained = newInstance();
+
 		addListener(f -> flatMap(mapper, chained));
-		
+
 		return chained;
 	}
 
@@ -203,11 +204,11 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	@Override
 	public Promise<T> recover(final Function<Promise<?>, ? extends T> recovery) {
 		checkNull(recovery);
-		
-		final FuturePromise_v1<T> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<T> chained = newInstance();
+
 		addListener(f -> recover(recovery, chained));
-		
+
 		return chained;
 	}
 
@@ -232,17 +233,17 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	public Promise<T> recoverWith(
 			final Function<Promise<?>, Promise<? extends T>> recovery) {
 		checkNull(recovery);
-		
-		final FuturePromise_v1<T> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<T> chained = newInstance();
+
 		addListener(f -> recoverWith(recovery, chained));
-		
+
 		return chained;
 	}
 
 	private void recoverWith(Function<Promise<?>, Promise<? extends T>> recovery,
 			FuturePromise_v1<T> chained) {
-		
+
 		try {
 			if(isSuccess()) {
 				chained.setSuccess(getNow());
@@ -262,11 +263,11 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	@Override
 	public Promise<T> fallbackTo(final Promise<? extends T> fallback) {
 		checkNull(fallback);
-		
-		final FuturePromise_v1<T> chained = newInstance(); 
-		
+
+		final FuturePromise_v1<T> chained = newInstance();
+
 		addListener(f -> fallbackTo(fallback, chained));
-		
+
 		return chained;
 	}
 
@@ -299,7 +300,7 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 		Throwable t = await().cause();
 		if(t != null) {
 			throw new InvocationTargetException(t);
-		} 
+		}
 		return getNow();
 	}
 
@@ -307,7 +308,7 @@ class FuturePromise_v1<T> extends DefaultPromise<T> implements Promise<T> {
 	public Throwable getFailure() throws InterruptedException {
 		return await().cause();
 	}
-	
+
 	private void checkNull(Object o) {
 		if(o == null) {
 			throw new NullPointerException("Null is not permitted");

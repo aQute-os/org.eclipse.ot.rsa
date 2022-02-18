@@ -16,12 +16,12 @@
 
 package org.freshvanilla.net;
 
-import io.netty.buffer.ByteBuf;
-
 import java.io.IOException;
 import java.io.StreamCorruptedException;
 
 import org.freshvanilla.lang.MetaField;
+
+import io.netty.buffer.ByteBuf;
 
 public interface WireFormat {
 
@@ -49,7 +49,7 @@ public interface WireFormat {
     public void writeObject(ByteBuf writeBuffer, Object object) throws IOException;
 
     public void writeTag(ByteBuf writeBuffer, String tag);
-    
+
     public void registerPojo(Object o);
 
 	public int getPojoIndex();

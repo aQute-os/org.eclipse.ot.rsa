@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -29,12 +29,12 @@ import io.netty.channel.ChannelPromise;
 
 @Sharable
 public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ServerResponseSerializer.class);
-	
+
 	@Override
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-		
+
 		@SuppressWarnings("unchecked")
 		AbstractRSAMessage<ServerMessageType> response = (AbstractRSAMessage<ServerMessageType>) msg;
 		try {
@@ -46,7 +46,7 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 				buf.clear();
 				getErrorResponse(response, e).write(buf, promise);
 			}
-		
+
 			ctx.writeAndFlush(buf, promise);
 		} catch (Exception e) {
 			LOG.error("An error occurred when invoking service {} ", response.getServiceId(), e);
@@ -58,15 +58,15 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 		AbstractRSAMessage<ServerMessageType> toReturn;
 		switch(response.getType()) {
 			case SUCCESS:
-				toReturn = new ServerErrorMessageResponse(RETURN_SERIALIZATION_ERROR, 
+				toReturn = new ServerErrorMessageResponse(RETURN_SERIALIZATION_ERROR,
 						response.getServiceId(), response.getCallId(), e.getMessage());
 				break;
 			case FAILURE:
-				toReturn = new ServerErrorMessageResponse(FAILURE_SERIALIZATION_ERROR, 
+				toReturn = new ServerErrorMessageResponse(FAILURE_SERIALIZATION_ERROR,
 						response.getServiceId(), response.getCallId(), e.getMessage());
 				break;
 			default:
-				toReturn = new ServerErrorMessageResponse(UNKNOWN_ERROR, 
+				toReturn = new ServerErrorMessageResponse(UNKNOWN_ERROR,
 						response.getServiceId(), response.getCallId(), e.getMessage());
 		}
 		return toReturn;

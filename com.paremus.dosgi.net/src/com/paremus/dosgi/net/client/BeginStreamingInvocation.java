@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -29,16 +29,16 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
 public class BeginStreamingInvocation extends AbstractClientInvocationWithResult {
-	
-	private final EventExecutor executor; 
+
+	private final EventExecutor executor;
 	private final Consumer<Object> dataConsumer;
 	private final Consumer<Exception> closeConsumer;
 
 	private final Future<?> close;
 
-	
-	public BeginStreamingInvocation(UUID serviceId, int callId, Serializer serializer, 
-			EventExecutor executor, Consumer<Object> dataConsumer, 
+
+	public BeginStreamingInvocation(UUID serviceId, int callId, Serializer serializer,
+			EventExecutor executor, Consumer<Object> dataConsumer,
 			Consumer<Exception> closeConsumer, Future<?> close) {
 		super(STREAMING_RESPONSE_OPEN, serviceId, callId, serializer);
 		this.executor = executor;
@@ -81,13 +81,13 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 
 	private void streamError(Throwable t, Exception e) {
 		e.addSuppressed(t);
-		closeConsumer.accept(new ServiceException("An error occurred with the data stream", 
+		closeConsumer.accept(new ServiceException("An error occurred with the data stream",
 				ServiceException.REMOTE, e));
 	}
 
 	@Override
 	public void fail(ByteBuf b) throws Exception {
-		
+
 		Throwable o;
 		try {
 			o = (Throwable) getSerializer().deserializeReturn(b);
@@ -95,10 +95,10 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 			o = new ServiceException(
 					"Failed to deserialize the remote exception value", ServiceException.REMOTE, e);
 		}
-		
+
 		fail(o);
 	}
-	
+
 	@Override
 	public void data(ByteBuf b) throws Exception {
 		try {

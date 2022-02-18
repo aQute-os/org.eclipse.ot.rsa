@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -51,10 +51,9 @@ import com.paremus.dosgi.net.serialize.freshvanilla.VanillaRMISerializer;
 import com.paremus.dosgi.net.serialize.freshvanilla.VanillaRMISerializerFactory;
 import com.paremus.fabric.v2.dto.Fibre;
 
+import aQute.lib.converter.Converter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-
-import aQute.lib.converter.Converter;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -140,7 +139,7 @@ public class SerializationTest {
 
 	@Test
 	public void testMapCycle() throws IOException, ClassNotFoundException {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("foo", map);
 
 		ByteBuf bb = Unpooled.buffer(16384);
@@ -153,7 +152,7 @@ public class SerializationTest {
 
 	@Test
 	public void testListCycle() throws IOException, ClassNotFoundException {
-		List<Object> list = new ArrayList<Object>();
+		List<Object> list = new ArrayList<>();
 		list.add(list);
 
 		ByteBuf bb = Unpooled.buffer(16384);
@@ -166,7 +165,7 @@ public class SerializationTest {
 
 	@Test
 	public void testSetCycle() throws IOException, ClassNotFoundException {
-		Set<Object> set = new HashSet<Object>();
+		Set<Object> set = new HashSet<>();
 		set.add(set);
 
 		ByteBuf bb = Unpooled.buffer(16384);
@@ -224,10 +223,10 @@ public class SerializationTest {
 		CyclePojo cp2 = new CyclePojo();
 		cp.setPojo(cp2);
 		cp2.setPojo(cp);
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, new CyclePojo[][] { {cp}, {cp} });
-		
+
 		CyclePojo[][] cp3 = (CyclePojo[][]) serializer.deserializeReturn(bb);
 		assertSame(cp3[0][0], cp3[1][0]);
 		assertSame(cp3[0][0], cp3[1][0].getPojo().getPojo());
@@ -239,10 +238,10 @@ public class SerializationTest {
 		CyclePojo cp2 = new CyclePojo();
 		cp.setPojo(cp2);
 		cp2.setPojo(cp);
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, new CyclePojo[][][] { {{cp}}, {{cp}} });
-		
+
 		CyclePojo[][][] cp3 = (CyclePojo[][][]) serializer.deserializeReturn(bb);
 		assertSame(cp3[0][0][0], cp3[1][0][0]);
 		assertSame(cp3[0][0][0], cp3[1][0][0].getPojo().getPojo());
@@ -306,16 +305,16 @@ public class SerializationTest {
 	@Test
 	public void testEnumArrays() throws IOException, ClassNotFoundException {
 		MyEnum[] a = new MyEnum[] { BAR, FOO, BAR, BAR, BAR, FOO, FOO, FOO };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, a);
-		
+
 		System.out.println(bb.readableBytes());
-		
+
 		MyEnum[] a2 = (MyEnum[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(a, a2));
 	}
-	
+
 	@Test
 	public void testPrimitiveArraysZ() throws IOException, ClassNotFoundException {
 		boolean[] b = new boolean[] { true, false, true, true, true, false, false, false };
@@ -330,10 +329,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysS() throws IOException, ClassNotFoundException {
 		short[] s = new short[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, s);
-		
+
 		short[] s2 = (short[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(s, s2));
 	}
@@ -341,10 +340,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysC() throws IOException, ClassNotFoundException {
 		char[] c = new char[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, c);
-		
+
 		char[] c2 = (char[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(c, c2));
 	}
@@ -352,10 +351,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysI() throws IOException, ClassNotFoundException {
 		int[] i = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, i);
-		
+
 		int[] i2 = (int[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(i, i2));
 	}
@@ -363,10 +362,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysJ() throws IOException, ClassNotFoundException {
 		long[] l = new long[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
-		
+
 		long[] l2 = (long[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(l, l2));
 	}
@@ -374,10 +373,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysF() throws IOException, ClassNotFoundException {
 		float[] f = new float[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, f);
-		
+
 		float[] f2 = (float[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(f, f2));
 	}
@@ -385,10 +384,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveArraysD() throws IOException, ClassNotFoundException {
 		double[] d = new double[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, d);
-		
+
 		double[] d2 = (double[]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(d, d2));
 	}
@@ -409,10 +408,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysS() throws IOException, ClassNotFoundException {
 		short[][] s = new short[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, s);
-		
+
 		short[][] s2 = (short[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(s[0], s2[0]));
 		assertTrue(Arrays.equals(s[1], s2[1]));
@@ -421,10 +420,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysC() throws IOException, ClassNotFoundException {
 		char[][] c = new char[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, c);
-		
+
 		char[][] c2 = (char[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(c[0], c2[0]));
 		assertTrue(Arrays.equals(c[1], c2[1]));
@@ -433,10 +432,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysI() throws IOException, ClassNotFoundException {
 		int[][] i = new int[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, i);
-		
+
 		int[][] i2 = (int[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(i[0], i2[0]));
 		assertTrue(Arrays.equals(i[1], i2[1]));
@@ -445,22 +444,22 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysJ() throws IOException, ClassNotFoundException {
 		long[][] l = new long[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
-		
+
 		long[][] l2 = (long[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(l[0], l2[0]));
 		assertTrue(Arrays.equals(l[1], l2[1]));
 	}
-	
+
 	@Test
 	public void testPrimitiveMultiArraysJ2() throws IOException, ClassNotFoundException {
 		long[][][] l = new long[][][] {{{ 1, 2, 3, 4}, {5, 6, 7, 8 }}, {{9, 10, 11, 12}, {13, 14, 15, 16}}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
-		
+
 		long[][][] l2 = (long[][][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(l[0][0], l2[0][0]));
 		assertTrue(Arrays.equals(l[0][1], l2[0][1]));
@@ -471,10 +470,10 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysF() throws IOException, ClassNotFoundException {
 		float[][] f = new float[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, f);
-		
+
 		float[][] f2 = (float[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(f[0], f2[0]));
 		assertTrue(Arrays.equals(f[1], f2[1]));
@@ -483,115 +482,115 @@ public class SerializationTest {
 	@Test
 	public void testPrimitiveMultiArraysD() throws IOException, ClassNotFoundException {
 		double[][] d = new double[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, d);
-		
+
 		double[][] d2 = (double[][]) serializer.deserializeReturn(bb);
 		assertTrue(Arrays.equals(d[0], d2[0]));
 		assertTrue(Arrays.equals(d[1], d2[1]));
 	}
-	
+
 	@Test
 	public void testVersionAware() throws IOException, ClassNotFoundException {
 		Version v = new Version(1,2,3,"foo");
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, v);
-		
+
 		bb.markReaderIndex();
-		
+
 		assertEquals(v, serializer.deserializeReturn(bb));
 		assertFalse(bb.isReadable());
-		
+
 		bb.resetReaderIndex();
-		
+
 		MetaClasses mc = new MetaClasses(new MetaClassesClassLoader(bundle));
-		
+
 		BinaryWireFormat newWF = new BinaryWireFormat(mc, new VersionAwareVanillaPojoSerializer(mc));
-		
-		assertEquals(v, newWF.readObject(bb));
-		assertFalse(bb.isReadable());
-		
-		newWF.reset();
-	
-		// Now without a qualifier
-		v = new Version(1,2,3);
-		
-		bb.clear();
-		serializer.serializeReturn(bb, v);
-		
-		bb.markReaderIndex();
-		
-		assertEquals(v, serializer.deserializeReturn(bb));
-		assertFalse(bb.isReadable());
-		
-		bb.resetReaderIndex();
-		
+
 		assertEquals(v, newWF.readObject(bb));
 		assertFalse(bb.isReadable());
 
 		newWF.reset();
-		
+
+		// Now without a qualifier
+		v = new Version(1,2,3);
+
+		bb.clear();
+		serializer.serializeReturn(bb, v);
+
+		bb.markReaderIndex();
+
+		assertEquals(v, serializer.deserializeReturn(bb));
+		assertFalse(bb.isReadable());
+
+		bb.resetReaderIndex();
+
+		assertEquals(v, newWF.readObject(bb));
+		assertFalse(bb.isReadable());
+
+		newWF.reset();
+
 		// Now with an array
 		Version[] vArray = new Version[] {new Version(2,3,4), new Version(3,4,5)};
-		
+
 		bb.clear();
 		serializer.serializeReturn(bb, vArray);
-		
+
 		bb.markReaderIndex();
-		
+
 		v = new Version(1,2,3);
 		assertArrayEquals(vArray, (Version[]) serializer.deserializeReturn(bb));
 		assertFalse(bb.isReadable());
-		
+
 		bb.resetReaderIndex();
-		
+
 		assertArrayEquals(vArray, (Version[]) newWF.readObject(bb));
 		assertFalse(bb.isReadable());
 
 		newWF.reset();
 	}
-	
+
 	/**
 	 * This test is based on a real object which failed to serialize because
 	 * it contained Strings with characters outside the base unicode block...
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws IOException
+	 * @throws FileNotFoundException
 	 */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testComplexDTOWhichBlewUp() throws Exception {
-	
+
 		Map<String,Object> map;
 		try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("test-resources/fibre.obj"))) {
 			map = (Map<String, Object>) ois.readObject();
 		}
 
 		Fibre fibre = Converter.cnv(Fibre.class, map);
-		
-		
+
+
 		assertEquals("debian-aarch64.1", fibre.id);
-		
+
 		assertEquals(166, fibre.certificateSerialNumbers.size());
-		
-		
+
+
 		ByteBuf bb = Unpooled.buffer(32768);
 		serializer.serializeReturn(bb, fibre);
-		
+
 		Fibre fibre2 = (Fibre) serializer.deserializeReturn(bb);
-		
+
 		assertEquals(fibre, fibre2);
 	}
-	
+
 	@Test
 	public void testStringWithNonASCIIChars() throws Exception {
-		//Use an interrobang to upset the serializer 
+		//Use an interrobang to upset the serializer
 		String toTest = "Hello World\u203D";
-		
+
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, toTest);
-		
+
 		assertEquals(toTest, serializer.deserializeReturn(bb));
 	}
 }

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -30,19 +30,19 @@ public class ParemusServerDTLSHandler extends ParemusBaseDTLSHandler implements 
     public ParemusServerDTLSHandler(DtlsEngine engine) {
         super(engine);
     }
-    
+
     ParemusServerDTLSHandler(DtlsEngine engine, ChannelHandlerContext ctx, InetSocketAddress remotePeer) {
         super(engine, ctx, remotePeer);
     }
-    
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        
+
         if(remotePeer == null) {
             DatagramPacket dp = (DatagramPacket) msg;
             remotePeer = dp.sender();
         }
-        
+
         super.channelRead(ctx, msg);
     }
 
@@ -51,7 +51,7 @@ public class ParemusServerDTLSHandler extends ParemusBaseDTLSHandler implements 
         if(!isHandshakeMessage(msg)) {
             return false;
         }
-        
+
         // Note that we do *not* retransmit server hello
         switch(getHandshakeMessageType(msg)) {
             case HandshakeType.certificate:
@@ -87,6 +87,6 @@ public class ParemusServerDTLSHandler extends ParemusBaseDTLSHandler implements 
                 (received.getUnsignedByte(index) & 0b00100000) != 0) {
             removeMessages(currentlyRetransmitting, epoch);
         }
-        
+
     }
 }

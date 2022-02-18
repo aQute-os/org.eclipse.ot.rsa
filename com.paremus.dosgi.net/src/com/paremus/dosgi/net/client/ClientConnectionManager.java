@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -60,13 +60,13 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 public class ClientConnectionManager {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientConnectionManager.class);
-	
+
 	private final ConcurrentMap<InetSocketAddress, Channel> activeChannels = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<Channel, Set<ImportRegistrationImpl>> channelsToServices = new ConcurrentHashMap<>();
-	
+
 	private final EventLoopGroup clientIo;
-	
+
 	private final ByteBufAllocator allocator;
 
 	private final ParemusNettyTLS tls;
@@ -74,7 +74,7 @@ public class ClientConnectionManager {
 
 	private final EventExecutorGroup clientWorkers;
 	private final Timer timer;
-	
+
 	boolean closed;
 
 
@@ -84,9 +84,9 @@ public class ClientConnectionManager {
 		this.allocator = allocator;
 		this.clientWorkers = clientWorkers;
 		this.timer = timer;
-		
+
 		this.clientIo = clientIo;
-		
+
 		String[] protocols = config.client_protocols();
 		connectors = Arrays.stream(protocols)
 				.map(ProtocolScheme::new)
@@ -99,7 +99,7 @@ public class ClientConnectionManager {
 					return false;
 				})
 			.collect(toMap(p -> p.getProtocol().getUriScheme(), p -> createConnectionTo(config, p)));
-		
+
 		if(connectors.isEmpty() && protocols.length > 0) {
 			LOG.error("There are no client transports available for this provider. Please check the configuration");
 			throw new IllegalArgumentException("The transport configuration created no valid client transports");
@@ -108,14 +108,14 @@ public class ClientConnectionManager {
 
 	@SuppressWarnings("deprecation")
 	private BiFunction<Consumer<Channel>, InetSocketAddress, ChannelFuture> createConnectionTo(TransportConfig config, ProtocolScheme p) {
-		
+
 		return (customizer, remoteAddress) -> {
 			Bootstrap b = new Bootstrap();
 			b.group(clientIo)
 				.option(ChannelOption.ALLOCATOR, allocator)
 				.option(ChannelOption.SO_SNDBUF, p.getSendBufferSize())
 				.option(ChannelOption.SO_RCVBUF, p.getReceiveBufferSize());
-				
+
 			Consumer<Channel> c = ch -> {};
 			boolean clientAuth = false;
 			switch(p.getProtocol()) {
@@ -123,32 +123,32 @@ public class ClientConnectionManager {
 					clientAuth = true;
 				case TCP_TLS :
 					boolean useClientAuth = clientAuth;
-					
+
 					if(!tls.hasTrust() || (useClientAuth && !tls.hasCertificate())) {
 						LOG.error("The secure transport {} cannot be configured as the necessary certificate configuration is unavailable. Please check the configuration of the TLS provider.",
 								p.getProtocol());
 						return null;
 					}
-					
+
 					c = c.andThen(ch -> {
-						
+
 						SslHandler clientHandler = tls.getTLSClientHandler();
-						
+
 						SSLEngine engine = clientHandler.engine();
-						
+
 						String ciphers = p.getOption("ciphers", String.class);
 						if(ciphers != null) {
 							engine.setEnabledCipherSuites(ciphers.split(","));
 						}
-						
+
 						String protocols = p.getOption("protocols", String.class);
 						if(protocols != null) {
 							engine.setEnabledProtocols(protocols.split(","));
 						}
-						
+
 						engine.setWantClientAuth(useClientAuth);
 						engine.setNeedClientAuth(useClientAuth);
-						
+
 						Integer handshakeTimeout = p.getOption("handshake.timeout", Integer.class);
 						if(handshakeTimeout != null) {
 							if(handshakeTimeout < 1 || handshakeTimeout > 10000) {
@@ -165,10 +165,10 @@ public class ClientConnectionManager {
 							}
 							clientHandler.setCloseNotifyTimeoutMillis(closeNotifyTimeout);
 						}
-						
+
 						ch.pipeline().addLast(clientHandler);
 					});
-					
+
 				case TCP :
 					Integer connectionTimeout = p.getOption("connect.timeout", Integer.class);
 					if(connectionTimeout == null) {
@@ -186,10 +186,10 @@ public class ClientConnectionManager {
 				        	ch.pipeline().addLast(ImmediateEventExecutor.INSTANCE, new VersionCheckingLengthFieldBasedFrameDecoder());
 						});
 					break;
-				default : 
+				default :
 					throw new IllegalArgumentException("No support for protocol " + p.getProtocol());
 			}
-			
+
 			Consumer<Channel> fullPipeline = c.andThen(customizer);
 			b.handler(new ChannelInitializer<Channel>() {
 				@Override
@@ -203,10 +203,10 @@ public class ClientConnectionManager {
 	}
 
 	public Channel getChannelFor(URI uri, EndpointDescription endpointDescription) {
-		
+
 		UUID serviceId =  UUID.fromString(endpointDescription.getId());
 		InetSocketAddress remoteAddress = new InetSocketAddress(uri.getHost(), uri.getPort());
-		
+
 		// We must not use computeIfAbsent as this holds a table lock in the activeChannels Map
 		// This can block the close listener of another channel (doing a remove), which prevents
 		// that thread from completing the connect in getChannelFor -> DEADLOCK!
@@ -216,7 +216,7 @@ public class ClientConnectionManager {
 			isOpen = !closed;
 			channel = activeChannels.get(remoteAddress);
 		}
-		
+
 		if(channel == null && isOpen) {
 			Channel newChannel = ofNullable(connectors.get(uri.getScheme()))
 				.map(b -> getChannelFor(b,remoteAddress))
@@ -235,24 +235,24 @@ public class ClientConnectionManager {
 				}
 			}
 		}
-	
+
 		if(channel == null) {
-			LOG.warn("Unable to create a client connection for the service {} with endpoint {}", 
+			LOG.warn("Unable to create a client connection for the service {} with endpoint {}",
 					serviceId, endpointDescription);
 			return null;
 		}
-		
+
 		Channel toUse = channel;
-		
+
 		channel.closeFuture().addListener(x -> {
 			Throwable failure = x.cause();
 			clientWorkers.execute(() -> {
 				String message = "The connection to the remote node " + toUse.remoteAddress() + " was lost";
-				failAll(toUse, failure == null ? new ServiceException(message, REMOTE) : 
+				failAll(toUse, failure == null ? new ServiceException(message, REMOTE) :
 					new ServiceException(message, REMOTE, failure));
 			});
 		});
-		
+
 		return toUse;
 	}
 
@@ -265,42 +265,42 @@ public class ClientConnectionManager {
 						ch.pipeline().addLast(ImmediateEventExecutor.INSTANCE, new ClientRequestSerializer(clientResponseHandler));
 			        }, remoteAddress);
 			future.await();
-			
+
 			if(future.isSuccess()) {
 				Channel channel = future.channel();
-				
+
 				channel.closeFuture().addListener(x -> {
 						activeChannels.remove(remoteAddress, channel);
 						ofNullable(channelsToServices.remove(channel))
 							.ifPresent(s -> s.stream().forEach(ir -> {
 									Throwable failure = x.cause();
 									String message = "The connection to the remote node " + remoteAddress + " was lost";
-									ir.asyncFail(failure == null ? new ServiceException(message, REMOTE) : 
+									ir.asyncFail(failure == null ? new ServiceException(message, REMOTE) :
 														new ServiceException(message, REMOTE, failure));
 								}));
 					});
-				
+
 				ChannelHandler first = channel.pipeline().first();
-				
+
 				if(first instanceof SslHandler) {
 					Future<Channel> handshake = ((SslHandler)first).handshakeFuture().await();
 					if(!handshake.isSuccess()) {
-						LOG.warn("Unable to complete the SSL Handshake with remote node " + remoteAddress, 
+						LOG.warn("Unable to complete the SSL Handshake with remote node " + remoteAddress,
 								handshake.cause());
 						channel.close();
 						return null;
 					}
 				}
-				
+
 				return channel;
 			} else {
-				LOG.error("Unable to connect to the remote address " + remoteAddress, 
+				LOG.error("Unable to connect to the remote address " + remoteAddress,
 						 future.cause());
 				return null;
 			}
-			    
+
 		} catch (InterruptedException e) {
-			LOG.error("Unable to connect to the remote address" + remoteAddress, 
+			LOG.error("Unable to connect to the remote address" + remoteAddress,
 					e);
 			if(future != null) {
 				future.channel().close();
@@ -313,7 +313,7 @@ public class ClientConnectionManager {
 		synchronized (this) {
 			if(closed) return;
 		}
-		
+
 		ofNullable(channelsToServices.get(channel))
 			.ifPresent(s -> s.stream()
 					.forEach(ir -> ir.asyncFail(t)));
@@ -343,10 +343,10 @@ public class ClientConnectionManager {
 			throw new ServiceException(failure, ServiceException.REMOTE);
 		}
 	}
-	
+
 	public void notifyClosing(ImportRegistrationImpl ir) {
 		Channel channel = ir.getChannel();
-		
+
 		if(channel != null) {
 			boolean closeChannel = false;
 			synchronized (this) {
@@ -368,7 +368,7 @@ public class ClientConnectionManager {
 				channel.close();
 			}
 		}
-		
+
 	}
 
 	public void close() {
@@ -376,12 +376,12 @@ public class ClientConnectionManager {
 			if(closed) return;
 			closed = true;
 		}
-		
+
 		Throwable closing = new ServiceException("The RSA client is closing.", ServiceException.REMOTE);
 		channelsToServices.values().stream()
 			.flatMap(Set::stream)
 			.forEach(ir -> ir.asyncFail(closing));
-		 
+
 		activeChannels.values().stream()
 			.forEach(Channel::close);
 	}
@@ -390,7 +390,7 @@ public class ClientConnectionManager {
 		synchronized (this) {
 			if(closed) return;
 		}
-		clientWorkers.execute(() -> 
+		clientWorkers.execute(() ->
 			ofNullable(channelsToServices.get(channel))
 				.map(Set::stream)
 				.flatMap(s -> s.filter(ir -> serviceId.equals(ir.getId())).findFirst())

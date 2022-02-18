@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -66,10 +66,10 @@ public class CertificateGenerator {
             return id;
         }
     }
-    
+
     private final BouncyCastleProvider provider;
     private final SecureRandom secureRandom;
-    
+
     public CertificateGenerator(BouncyCastleProvider provider, SecureRandom secureRandom) {
         this.provider = provider;
         this.secureRandom = secureRandom;
@@ -117,7 +117,7 @@ public class CertificateGenerator {
         JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(sigAlg.getAlgorithmName());
         csBuilder.setProvider(provider);
 
-        try (StringWriter writer = new StringWriter(); 
+        try (StringWriter writer = new StringWriter();
              JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
 
             ContentSigner signer = csBuilder.build(keyPair.getPrivate());
@@ -154,11 +154,11 @@ public class CertificateGenerator {
             Certificate cert = signCertificate(reqPublicKey, req.getSubject(), newSerial(), issuer, issuerSerial,
                     Duration.ofDays(365), signerInfo.privateKey, guessSigAlg(signerInfo.privateKey), false);
 
-            try (StringWriter writer = new StringWriter(); 
+            try (StringWriter writer = new StringWriter();
                  JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
 
                 pemWriter.writeObject(cert);
-                
+
                 for(Certificate c : signerInfo.trustChain) {
                     pemWriter.writeObject(c);
                 }

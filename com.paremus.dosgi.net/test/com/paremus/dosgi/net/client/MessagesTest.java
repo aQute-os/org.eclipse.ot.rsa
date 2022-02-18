@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -38,22 +38,22 @@ import io.netty.channel.ChannelPromise;
 public class MessagesTest {
 
 	private final UUID serviceId = UUID.randomUUID();
-	
+
 	private final int callId = 42;
-	
+
 	@Mock
 	ChannelPromise promise;
-	
+
 	@Test
 	public void testBackPressure() {
 		ClientBackPressure end = new ClientBackPressure(serviceId, callId, 1234L);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		end.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V2.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);
@@ -64,17 +64,17 @@ public class MessagesTest {
 		assertEquals(1234L, buffer.readLong());
 		assertFalse(buffer.isReadable());
 	}
-	
+
 	@Test
 	public void testEndStreamingInvocation() {
 		EndStreamingInvocation end = new EndStreamingInvocation(serviceId, callId);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		end.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V2.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);
@@ -84,17 +84,17 @@ public class MessagesTest {
 		assertEquals(callId, buffer.readInt());
 		assertFalse(buffer.isReadable());
 	}
-	
+
 	@Test
 	public void testInvocationCancellation() {
 		InvocationCancellation cancellation = new InvocationCancellation(serviceId, callId, false);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		cancellation.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V1.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);
@@ -105,5 +105,5 @@ public class MessagesTest {
 		assertFalse(buffer.readBoolean());
 		assertFalse(buffer.isReadable());
 	}
-	
+
 }

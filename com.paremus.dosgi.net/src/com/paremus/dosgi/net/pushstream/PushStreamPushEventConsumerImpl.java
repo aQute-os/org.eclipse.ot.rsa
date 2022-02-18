@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -29,9 +29,9 @@ import io.netty.util.Timer;
 class PushStreamPushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
 	private final PushStream<Object> stream;
-	
+
 	private final Timeout timeout;
-	
+
 	public PushStreamPushEventConsumerImpl(ToLongFunction<Object> onData,
 			Consumer<Throwable> onTerminal, PushStream<Object> stream, Timer timer) {
 		super(onData, onTerminal);
@@ -44,6 +44,7 @@ class PushStreamPushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 			}, 30, TimeUnit.SECONDS);
 	}
 
+	@Override
 	protected void terminalEvent(PushEvent<? extends Object> event) {
 		if(closed.compareAndSet(false, true)) {
 			closeFuture.trySuccess(null);

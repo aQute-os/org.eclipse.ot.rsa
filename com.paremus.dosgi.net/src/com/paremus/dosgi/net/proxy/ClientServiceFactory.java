@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -66,7 +66,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
  * be resolved via the calling code's {@link BundleContext}; interfaces that cannot be
  * resolved are <b>skipped</b>. This allows access to services which advertise multiple
  * interfaces when a client only needs (and imports) a subset of these interfaces.
- * 
+ *
  */
 public class ClientServiceFactory implements ServiceFactory<Object> {
 
@@ -79,7 +79,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 	private static final String PROMISE_TYPE = PROMISE_PACKAGE + ".Promise";
 
 	private static final String PUSHSTREAM_PACKAGE = "org.osgi.util.pushstream";
-	
+
 	private static final String PUSHSTREAM_TYPE = PUSHSTREAM_PACKAGE + ".PushStream";
 	private static final String PUSH_EVENT_SOURCE_TYPE = PUSHSTREAM_PACKAGE + ".PushEventSource";
 
@@ -88,19 +88,19 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 	private static final Logger LOG = LoggerFactory.getLogger(ClientServiceFactory.class.getName());
 
     private final EndpointDescription _endpointDescription;
-    
+
     private final ImportRegistrationImpl _importRegistration;
 
     private final Channel _channel;
-    
+
     private SerializerFactory _serializerFactory;
 
 	private final EventExecutorGroup _executor;
-    
+
     private final Timer _timer;
 
 	private final AtomicLong _serviceCallTimeout;
-	
+
 	private final AtomicInteger _callIdCounter = new AtomicInteger(0);
 
 	/**
@@ -125,7 +125,8 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
         _timer = timer;
     }
 
-    public Object getService(Bundle requestingBundle, ServiceRegistration<Object> serviceRegistration) {
+    @Override
+	public Object getService(Bundle requestingBundle, ServiceRegistration<Object> serviceRegistration) {
         LOG.debug("getService: creating proxy with interfaces: {} for bundle {}",
             _endpointDescription.getInterfaces(), requestingBundle.getSymbolicName());
 
@@ -143,10 +144,10 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
                 if (interfaces.isEmpty()) {
                     throw new ClassNotFoundException("any of: " + classNames);
                 }
-                
+
                 Class<?> promise = locatePromise(requestingBundle);
                 Class<?> asyncDelegate = locateAsyncDelegate(requestingBundle, promise);
-                
+
                 if(asyncDelegate != null) {
                 	interfaces.add(asyncDelegate);
                 	if (promise == null) {
@@ -158,19 +159,19 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
                 		}
                 	}
                 }
-                
+
                 Class<?> pushStream = locatePushStreamType(requestingBundle, PUSHSTREAM_TYPE);
                 Class<?> pushEventSource = locatePushStreamType(requestingBundle, PUSH_EVENT_SOURCE_TYPE);
 
-                Class<?> proxyClass = Proxy.getProxyClass(getClassLoader(requestingBundle, 
+                Class<?> proxyClass = Proxy.getProxyClass(getClassLoader(requestingBundle,
                 		asyncDelegate, promise, interfaces), interfaces.toArray(new Class[0]));
-                
+
                 ServiceInvocationHandler proxyHandler = new ServiceInvocationHandler(
-                		_importRegistration, _endpointDescription, requestingBundle, 
-                		proxyClass, interfaces, promise, asyncDelegate != null, pushStream, pushEventSource, 
-                		_channel, _serializerFactory.create(requestingBundle), () -> _callIdCounter.getAndIncrement(), 
+                		_importRegistration, _endpointDescription, requestingBundle,
+                		proxyClass, interfaces, promise, asyncDelegate != null, pushStream, pushEventSource,
+                		_channel, _serializerFactory.create(requestingBundle), () -> _callIdCounter.getAndIncrement(),
                 		_serviceCallTimeout, _executor, _timer);
-                
+
                 return proxyClass.getConstructor(InvocationHandler.class).newInstance(proxyHandler);
             };
 
@@ -190,7 +191,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
                 pae.getCause());
         }
     }
-    
+
     private Class<?> resolveClass(Bundle b, String name) {
     	try {
            return b.loadClass(name);
@@ -206,9 +207,9 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 		Version minAcceptable = new Version(1,0,0);
 		Version minUnacceptable = new Version(2,0,0);
 		if(asyncDelegate != null) {
-			asyncDelegate = checkAcceptableVersion(requestingBundle, asyncDelegate, 
+			asyncDelegate = checkAcceptableVersion(requestingBundle, asyncDelegate,
 					ASYNC_DELEGATE_PACKAGE, minAcceptable, minUnacceptable);
-			
+
 			//Check class space consistency
 			if(promiseClass != null && asyncDelegate != null) {
 				Method async;
@@ -228,7 +229,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 			Bundle promiseBundle = promiseClass != null ? FrameworkUtil.getBundle(promiseClass) : null;
 			if(promiseBundle != null) {
 				BundleWiring wiring = promiseBundle.adapt(BundleWiring.class);
-				
+
 				//Find importers of the promise package that export the async API
 				Set<BundleWiring> asyncExporters = wiring.getProvidedWires(OSGI_WIRING_PACKAGE).stream()
 					.filter(wire -> {
@@ -236,7 +237,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 					})
 					.map(BundleWire::getRequirer)
 					.map(BundleRevision::getWiring)
-					.filter(bw -> 
+					.filter(bw ->
 						// Are any exports suitable versions of async delegate
 						bw.getCapabilities(OSGI_WIRING_PACKAGE).stream()
 							.filter(c -> {
@@ -246,7 +247,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 							.filter(v -> v.compareTo(minAcceptable) >= 0)
 							.anyMatch(v -> v.compareTo(minUnacceptable) < 0))
 					.collect(Collectors.toSet());
-				
+
 				if(resolveClass(promiseBundle, ASYNC_DELEGATE_TYPE) != null) {
 					asyncExporters.add(wiring);
 				}
@@ -262,11 +263,11 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 								.filter(v -> v.compareTo(minAcceptable) >= 0)
 								.anyMatch(v -> v.compareTo(minUnacceptable) < 0))
 					.collect(Collectors.toSet());
-				
+
 				asyncDelegate = getMostAppropriateAsyncDelegate(asyncExporters, promiseClass);
 			}
 		}
-		
+
 		return asyncDelegate;
 	}
 
@@ -283,7 +284,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 							.filter(wire -> {
 								return ASYNC_DELEGATE_PACKAGE.equals(wire.getCapability().getAttributes().get(OSGI_WIRING_PACKAGE));
 							}).count();
-					
+
 					int diff = (int) (bCount - aCount);
 					return diff == 0 ? b.getBundle().compareTo(a.getBundle()) : diff;
 				}).map(bw -> {
@@ -296,7 +297,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 				.filter(c -> c != null)
 				.filter(c -> {
 						try {
-							return promiseClass == null ? true : 
+							return promiseClass == null ? true :
 								c.getMethod("async", Method.class, Object[].class)
 									.getReturnType().equals(promiseClass);
 						} catch (Exception e) {
@@ -309,9 +310,9 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 
 	private Class<?> locatePromise(Bundle requestingBundle) {
 		Class<?> promiseClass = resolveClass(requestingBundle, PROMISE_TYPE);
-		
+
 		if(promiseClass != null) {
-			promiseClass = checkAcceptableVersion(requestingBundle, promiseClass, 
+			promiseClass = checkAcceptableVersion(requestingBundle, promiseClass,
 					PROMISE_PACKAGE, new Version(1,0,0), new Version(2,0,0));
 		}
 		return promiseClass;
@@ -319,9 +320,9 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 
 	private Class<?> locatePushStreamType(Bundle requestingBundle, String type) {
 		Class<?> pushStreamTypeClass = resolveClass(requestingBundle, type);
-		
+
 		if(pushStreamTypeClass != null) {
-			pushStreamTypeClass = checkAcceptableVersion(requestingBundle, pushStreamTypeClass, 
+			pushStreamTypeClass = checkAcceptableVersion(requestingBundle, pushStreamTypeClass,
 					PUSHSTREAM_PACKAGE, new Version(1,0,0), new Version(2,0,0));
 		}
 		return pushStreamTypeClass;
@@ -332,21 +333,21 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 		Bundle promiseBundle = FrameworkUtil.getBundle(apiClass);
 		if(promiseBundle != null) {
 			BundleWiring wiring = promiseBundle.adapt(BundleWiring.class);
-			
+
 			SortedSet<Version> promiseVersions = wiring.getCapabilities(OSGI_WIRING_PACKAGE).stream()
 				.filter(c -> {
 					return apiPackage.equals(c.getAttributes().get(OSGI_WIRING_PACKAGE));
 				})
 				.map(c -> (Version) c.getAttributes().get("version"))
 				.collect(Collector.of(
-						() -> (SortedSet<Version>) new TreeSet<Version>(), 
+						() -> new TreeSet<>(),
 						(s,v) -> s.add(v),
 						(a,b) -> {
-							SortedSet<Version> newSet = new TreeSet<>(a);
+						TreeSet<Version> newSet = new TreeSet<>(a);
 							newSet.addAll(b);
 							return newSet;
 						}));
-			
+
 			if(promiseVersions.isEmpty()) {
 				LOG.warn("Unable to determine the package version of the package {} for the service {} and the client {} as the client has a private copy. Errors may occur if the version is incompatible with the range \"[{},{})\".",
 						new Object[] {apiPackage, _endpointDescription.getId(), requestingBundle, minAcceptable, minUnacceptable});
@@ -365,8 +366,8 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 		}
 		return apiClass;
 	}
-	
-	private ClassLoader getClassLoader(Bundle requestingBundle, Class<?> async, Class<?> promise, 
+
+	private ClassLoader getClassLoader(Bundle requestingBundle, Class<?> async, Class<?> promise,
 			List<Class<?>> interfaces) {
 		return new ClassLoader(requestingBundle.adapt(BundleWiring.class).getClassLoader()) {
 			@Override
@@ -377,7 +378,7 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 				}
 				if(ASYNC_DELEGATE_TYPE.equals(name) && async != null) {
 					return async;
-				} 
+				}
 				for(Class<?> clz : interfaces) {
 					ClassLoader classLoader = clz.getClassLoader();
 					if(classLoader != null) {
@@ -386,11 +387,12 @@ public class ClientServiceFactory implements ServiceFactory<Object> {
 						} catch (ClassNotFoundException cnfe) {}
 					}
 				}
-				
+
 				throw new ClassNotFoundException(name);
 			}
         };
 	}
 
+	@Override
 	public void ungetService(Bundle requestingBundle, ServiceRegistration<Object> sreg, final Object serviceObject) { }
 }

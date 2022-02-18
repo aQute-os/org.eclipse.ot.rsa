@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -62,8 +62,8 @@ import io.netty.util.concurrent.Promise;
 import io.netty.util.concurrent.PromiseCombiner;
 
 @SuppressWarnings("deprecation")
-@Capability(namespace=SERVICE_NAMESPACE, attribute=OBJECTCLASS + ":List<String>=com.paremus.cluster.listener.ClusterListener", uses=ClusterListener.class) 
-@Capability(namespace=SERVICE_NAMESPACE, attribute=OBJECTCLASS + ":List<String>=\"org.osgi.service.remoteserviceadmin.EndpointEventListener,org.osgi.service.remoteserviceadmin.EndpointListener\"", uses=ClusterListener.class) 
+@Capability(namespace=SERVICE_NAMESPACE, attribute=OBJECTCLASS + ":List<String>=com.paremus.cluster.listener.ClusterListener", uses=ClusterListener.class)
+@Capability(namespace=SERVICE_NAMESPACE, attribute=OBJECTCLASS + ":List<String>=\"org.osgi.service.remoteserviceadmin.EndpointEventListener,org.osgi.service.remoteserviceadmin.EndpointListener\"", uses=ClusterListener.class)
 @Capability(namespace=DISCOVERY_NAMESPACE, attribute="protocols:List<String>=com.paremus.cluster", version="1.0", uses=EndpointEventListener.class)
 @Requirement(namespace=IMPLEMENTATION_NAMESPACE, name="com.paremus.cluster", version="1.0", effective="active")
 @Component(configurationPid=PAREMUS_DISCOVERY_DATA, configurationPolicy=REQUIRE, immediate=true)
@@ -74,46 +74,46 @@ public class ConfiguredDiscovery implements ScopeManager, ClusterDiscovery {
 
 	private final EventExecutorGroup worker;
 	private final EventExecutorGroup remoteEventDelivery;
-	
+
 	private final ClusterDiscoveryImpl discovery;
 	private final ServiceRegistration<ClusterListener> clusterListenerReg;
 	private final ServiceRegistration<?> endpointEventListenerReg;
 
 	private final Set<String> targetClusters;
-	
+
 	@Activate
 	public ConfiguredDiscovery(BundleContext context, @Reference ParemusNettyTLS tls, Config cfg) {
-    
+
 		UUID fwId = UUID.fromString(context.getProperty(org.osgi.framework.Constants.FRAMEWORK_UUID));
-		
+
 		targetClusters = stream(cfg.target_clusters()).collect(toSet());
-		
+
 		worker = new DefaultEventExecutorGroup(1, r -> {
 				Thread t = new FastThreadLocalThread(r, "Paremus Cluster RSA Discovery Worker");
 				t.setDaemon(true);
 				return t;
 			});
-		
+
 		remoteEventDelivery = new DefaultEventExecutorGroup(1, r -> {
 			Thread t = new FastThreadLocalThread(r, "Paremus Cluster RSA Discovery Event Delivery");
 			t.setDaemon(true);
 			return t;
 		});
-		
+
     	try {
 			LocalDiscoveryListener newlistener = new LocalDiscoveryListener(cfg.rebroadcast_interval(),
 					worker);
 			discovery = new ClusterDiscoveryImpl(context, fwId, newlistener, tls, cfg, worker, remoteEventDelivery);
-			
+
 			Hashtable<String, Object> props = new Hashtable<>();
 			props.put(ClusterListener.LIMIT_KEYS, Arrays.asList(PAREMUS_DISCOVERY_DATA, PAREMUS_SCOPES_ATTRIBUTE));
-			
+
 			if(cfg.target_clusters().length > 0) {
 				props.put(ClusterListener.CLUSTER_NAMES, Arrays.asList(cfg.target_clusters()));
 			}
-			
+
 			clusterListenerReg = context.registerService(ClusterListener.class, discovery::clusterEvent, props);
-			
+
 			endpointEventListenerReg = context.registerService(new String[] {EndpointEventListener.class.getName(),
 					EndpointListener.class.getName()}, newlistener, getFilters(cfg, fwId));
     	} catch (RuntimeException e) {
@@ -146,24 +146,24 @@ public class ConfiguredDiscovery implements ScopeManager, ClusterDiscovery {
 	public void destroy() {
 
 		if(clusterListenerReg != null) {
-			try { 
-				clusterListenerReg.unregister(); 
+			try {
+				clusterListenerReg.unregister();
 			} catch (IllegalStateException ise) {}
 		}
 
 		if(endpointEventListenerReg != null) {
-			try { 
-				endpointEventListenerReg.unregister(); 
+			try {
+				endpointEventListenerReg.unregister();
 			} catch (IllegalStateException ise) {}
 		}
-		
+
 		PromiseCombiner pc = new PromiseCombiner();
 		if(discovery != null) {
 			pc.add(discovery.destroy());
 		}
 		pc.add(worker.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS));
 		pc.add(remoteEventDelivery.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS));
-		
+
 		try {
 			Promise<Void> promise = ImmediateEventExecutor.INSTANCE.newPromise();
 			pc.finish(promise);
@@ -172,14 +172,14 @@ public class ConfiguredDiscovery implements ScopeManager, ClusterDiscovery {
 			logger.debug("An error occurred while shutting down the RSA cluster discovery", e);
 		}
 	}
-	
+
 	@Reference(policy=DYNAMIC, cardinality=MULTIPLE)
 	void setClusterInformation(ClusterInformation ci) {
 		if(targetClusters.isEmpty() || targetClusters.contains(ci.getClusterName())) {
 			discovery.addClusterInformation(ci);
 		}
 	}
-	
+
 	void unsetClusterInformation(ClusterInformation ci) {
 		if(targetClusters.isEmpty() || targetClusters.contains(ci.getClusterName())) {
 			discovery.removeClusterInformation(ci);
@@ -192,7 +192,7 @@ public class ConfiguredDiscovery implements ScopeManager, ClusterDiscovery {
 			discovery.addNetworkInformation(cni);
 		}
 	}
-	
+
 	void unsetClusterNetworkInformation(ClusterNetworkInformation cni) {
 		if(targetClusters.isEmpty() || targetClusters.contains(cni.getClusterName())) {
 			discovery.removeNetworkInformation(cni);

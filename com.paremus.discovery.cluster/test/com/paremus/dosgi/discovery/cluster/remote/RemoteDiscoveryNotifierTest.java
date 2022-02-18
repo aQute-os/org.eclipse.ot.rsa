@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -83,7 +84,7 @@ public class RemoteDiscoveryNotifierTest {
 	EndpointFilter filter;
 
 	EventExecutorGroup executor;
-	
+
 	Semaphore s = new Semaphore(0);
 
 	RemoteDiscoveryNotifier notifier;
@@ -95,21 +96,21 @@ public class RemoteDiscoveryNotifierTest {
 		Mockito.doAnswer(i -> {
 				s.release();
 				return null;
-			}).when(listenerA).endpointChanged(Mockito.any(EndpointEvent.class), Mockito.anyString());
+			}).when(listenerA).endpointChanged(ArgumentMatchers.any(EndpointEvent.class), ArgumentMatchers.anyString());
 
 		Mockito.when(context.getService(refB)).thenReturn(listenerB);
 		Mockito.when(refB.getProperty(EndpointEventListener.ENDPOINT_LISTENER_SCOPE)).thenReturn(Arrays.asList(FILTER_1));
 		Mockito.doAnswer(i -> {
 			s.release(2);
 			return null;
-		}).when(listenerB).endpointChanged(Mockito.any(EndpointEvent.class), Mockito.anyString());
+		}).when(listenerB).endpointChanged(ArgumentMatchers.any(EndpointEvent.class), ArgumentMatchers.anyString());
 
 		Mockito.when(refA.compareTo(refB)).thenReturn(1);
 		Mockito.when(refB.compareTo(refA)).thenReturn(-1);
-		
+
 		executor = new DefaultEventExecutorGroup(1);
 	}
-	
+
 	@AfterEach
 	public void tearDown() throws Exception {
 		notifier.destroy();
@@ -122,7 +123,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a single listener
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 
@@ -135,7 +136,7 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(ADDED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
@@ -147,7 +148,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a single listener
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 
@@ -165,7 +166,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Send the same announcement
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		notifier.announcementEvent(ee.getEndpoint(), 1);
 
@@ -180,7 +181,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a single listener
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 
 		//Send a notification
@@ -193,7 +194,7 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(2, 1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerB).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerB).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(ADDED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
@@ -205,7 +206,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a two listeners
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refB));
@@ -219,12 +220,12 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(3, 1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(ADDED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
 
-		Mockito.verify(listenerB).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerB).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		ee = captor.getValue();
 		assertEquals(ADDED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
@@ -236,7 +237,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a two listeners
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refB));
@@ -254,12 +255,12 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(6, 1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA).endpointChanged(captor.capture(), Mockito.eq(FILTER_2));
+		Mockito.verify(listenerA).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_2));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(EndpointEvent.MODIFIED, ee.getType());
 		assertSame(ed2, ee.getEndpoint());
 
-		Mockito.verify(listenerB, times(2)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerB, times(2)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		ee = captor.getValue();
 		assertEquals(EndpointEvent.MODIFIED_ENDMATCH, ee.getType());
 		assertSame(ed2, ee.getEndpoint());
@@ -271,7 +272,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a two listeners
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refB));
@@ -290,12 +291,12 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(6, 1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA, times(2)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA, times(2)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(EndpointEvent.REMOVED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
 
-		Mockito.verify(listenerB, times(2)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerB, times(2)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		ee = captor.getValue();
 		assertEquals(EndpointEvent.REMOVED, ee.getType());
 		assertSame(ed, ee.getEndpoint());
@@ -307,7 +308,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		//Set up a single listener
 		ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
-		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), Mockito.contains(EndpointEventListener.class.getName()));
+		Mockito.verify(context).addServiceListener(listenerCaptor.capture(), ArgumentMatchers.contains(EndpointEventListener.class.getName()));
 		ServiceListener captured = listenerCaptor.getValue();
 		captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 
@@ -327,7 +328,7 @@ public class RemoteDiscoveryNotifierTest {
 		List<EndpointDescription> eds = Arrays.asList(edA, edB, edC);
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA, times(3)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA, times(3)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		List<EndpointEvent> eeList = captor.getAllValues();
 		Iterator<EndpointDescription> it = eds.iterator();
 		for(EndpointEvent ee : eeList) {
@@ -340,7 +341,7 @@ public class RemoteDiscoveryNotifierTest {
 
 		assertTrue(s.tryAcquire(3, 1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA, times(6)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA, times(6)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		eeList = captor.getAllValues().subList(6, 9);
 		it = eds.iterator();
 		for(EndpointEvent ee : eeList) {
@@ -356,7 +357,7 @@ public class RemoteDiscoveryNotifierTest {
         // Set up a single listener
         ArgumentCaptor<ServiceListener> listenerCaptor = ArgumentCaptor.forClass(ServiceListener.class);
         Mockito.verify(context).addServiceListener(listenerCaptor.capture(),
-                Mockito.contains(EndpointEventListener.class.getName()));
+                ArgumentMatchers.contains(EndpointEventListener.class.getName()));
         ServiceListener captured = listenerCaptor.getValue();
         captured.serviceChanged(new ServiceEvent(REGISTERED, refA));
 
@@ -376,7 +377,7 @@ public class RemoteDiscoveryNotifierTest {
         List<EndpointDescription> eds = Arrays.asList(edA, edB, edC);
 
         ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-        Mockito.verify(listenerA, times(3)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+        Mockito.verify(listenerA, times(3)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
         List<EndpointEvent> eeList = captor.getAllValues();
         Iterator<EndpointDescription> it = eds.iterator();
         for (EndpointEvent ee : eeList) {
@@ -389,7 +390,7 @@ public class RemoteDiscoveryNotifierTest {
 
         assertTrue(s.tryAcquire(3, 1000, TimeUnit.MILLISECONDS));
 
-        Mockito.verify(listenerA, times(6)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+        Mockito.verify(listenerA, times(6)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
         eeList = captor.getAllValues().subList(6, 9);
         it = eds.iterator();
         for (EndpointEvent ee : eeList) {
@@ -408,7 +409,7 @@ public class RemoteDiscoveryNotifierTest {
 		assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
 		ArgumentCaptor<EndpointEvent> captor = ArgumentCaptor.forClass(EndpointEvent.class);
-		Mockito.verify(listenerA, times(2)).endpointChanged(captor.capture(), Mockito.eq(FILTER_1));
+		Mockito.verify(listenerA, times(2)).endpointChanged(captor.capture(), ArgumentMatchers.eq(FILTER_1));
 		EndpointEvent ee = captor.getValue();
 		assertEquals(EndpointEvent.REMOVED, ee.getType());
 		assertSame(endpointId, ee.getEndpoint().getId());
@@ -457,14 +458,14 @@ public class RemoteDiscoveryNotifierTest {
 	}
 
     private EndpointDescription getOtherTestEndpointDescription(String endpointId, int serviceId) {
-        HashMap<String, Object> props = new HashMap<String, Object>();
+        HashMap<String, Object> props = new HashMap<>();
         props.put(PAREMUS_ORIGIN_ROOT, OTHER_REMOTE_UUID.toString());
         return getTestEndpointDescription(endpointId, REMOTE_UUID, serviceId, props);
     }
 
 	private EndpointDescription getTestEndpointDescription(String endpointId, UUID remoteId, int serviceId,
 			Map<String, Object> props) {
-		Map<String, Object> m = new LinkedHashMap<String, Object>(props);
+		Map<String, Object> m = new LinkedHashMap<>(props);
 
 		// required
 		m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});

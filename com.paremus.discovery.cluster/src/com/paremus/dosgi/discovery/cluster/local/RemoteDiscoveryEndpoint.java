@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -35,7 +35,7 @@ import com.paremus.dosgi.discovery.cluster.comms.SocketComms;
 import com.paremus.dosgi.discovery.cluster.scope.EndpointFilter;
 
 public class RemoteDiscoveryEndpoint {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(RemoteDiscoveryEndpoint.class);
 
 	private final UUID id;
@@ -45,10 +45,10 @@ public class RemoteDiscoveryEndpoint {
 	private final SocketComms comms;
 	private final AtomicReference<InetSocketAddress> address = new AtomicReference<>();
 	private final AtomicInteger reminderCounter = new AtomicInteger();
-	
+
 	private final ConcurrentMap<EndpointDescription, Integer> published = new ConcurrentHashMap<>();
-	
-	public RemoteDiscoveryEndpoint(UUID id, String clusterName, Set<String> targetClusters, SocketComms comms, 
+
+	public RemoteDiscoveryEndpoint(UUID id, String clusterName, Set<String> targetClusters, SocketComms comms,
 			InetAddress host, int port, EndpointFilter endpointFilter) {
 		if(logger.isDebugEnabled()) {
 			logger.debug("Added remote interest from node {} in cluster {}, at {}:{}", new Object[] {id, clusterName, host, port});
@@ -60,7 +60,7 @@ public class RemoteDiscoveryEndpoint {
 		this.comms = comms;
 		filter.set(endpointFilter);
 	}
-	
+
 	public void update(int port, EndpointFilter endpointFilter) {
 		InetSocketAddress oldAddress = address.get();
 		if(port != oldAddress.getPort()) {
@@ -78,11 +78,11 @@ public class RemoteDiscoveryEndpoint {
 					new Object[] {id, endpointFilter.getClusters(), endpointFilter.getScopes()});
 			}
 		}
-		
+
 		filter.set(endpointFilter);
 		Map<EndpointDescription, Integer> copy = published.entrySet().stream()
 				.collect(toMap(Entry::getKey, Entry::getValue));
-		
+
 		copy.forEach((ed, i) -> {
 			published.remove(ed);
 			if(endpointFilter.accept(ed, targetClusters)) {
@@ -90,7 +90,7 @@ public class RemoteDiscoveryEndpoint {
 			}
 		});
 	}
-	
+
 	public UUID getId() {
 		return id;
 	}
@@ -98,7 +98,7 @@ public class RemoteDiscoveryEndpoint {
 	public SocketAddress getAddress() {
 		return address.get();
 	}
-	
+
 	public String getClusterName() {
 		return clusterName;
 	}
@@ -111,7 +111,7 @@ public class RemoteDiscoveryEndpoint {
 				logger.debug("Revoking the endpoint {} from {} for update {}",
 					new Object[] {ed.getId(), id, revocationCounter});
 			}
-			
+
 			comms.revokeEndpoint(ed.getId(), revocationCounter, id, address.get());
 		} else {
 			if(logger.isDebugEnabled()) {
@@ -144,7 +144,7 @@ public class RemoteDiscoveryEndpoint {
 			}
 		}
 	}
-	
+
 	public void stopCalling() {
 		if(logger.isDebugEnabled()) {
 			logger.debug("Shutting down the remote discovery endpoint for {}", id);
@@ -160,7 +160,7 @@ public class RemoteDiscoveryEndpoint {
 		}
 		comms.newDiscoveryEndpoint(id, address.get());
 	}
-	
+
 	public void sendReminder() {
 		Set<String> toRemind = published.keySet().stream()
 				.map(EndpointDescription::getId)

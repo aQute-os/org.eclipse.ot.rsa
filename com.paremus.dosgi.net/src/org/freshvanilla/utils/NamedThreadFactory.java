@@ -31,7 +31,8 @@ public class NamedThreadFactory implements ThreadFactory {
         _daemon = daemon;
     }
 
-    public Thread newThread(Runnable r) {
+    @Override
+	public Thread newThread(Runnable r) {
         String name = _name;
         int id = _counter.incrementAndGet();
         if (id > 1) name += ':' + id;

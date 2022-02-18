@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -37,7 +37,7 @@ import org.mockito.Mockito;
 import io.netty.handler.ssl.SslHandler;
 
 public abstract class AbstractSSLServerConnectionManagerTest extends AbstractServerConnectionManagerTest {
-	
+
 	protected KeyManagerFactory keyManagerFactory;
 	protected TrustManagerFactory trustManagerFactory;
 
@@ -45,19 +45,19 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 	protected void childSetUp() throws Exception {
 		keyManagerFactory = KeyManagerFactory
 				.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		
+
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("test-resources/fabric.keystore"), "paremus".toCharArray());
 		keyManagerFactory.init(ks, "paremus".toCharArray());
 
 		trustManagerFactory = TrustManagerFactory
 				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		
+
 		ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("test-resources/fabric.truststore"), "paremus".toCharArray());
 		trustManagerFactory.init(ks);
-		
-		
+
+
 		Mockito.when(tls.hasCertificate()).thenReturn(true);
 		Mockito.when(tls.getTLSServerHandler()).then(i -> {
 			SSLContext instance = SSLContext.getInstance("TLSv1.2");
@@ -68,21 +68,22 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 		});
 	}
 
+	@Override
 	protected ByteChannel getCommsChannel(URI uri) {
-		
+
 		try {
 			SSLEngine sslEngine = getConfiguredSSLEngine();
 
 			SocketChannel sc = SocketChannel.open();
 			sc.connect(new InetSocketAddress(uri.getHost(), uri.getPort()));
 			sc.configureBlocking(false);
-			
-			
+
+
 			sslEngine.beginHandshake();
-			
+
 			ByteBuffer tmpA = ByteBuffer.allocate(1 << 16);
 			ByteBuffer tmpB = ByteBuffer.allocate(1 << 18);
-			
+
 			outer: for (int i = 0; i < 100; i ++) {
 				switch(sslEngine.getHandshakeStatus()) {
 					case FINISHED:
@@ -137,35 +138,35 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 							case CLOSED:
 								throw new IOException("Engine is closed");
 						}
-						
+
 						break;
 					default:
 						throw new IllegalStateException("Unknown status " + sslEngine.getHandshakeStatus());
-				
+
 				}
-				
+
 			}
-			
+
 			HandshakeStatus status = sslEngine.getHandshakeStatus();
 			if(status != HandshakeStatus.FINISHED && status != HandshakeStatus.NOT_HANDSHAKING)
 				throw new IllegalStateException(sslEngine.getHandshakeStatus().toString());
-			
+
 			return new Wrapper(sc, sslEngine);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected abstract SSLEngine getConfiguredSSLEngine() throws 
+	protected abstract SSLEngine getConfiguredSSLEngine() throws
 		NoSuchAlgorithmException, KeyManagementException;
-	
-	
+
+
 	private static class Wrapper implements ByteChannel {
 
 		private final SocketChannel sc;
-		
+
 		private final SSLEngine engine;
-		
+
 		public Wrapper(SocketChannel sc, SSLEngine engine) {
 			this.sc = sc;
 			this.engine = engine;
@@ -176,10 +177,10 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 			ByteBuffer buffer = ByteBuffer.allocate(1 << 18);
 			int read = sc.read(buffer);
 			if(read == 0) return 0;
-			
+
 			buffer.flip();
 			SSLEngineResult unwrap = engine.unwrap(buffer, dst);
-			
+
 			if(unwrap.getStatus() == Status.BUFFER_UNDERFLOW) {
 				try {
 					Thread.sleep(100);
@@ -192,7 +193,7 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 				buffer.flip();
 				unwrap = engine.unwrap(buffer, dst);
 			}
-			
+
 			if(unwrap.getStatus() != Status.OK) {
 				throw new RuntimeException(unwrap.toString());
 			}
@@ -209,10 +210,10 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 			engine.closeOutbound();
 			ByteBuffer src = ByteBuffer.allocate(1024);
 			ByteBuffer dst = ByteBuffer.allocate(1024);
-			
+
 			engine.wrap(src, dst);
 			sc.write(dst);
-			
+
 			sc.read(src);
 			engine.unwrap(src, dst);
 			sc.close();
@@ -235,11 +236,11 @@ public abstract class AbstractSSLServerConnectionManagerTest extends AbstractSer
 				}
 				sc.write(buffer);
 			}
-			
+
 			if(buffer.hasRemaining()) throw new IOException("Unable to send the buffered data");
-			
+
 			return wrap.bytesConsumed();
 		}
-		
+
 	}
 }

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -46,7 +46,7 @@ enum IP_TYPE {
 			String address = input.readCharSequence(input.readUnsignedShort(), UTF_8).toString();
 			return InetAddress.getByName(address);
 		}
-		
+
 		@Override
 		void writeOut(InetSocketAddress address, ByteBuf output) throws IOException {
 			output.writeByte(ordinal());
@@ -60,7 +60,7 @@ enum IP_TYPE {
 				UnknownHostException {
 			return null;
 		}
-		
+
 		@Override
 		void writeOut(InetSocketAddress address, ByteBuf output) throws IOException {
 			output.writeByte(ordinal());
@@ -68,15 +68,15 @@ enum IP_TYPE {
 	};
 
 	abstract InetAddress getInetAddress(ByteBuf input) throws IOException, UnknownHostException;
-	
+
 	static InetAddress fromDataInput(ByteBuf input) throws UnknownHostException, IOException {
 		return values()[input.readUnsignedByte()].getInetAddress(input);
 	}
-	
+
 	static IP_TYPE fromInetSocketAddress(InetSocketAddress address) {
 		if(address == null || address.getAddress() == null) {
 			return UNKNOWN;
-		} 
+		}
 		InetAddress inetAddress = address.getAddress();
 		if(inetAddress.toString().startsWith("/")) {
 			if(inetAddress instanceof Inet4Address) {

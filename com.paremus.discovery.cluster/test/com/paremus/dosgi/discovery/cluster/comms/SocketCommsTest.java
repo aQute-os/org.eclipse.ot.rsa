@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -49,6 +49,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -108,11 +109,11 @@ public class SocketCommsTest {
 		Mockito.doAnswer(i -> {
 			s.release();
 			return null;
-		}).when(notifier).announcementEvent(Mockito.any(EndpointDescription.class), Mockito.anyInt());
+		}).when(notifier).announcementEvent(ArgumentMatchers.any(EndpointDescription.class), ArgumentMatchers.anyInt());
 		Mockito.doAnswer(i -> {
 			s.release();
 			return null;
-		}).when(notifier).revocationEvent(Mockito.anyString(), Mockito.anyInt());
+		}).when(notifier).revocationEvent(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt());
 
 		Mockito.when(fni.getBindAddress()).thenReturn(InetAddress.getLoopbackAddress());
 
@@ -268,7 +269,7 @@ public class SocketCommsTest {
 	}
 
 	private EndpointDescription getTestEndpointDescription(boolean local, boolean big) {
-		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		Map<String, Object> m = new LinkedHashMap<>();
 
 		// required
 		m.put(OBJECTCLASS, new String[] { "com.acme.HelloService", "some.other.Service" });
@@ -334,7 +335,7 @@ public class SocketCommsTest {
 			assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
 			ArgumentCaptor<EndpointDescription> captor = ArgumentCaptor.forClass(EndpointDescription.class);
-			Mockito.verify(notifier).announcementEvent(captor.capture(), Mockito.eq(5));
+			Mockito.verify(notifier).announcementEvent(captor.capture(), ArgumentMatchers.eq(5));
 			checkPlainEndpointAnnounce(captor.getValue(), dp);
 
 			dp = new DatagramPacket(new byte[65535], 65535);
@@ -374,7 +375,7 @@ public class SocketCommsTest {
 
 			assertTrue(s.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-			Mockito.verify(notifier).revocationEvent(Mockito.eq(ed.getId()), Mockito.eq(5));
+			Mockito.verify(notifier).revocationEvent(ArgumentMatchers.eq(ed.getId()), ArgumentMatchers.eq(5));
 
 			dp = new DatagramPacket(new byte[65535], 65535);
 

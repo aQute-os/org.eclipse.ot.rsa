@@ -21,5 +21,6 @@ import java.io.Closeable;
 public interface SimpleResource extends Closeable, Named {
     public boolean isClosed();
 
-    public void close();
+    @Override
+	public void close();
 }

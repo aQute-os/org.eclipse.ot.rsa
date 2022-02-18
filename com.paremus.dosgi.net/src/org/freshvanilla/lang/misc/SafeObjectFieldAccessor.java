@@ -9,7 +9,8 @@ class SafeObjectFieldAccessor implements FieldAccessor<Object> {
         this.f = f;
     }
 
-    public <Pojo> Object getField(Pojo pojo) {
+    @Override
+	public <Pojo> Object getField(Pojo pojo) {
     	try {
 			return f.get(pojo);
 		} catch (Exception e) {
@@ -17,23 +18,27 @@ class SafeObjectFieldAccessor implements FieldAccessor<Object> {
 		}
     }
 
-    public <Pojo> boolean getBoolean(Pojo pojo) {
+    @Override
+	public <Pojo> boolean getBoolean(Pojo pojo) {
         return Boolean.TRUE.equals(getField(pojo));
     }
 
-    public <Pojo> long getNum(Pojo pojo) {
+    @Override
+	public <Pojo> long getNum(Pojo pojo) {
         Object obj = getField(pojo);
         if (obj instanceof Number) return ((Number)obj).longValue();
         throw new AssertionError("Cannot convert " + obj + " to long.");
     }
 
-    public <Pojo> double getDouble(Pojo pojo) {
+    @Override
+	public <Pojo> double getDouble(Pojo pojo) {
         Object obj = getField(pojo);
         if (obj instanceof Number) return ((Number)obj).doubleValue();
         throw new AssertionError("Cannot convert " + obj + " to double.");
     }
 
-    public <Pojo> void setField(Pojo pojo, Object value) {
+    @Override
+	public <Pojo> void setField(Pojo pojo, Object value) {
     	try {
         	f.set(pojo, value);
         } catch (Exception e) {
@@ -41,15 +46,18 @@ class SafeObjectFieldAccessor implements FieldAccessor<Object> {
         }
     }
 
-    public <Pojo> void setBoolean(Pojo pojo, boolean value) {
+    @Override
+	public <Pojo> void setBoolean(Pojo pojo, boolean value) {
     	setField(pojo, value);
     }
 
-    public <Pojo> void setNum(Pojo pojo, long value) {
+    @Override
+	public <Pojo> void setNum(Pojo pojo, long value) {
     	setField(pojo, value);
     }
 
-    public <Pojo> void setDouble(Pojo pojo, double value) {
+    @Override
+	public <Pojo> void setDouble(Pojo pojo, double value) {
     	setField(pojo, value);
     }
 }

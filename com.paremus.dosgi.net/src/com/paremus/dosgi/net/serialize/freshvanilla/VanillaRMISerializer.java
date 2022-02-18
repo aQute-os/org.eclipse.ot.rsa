@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -28,9 +28,10 @@ import io.netty.util.concurrent.FastThreadLocal;
 public class VanillaRMISerializer implements Serializer {
 
 	private final MetaClasses metaClasses;
-	
-	private final FastThreadLocal<BinaryWireFormat> wireFormats = 
+
+	private final FastThreadLocal<BinaryWireFormat> wireFormats =
 			new FastThreadLocal<BinaryWireFormat>(){
+				@Override
 				protected BinaryWireFormat initialValue() {
 					return new BinaryWireFormat(metaClasses, AccessUtils.isSafe() ?
 							new VersionAwareVanillaPojoSerializer(metaClasses) :
@@ -104,17 +105,17 @@ public class VanillaRMISerializer implements Serializer {
 					bwf.writeObject(buffer, o[7]);
 					break;
 				default :
-					for(int i = 0; i < o.length; i ++) {
-						bwf.writeObject(buffer,o[i]);
-					}
+				for (Object element : o) {
+					bwf.writeObject(buffer,element);
+				}
 			}
 		} finally {
 			bwf.reset();
 		}
 	}
-	
+
 	private static final Object[] EMPTY_ARGS = new Object[0];
-	
+
 	@Override
 	public Object[] deserializeArgs(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		BinaryWireFormat bwf = wireFormats.get();
@@ -128,7 +129,7 @@ public class VanillaRMISerializer implements Serializer {
 				case 2:
 					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer)};
 				case 3:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer), 
+					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
 							bwf.readObject(buffer)};
 				case 4:
 					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
@@ -154,7 +155,7 @@ public class VanillaRMISerializer implements Serializer {
 						o[i] = bwf.readObject(buffer);
 					}
 					return o;
-					
+
 			}
 		} finally {
 			bwf.reset();

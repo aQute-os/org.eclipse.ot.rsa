@@ -49,7 +49,7 @@ public class VanillaClass<T> implements MetaClass<T> {
 
     @SuppressWarnings("unchecked")
     private static <T> MetaField<T, ?>[] getFieldsForSerialization(Class<?> clazz) {
-        Map<String, MetaField<T, ?>> fieldMap = new LinkedHashMap<String, MetaField<T, ?>>();
+        Map<String, MetaField<T, ?>> fieldMap = new LinkedHashMap<>();
         getFieldsForSerialization0(fieldMap, clazz);
         return fieldMap.values().toArray(new MetaField[fieldMap.size()]);
     }
@@ -65,27 +65,33 @@ public class VanillaClass<T> implements MetaClass<T> {
         }
     }
 
-    public Class<T> getType() {
+    @Override
+	public Class<T> getType() {
         return _clazz;
     }
 
-    public String nameWithParameters() {
+    @Override
+	public String nameWithParameters() {
         return _nameWithParameters;
     }
 
-    public MetaField<T, ?>[] fields() {
+    @Override
+	public MetaField<T, ?>[] fields() {
         return _fields;
     }
 
-    public T newInstance() throws InstantiationException {
+    @Override
+	public T newInstance() throws InstantiationException {
         return AccessUtils.newInstance(_clazz);
     }
 
-    public boolean definesEquals() {
+    @Override
+	public boolean definesEquals() {
         return _definesEquals;
     }
 
-    public Class<?> getComponentType() {
+    @Override
+	public Class<?> getComponentType() {
         return _componentType;
     }
 }

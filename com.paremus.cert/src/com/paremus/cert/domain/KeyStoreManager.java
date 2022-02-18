@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -75,7 +75,7 @@ public class KeyStoreManager extends AbstractStoreManager {
             X509Certificate certificate = converter.getCertificate(cert);
 
             List<X509Certificate> certs = new ArrayList<>();
-            
+
             certs.add(certificate);
 
             while ((cert = (X509CertificateHolder) parser.readObject()) != null) {
@@ -114,10 +114,10 @@ public class KeyStoreManager extends AbstractStoreManager {
             throw new RuntimeException(e);
         }
     }
-    
+
     public static class SignerInfo {
         public final PrivateKey privateKey;
-        
+
         public final Certificate[] trustChain;
 
         public SignerInfo(PrivateKey privateKey, Certificate[] trustChain) {
@@ -125,19 +125,19 @@ public class KeyStoreManager extends AbstractStoreManager {
             this.trustChain = trustChain;
         }
     }
-    
-    
+
+
     public SignerInfo getSignerInfo(String keystoreName) {
         String alias = keystoreName.toLowerCase(Locale.ROOT);
-        return loadFromStore(keystoreName, (ks, pw) ->  new SignerInfo((PrivateKey) ks.getKey(alias, pw), 
+        return loadFromStore(keystoreName, (ks, pw) ->  new SignerInfo((PrivateKey) ks.getKey(alias, pw),
                 ks.getCertificateChain(alias)));
     }
-    
+
     public String getCertificateChain(String keystoreName) {
         String alias = keystoreName.toLowerCase(Locale.ROOT);
         return loadFromStore(keystoreName, (ks, pw) ->  {
             Certificate[] certificateChain = ks.getCertificateChain(alias);
-            
+
             StringWriter writer = new StringWriter();
             try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
                 for(Certificate c : certificateChain) {

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -49,14 +49,14 @@ import com.paremus.cert.api.CertificateInfo;
 import com.paremus.cert.domain.AbstractStoreManager.StoreInfo;
 
 public class CertificateSigningRequestSubmitterTest {
-    
-    
+
+
     @TempDir
     public File tempFolder;
-    
+
     private final BouncyCastleProvider provider = new BouncyCastleProvider();
     private final SecureRandom secureRandom = new SecureRandom();
-    
+
     private KeyPairManager keyPairManager;
     private CertificateGenerator certificateGenerator;
     private KeyStoreManager keyStoreManager;
@@ -65,7 +65,7 @@ public class CertificateSigningRequestSubmitterTest {
     private Server server;
 
     private int localPort;
-    
+
 
     @BeforeEach
     public void start() throws Exception {
@@ -73,15 +73,15 @@ public class CertificateSigningRequestSubmitterTest {
         certificateGenerator = new CertificateGenerator(provider, secureRandom);
         keyStoreManager = new KeyStoreManager(tempFolder.toPath(), provider, secureRandom);
         trustStoreManager = new TrustStoreManager(tempFolder.toPath(), provider, secureRandom);
-        
+
         KeyPair keyPair = keyPairManager.newKeyPair("test");
-        
+
         Certificate certificate = certificateGenerator.generateRootCertificate(keyPair, "localhost", ofHours(1));
-        
+
         keyStoreManager.createKeyStore("test_store", keyPair, new Certificate[] {certificate});
-        
+
         StoreInfo storeInfo = keyStoreManager.getStoreFor("test_store", "test_pid");
-        
+
         server = new Server();
 
         HttpConfiguration https = new HttpConfiguration();
@@ -95,17 +95,17 @@ public class CertificateSigningRequestSubmitterTest {
         ServerConnector sslConnector = new ServerConnector(server,
                 new SslConnectionFactory(sslContextFactory, "http/1.1"), new HttpConnectionFactory(https));
         sslConnector.setPort(0);
-        
+
         server.addConnector(sslConnector);
-        
+
         CXFNonSpringJaxrsServlet servlet = new CXFNonSpringJaxrsServlet(new SigningResource());
-        
+
         ServletHandler handler = new ServletHandler();
         handler.addServletWithMapping(new ServletHolder(servlet), "/*");
         server.setHandler(handler);
-        
+
         server.start();
-        
+
         localPort = sslConnector.getLocalPort();
     }
 
@@ -114,40 +114,40 @@ public class CertificateSigningRequestSubmitterTest {
         server.stop();
         server.destroy();
     }
-    
+
     public class SigningResource {
-        
+
         @Path("sign")
         @POST
         @Consumes("text/plain")
         @Produces("text/plain")
         public String sign(@HeaderParam("Paremus-One-Time-Token")String token, String body) {
-            
+
             if(!"SECRET".equals(token)) {
                 throw new WebApplicationException(Status.FORBIDDEN);
             }
-            
+
             return certificateGenerator.signCertificate(keyStoreManager.getSignerInfo("test_store"), body);
         }
     }
-    
+
     // TODO fails calling a method, some error in CXF JAX RS mess setup :-(
     //@Test
     public void testSigning() throws MalformedURLException {
         CertificateSigningRequestSubmitter submitter = new CertificateSigningRequestSubmitter(trustStoreManager, secureRandom);
-        
+
         URL url = new URL("https", "localhost", localPort, "/sign");
-        
+
         KeyPair keyPair = keyPairManager.newKeyPair("to_sign");
         String signingRequest = certificateGenerator.generateCertificateSigningRequest(keyPair, "client_cert");
-        
-        String signedCertAndChain = submitter.issueCertificateSigningRequest(url, signingRequest, 
+
+        String signedCertAndChain = submitter.issueCertificateSigningRequest(url, signingRequest,
                 "SECRET", keyStoreManager.getCertificateChain("test_store"));
-        
+
         keyStoreManager.createKeyStore("signed", keyPair, signedCertAndChain);
-        
+
         CertificateInfo certificateInfo = keyStoreManager.getCertificateInfo("signed");
-        
+
         assertEquals("client_cert", certificateInfo.subject);
     }
 

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -26,8 +26,8 @@ import io.netty.util.concurrent.EventExecutor;
  * This type should never be used directly, but always created using
  * the {@link PromiseFactory} helper. This is because the RSA implementation
  * does not import any Promise API, and should always define this type
- * in some other bundle's class space. 
- * 
+ * in some other bundle's class space.
+ *
  * <p>
  * Note that the dependencies of this type must be carefully restricted,
  * it can only depend on JVM types, org.osgi.util.promise, org.osgi.util.function
@@ -38,7 +38,7 @@ import io.netty.util.concurrent.EventExecutor;
 class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
 	@SuppressWarnings("rawtypes")
 	org.osgi.util.promise.Promise p;
-	
+
 	FuturePromise_v1_1(EventExecutor executor, Timer timer) {
 		super(executor, timer);
 	}
@@ -48,6 +48,7 @@ class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
 		return new FuturePromise_v1_1<>(executor(), timer);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Promise<T> timeout(long millis) {
 		if(isDone()) {
@@ -59,38 +60,40 @@ class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
 		} else if(millis <= 0) {
 			return (Promise<T>) newInstance().setFailure(new TimeoutException());
 		} else {
-			final FuturePromise_v1_1<T> chained = newInstance(); 
+			final FuturePromise_v1_1<T> chained = newInstance();
 			Timeout timeout = timer.newTimeout(
-					t -> executor().execute(() -> chained.setFailure(new TimeoutException())), 
+					t -> executor().execute(() -> chained.setFailure(new TimeoutException())),
 					millis, TimeUnit.MILLISECONDS);
-			
+
 			addListener(f -> {
 				timeout.cancel();
 				resolveWith(chained, this);
 			});
-			
+
 			return chained;
 		}
 	}
 
+	@Override
 	public Promise<T> delay(long millis) {
-		
-		final FuturePromise_v1_1<T> chained = newInstance(); 
-		
+
+		final FuturePromise_v1_1<T> chained = newInstance();
+
 		if(millis <= 0) {
 			resolveWith(chained, this);
 		} else {
 			addListener(f -> delay(chained, millis));
 		}
-		
+
 		return chained;
 	}
-	
+
 	private void delay(io.netty.util.concurrent.Promise<T> chained, long millis) {
-		timer.newTimeout(t -> executor().execute(() -> resolveWith(chained, this)), 
+		timer.newTimeout(t -> executor().execute(() -> resolveWith(chained, this)),
 				millis, TimeUnit.MILLISECONDS);
 	}
 
+	@Override
 	public Promise<T> onSuccess(Consumer<? super T> success) {
 		addListener(f -> {
 				if(isSuccess()) {
@@ -100,6 +103,7 @@ class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
 		return this;
 	}
 
+	@Override
 	public Promise<T> onFailure(Consumer<? super Throwable> failure) {
 		addListener(f -> {
 			if(!isSuccess()) {
@@ -109,6 +113,7 @@ class FuturePromise_v1_1<T> extends FuturePromise_v1<T> {
 		return this;
 	}
 
+	@Override
 	public Promise<T> thenAccept(Consumer<? super T> consumer) {
 		return then(x -> {
 				consumer.accept(get());

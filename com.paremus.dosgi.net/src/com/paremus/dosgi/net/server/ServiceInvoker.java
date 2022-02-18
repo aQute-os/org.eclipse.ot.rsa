@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -59,62 +59,62 @@ import io.netty.util.concurrent.Promise;
 public class ServiceInvoker {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ServiceInvoker.class);
-	
+
 	private interface ArgsHandler {
 		ArgumentResolver[] process(Object[] rawArgs);
 	}
-	
+
 	private interface ArgumentProcessor {
 		ArgumentResolver process(Object[] rawArgs, int index);
 	}
-	
+
 	private interface ArgumentResolver {
 		void resolve(boolean succcess, Object result);
 	}
-	
+
 	private static class RemoteInvocation {
 		public final ArgumentResolver[] resolvers;
 		public final Future<?> runningTask;
 		public final Timeout timeout;
-		
+
 		public RemoteInvocation(ArgumentResolver[] resolvers, Future<?> runningTask, Timeout timeout) {
 			this.resolvers = resolvers;
 			this.runningTask = runningTask;
 			this.timeout = timeout;
 		}
 	}
-	
+
 	private static final ArgumentResolver[] EMPTY_RESOLVER_ARRAY = new ArgumentResolver[0];
 	private static final ArgsHandler DEFAULT_ARGS_HANDLER = o -> EMPTY_RESOLVER_ARRAY;
-	
+
 	private final RemotingProvider remotingProvider;
 	private final Serializer serializer;
 
 	private final Object service;
-	
+
 	private final Method[] methodCache;
 	private final ReturnHandler[] returnHandlers;
-	
+
 	private final EventExecutorGroup worker;
 	private final Timer timer;
-	
+
 	private final UUID serviceId;
 	private final ArgsHandler[] argsHandlers;
 
 	private final Function<EventExecutor, Promise<Object>> nettyPromiseCreator;
 	private final Function<Object, Future<Object>> toNettyFutureAdapter;
 	private final Function<Future<?>, Object> fromNettyFutureAdapter;
-	
+
 	private final DataStreamFactory pushStreamConnector;
 	private final DataStreamFactory pushEventSourceConnector;
-	
+
 	private final Future<?> completeAction;
-	
+
 	private final IntObjectMap<RemoteInvocation> runningRemoteInvocations = new IntObjectHashMap<>();
-	
-	public ServiceInvoker(RemotingProvider rp, UUID serviceId, Serializer serializer, 
+
+	public ServiceInvoker(RemotingProvider rp, UUID serviceId, Serializer serializer,
 			Object service, Method[] methods, EventExecutorGroup serverWorkers, Timer timer) {
-		
+
 		this.remotingProvider = rp;
 		this.serviceId = serviceId;
 		this.serializer = serializer;
@@ -127,12 +127,12 @@ public class ServiceInvoker {
 		Function<EventExecutor, Promise<Object>> nettyPromiseCreator = null;
 		Function<Object, Future<Object>> toNettyFutureAdapter = null;
 		Function<Future<?>, Object> fromNettyFutureAdapter = null;
-		
+
 		ClassLoader serviceClassLoader = service.getClass().getClassLoader();
 		if(serviceClassLoader == null) {
 			serviceClassLoader = ClassLoader.getSystemClassLoader();
 		}
-		
+
 		try {
 			Class<?> promise = serviceClassLoader.loadClass("org.osgi.util.promise.Promise");
 			nettyPromiseCreator = PromiseFactory.nettyPromiseCreator(
@@ -146,13 +146,13 @@ public class ServiceInvoker {
 				LOG.info("Unable to integrate with promises for the remote service {}. See the debug log for more details", serviceId);
 			}
 		}
-		
+
 		this.nettyPromiseCreator = nettyPromiseCreator;
 		this.toNettyFutureAdapter = toNettyFutureAdapter;
 		this.fromNettyFutureAdapter = fromNettyFutureAdapter;
-		
+
 		DataStreamFactory pushStreamConnector = null;
-		
+
 		try {
 			Class<?> pushStream = serviceClassLoader.loadClass("org.osgi.util.pushstream.PushStream");
 			pushStreamConnector = PushStreamFactory.pushStreamConnector(pushStream, timer);
@@ -162,12 +162,12 @@ public class ServiceInvoker {
 			} else {
 				LOG.info("Unable to integrate with push streams for the remote service {}. See the debug log for more details", serviceId);
 			}
-		} 
+		}
 
 		this.pushStreamConnector = pushStreamConnector;
-		
+
 		DataStreamFactory pushEventSourceConnector = null;
-		
+
 		try {
 			Class<?> pushEventSource = serviceClassLoader.loadClass("org.osgi.util.pushstream.PushEventSource");
 			pushEventSourceConnector = PushStreamFactory.pushEventSourceConnector(pushEventSource, timer);
@@ -177,38 +177,38 @@ public class ServiceInvoker {
 			} else {
 				LOG.info("Unable to integrate with push event sources for the remote service {}. See the debug log for more details", serviceId);
 			}
-		} 
-		
+		}
+
 		this.pushEventSourceConnector = pushEventSourceConnector;
-		
+
 		this.returnHandlers = new ReturnHandler[methodCache.length];
 		this.argsHandlers = new ArgsHandler[methodCache.length];
-		
+
 		setupReturnHandlers(methods);
 		setupArgsHandlers(methods, fromNettyFutureAdapter);
 	}
 
 	private void setupReturnHandlers(Method[] methods) {
 		ReturnHandler basicReturnHandler = new BasicReturnHandler(serviceId, serializer, completeAction);
-		ReturnHandler futureReturnHandler = new JavaFutureReturnHandler(serviceId, serializer, 
+		ReturnHandler futureReturnHandler = new JavaFutureReturnHandler(serviceId, serializer,
 				completeAction, worker);
 		ReturnHandler completionStageReturnHandler = new JavaCompletionStageReturnHandler(
 				serviceId, serializer, completeAction, worker);
-		ReturnHandler promiseReturnHandler = new PromiseReturnHandler(serviceId, serializer, 
+		ReturnHandler promiseReturnHandler = new PromiseReturnHandler(serviceId, serializer,
 				completeAction, toNettyFutureAdapter);
-		
-		ReturnHandler pushStreamReturnHandler = new StreamReturnHandler(serviceId, serializer, 
+
+		ReturnHandler pushStreamReturnHandler = new StreamReturnHandler(serviceId, serializer,
 				completeAction, remotingProvider, pushStreamConnector);
 
-		ReturnHandler pushEventSourceReturnHandler = new StreamReturnHandler(serviceId, serializer, 
+		ReturnHandler pushEventSourceReturnHandler = new StreamReturnHandler(serviceId, serializer,
 				completeAction, remotingProvider, pushEventSourceConnector);
-		
+
 		Arrays.setAll(returnHandlers, i -> {
-			
+
 				ReturnHandler handler = basicReturnHandler;
-				
+
 				Class<?> returnType = methods[i].getReturnType();
-				
+
 				if(PromiseFactory.isPromise(returnType)) {
 					handler = promiseReturnHandler;
 				} else if(PushStreamFactory.isPushStream(returnType)) {
@@ -220,29 +220,29 @@ public class ServiceInvoker {
 				} else if (java.util.concurrent.Future.class.isAssignableFrom(returnType)) {
 					handler = futureReturnHandler;
 				}
-				
+
 				return handler;
 			});
 	}
 
-	private void setupArgsHandlers(Method[] methods, 
+	private void setupArgsHandlers(Method[] methods,
 			Function<Future<?>, Object> fromNettyFutureAdapter) {
 		ArgumentProcessor futureArgHandler = this::handleFutureArg;
 
 		ArgumentProcessor promiseArgHandler = this::handlePromiseArg;
-		
+
 		for(int i = 0; i < methods.length; i++) {
-			
+
 			Class<?>[] parameters = methods[i].getParameterTypes();
 
 			boolean needsHandler = false;
 			ArgumentProcessor[] processors = new ArgumentProcessor[parameters.length];
-			
+
 			for(int j = 0; j < parameters.length; j++) {
 				Class<?> parameterType = parameters[j];
-				
+
 				ArgumentProcessor ap = null;
-				
+
 				if(PromiseFactory.isPromise(parameterType)) {
 					ap = promiseArgHandler;
 				} else if (CompletableFuture.class.equals(parameterType) ||
@@ -250,13 +250,13 @@ public class ServiceInvoker {
 							java.util.concurrent.Future.class.equals(parameterType)) {
 					ap = futureArgHandler;
 				}
-				
+
 				if(ap != null) {
 					processors[j] = ap;
 					needsHandler = true;
 				}
 			}
-			
+
 			argsHandlers[i] =  needsHandler ? o -> {
 					ArgumentResolver[] toReturn = new ArgumentResolver[processors.length];
 					for(int k = 0; k < processors.length; k++) {
@@ -269,11 +269,11 @@ public class ServiceInvoker {
 	}
 
 	private ArgumentResolver handleFutureArg(Object[] o, int index) {
-		
+
 		ArgumentResolver ar;
-		
+
 		CompletableFuture<Object> cf = new CompletableFuture<>();
-		
+
 		if (o[index] instanceof CompletedPromise) {
 			CompletedPromise cp = (CompletedPromise) o[index];
 			switch (cp.state) {
@@ -303,11 +303,11 @@ public class ServiceInvoker {
 	}
 
 	private ArgumentResolver handlePromiseArg(Object[] o, int index) {
-		
+
 		ArgumentResolver ar;
-		
+
 		Promise<Object> p = nettyPromiseCreator.apply(worker.next());
-		
+
 		if (o[index] instanceof CompletedPromise) {
 			CompletedPromise cp = (CompletedPromise) o[index];
 			switch (cp.state) {
@@ -372,7 +372,7 @@ public class ServiceInvoker {
 				sendInternalFailureResponse(channel, callId, NO_METHOD, null);
 				return;
 			}
-			
+
 			try {
 				args = serializer.deserializeArgs(buf);
 				resolvers = argsPostProcessor.process(args);
@@ -450,7 +450,7 @@ public class ServiceInvoker {
 		}
 	}
 
-	private Future<?> invokeAndRespond(Channel channel, int callId, Method m, Object[] args, 
+	private Future<?> invokeAndRespond(Channel channel, int callId, Method m, Object[] args,
 			ReturnHandler handler) {
 		Future<?> toReturn = completeAction;
 		try {
@@ -460,14 +460,14 @@ public class ServiceInvoker {
 			}
 		} catch (InvocationTargetException ite) {
 			if(LOG.isDebugEnabled()) {
-				LOG.debug("The remote call " + m.toGenericString() + 
+				LOG.debug("The remote call " + m.toGenericString() +
 					" on object " + service + "failed", ite.getTargetException());
 			}
 			if(channel != null) {
 				toReturn = handler.failure(channel, callId, ite.getTargetException());
 			}
 		} catch (Exception e) {
-			LOG.warn("The remote call " + m.toGenericString() + 
+			LOG.warn("The remote call " + m.toGenericString() +
 					" on object " + service + "encountered a serious error", e);
 			if(channel != null) {
 				toReturn = handler.failure(channel, callId, e);
@@ -496,7 +496,7 @@ public class ServiceInvoker {
 		synchronized (runningRemoteInvocations) {
 			ri = runningRemoteInvocations.get(callId);
 		}
-		
+
 		if(ri != null) {
 			ri.runningTask.cancel(true);
 			failAsyncArgs(ri.resolvers, new ServiceException(
@@ -504,33 +504,33 @@ public class ServiceInvoker {
 					ServiceException.REMOTE, new CancellationException()));
 		}
 	}
-	
+
 	public void asyncParam(Channel channel, byte command, int callId, short idx, ByteBuf buf) {
 		RemoteInvocation ri;
 		synchronized (runningRemoteInvocations) {
 			ri = runningRemoteInvocations.get(callId);
 		}
-		
+
 		if(ri != null) {
 			try {
 				ArgumentResolver resolver;
 				Object value;
-				
+
 				try {
 					resolver = ri.resolvers[idx];
 				} catch (ArrayIndexOutOfBoundsException aioobe) {
-					throw new ServiceException("There is no asynchronous argument to complete", 
+					throw new ServiceException("There is no asynchronous argument to complete",
 							ServiceException.REMOTE, aioobe);
 				}
-				
+
 				try {
 					value = serializer.deserializeReturn(buf);
 				} catch (Exception e) {
 					LOG.warn("Unable to deserialize the asynchronous value for a remote call", e);
-					throw new ServiceException("Unable to deserialize the asynchronous value for argument " + idx, 
+					throw new ServiceException("Unable to deserialize the asynchronous value for argument " + idx,
 							ServiceException.REMOTE, e);
 				}
-				
+
 				switch(command) {
 					case Protocol_V2.ASYNC_METHOD_PARAM_DATA:
 						resolver.resolve(true, value);
@@ -539,7 +539,7 @@ public class ServiceInvoker {
 						resolver.resolve(false, value);
 						break;
 					default:
-						throw new ServiceException("Not an asynchronous parameter command " + command, 
+						throw new ServiceException("Not an asynchronous parameter command " + command,
 								ServiceException.REMOTE);
 				}
 			} catch (Exception e) {

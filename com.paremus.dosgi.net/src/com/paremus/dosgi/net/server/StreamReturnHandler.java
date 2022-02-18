@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -24,13 +24,13 @@ import io.netty.channel.Channel;
 import io.netty.util.concurrent.Future;
 
 class StreamReturnHandler extends BasicReturnHandler {
-	
+
 	private final AtomicInteger notWritableFor = new AtomicInteger(0);
-	
+
 	private final RemotingProvider remotingProvider;
-	
+
 	private final DataStreamFactory streamConnector;
-	
+
 	public StreamReturnHandler(UUID serviceId, Serializer serializer, Future<?> completeFuture,
 			RemotingProvider remotingProvider, DataStreamFactory streamConnector) {
 		super(serviceId, serializer, completeFuture);
@@ -40,16 +40,16 @@ class StreamReturnHandler extends BasicReturnHandler {
 
 	@Override
 	public Future<?> success(Channel channel, int callId, Object returnValue) {
-		
+
 		ServerStreamDataResponse template = new ServerStreamDataResponse(
 				serviceId, callId, serializer, null);
-		
-		remotingProvider.registerStream(channel, serviceId, callId, 
+
+		remotingProvider.registerStream(channel, serviceId, callId,
 				streamConnector.apply(data -> {
 					channel.writeAndFlush(template.fromTemplate(data))
 						.addListener(f -> {
 								if(!f.isSuccess()) {
-									channel.writeAndFlush(new ServerStreamErrorResponse(serviceId, callId, serializer, 
+									channel.writeAndFlush(new ServerStreamErrorResponse(serviceId, callId, serializer,
 											new ServiceException("Failed to send data", ServiceException.REMOTE, f.cause())),
 											channel.voidPromise());
 									((AutoCloseable) returnValue).close();
@@ -62,7 +62,7 @@ class StreamReturnHandler extends BasicReturnHandler {
 				}, returnValue));
 		return super.success(channel, callId, new Object[] {serviceId, callId});
 	}
-	
+
 	private long channelBackPressure(Channel channel) {
 		if(channel.isOpen()) {
 			int notWritableCount = notWritableFor.getAndUpdate(old -> channel.isWritable() ? 0 : old++);

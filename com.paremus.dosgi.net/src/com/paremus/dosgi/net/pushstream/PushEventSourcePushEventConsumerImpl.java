@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,15 +27,15 @@ import io.netty.util.Timer;
 class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
 	private static final AutoCloseable MARKER = () -> {};
-	
+
 	private final PushEventSource<Object> source;
-	
+
 	private final Timer timer;
-	
+
 	private Timeout timeout;
-	
-	private AtomicReference<AutoCloseable> connection = new AtomicReference<AutoCloseable>(null);
-	
+
+	private AtomicReference<AutoCloseable> connection = new AtomicReference<>(null);
+
 	public PushEventSourcePushEventConsumerImpl(ToLongFunction<Object> onData,
 			Consumer<Throwable> onTerminal, PushEventSource<Object> source, Timer timer) {
 		super(onData, onTerminal);
@@ -45,13 +45,14 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 			timeout = timer.newTimeout(this::timeout , 30, TimeUnit.SECONDS);
 		}
 	}
-	
+
 	private void timeout(Timeout t) {
 		closed.set(true);
 		internalClose();
 		closeFuture.tryFailure(new TimeoutException("Stream timed out"));
 	}
-	
+
+	@Override
 	protected void terminalEvent(PushEvent<? extends Object> event) {
 		if(connection.getAndSet(null) != null) {
 			super.terminalEvent(event);
@@ -87,7 +88,7 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 				}
 			}
 		} else {
-			
+
 		}
 	}
 
@@ -107,7 +108,7 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 				try {
 					conn.close();
 				} catch (Exception e) {
-					
+
 				}
 			}
 		} catch (Exception e) {

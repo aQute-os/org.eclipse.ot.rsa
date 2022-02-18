@@ -16,9 +16,9 @@
 
 package org.freshvanilla.net;
 
-import io.netty.buffer.ByteBuf;
-
 import java.io.IOException;
+
+import io.netty.buffer.ByteBuf;
 
 public interface PojoSerializer {
 

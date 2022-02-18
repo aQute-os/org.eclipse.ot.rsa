@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -25,28 +25,28 @@ import io.netty.channel.ChannelPromise;
 public class ClientRequestSerializer extends ChannelOutboundHandlerAdapter {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientRequestSerializer.class);
-	
+
 	private final ClientResponseHandler responseHandler;
-	
+
 	public ClientRequestSerializer(ClientResponseHandler responseHandler) {
 		this.responseHandler = responseHandler;
 	}
 
 	@Override
 	public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-		
+
 		@SuppressWarnings("unchecked")
 		AbstractRSAMessage<ClientMessageType> invocation = (AbstractRSAMessage<ClientMessageType>) msg;
-		
+
 		ClientMessageType callType = invocation.getType();
-		
+
 		try {
 			/* See Protocol_V1 and Protocol_V2 for header structure */
 			ByteBuf buffer = ctx.alloc().ioBuffer();
 			invocation.write(buffer, promise);
-			
+
 			switch(callType.getAction()) {
-			
+
 				case ADD :
 					responseHandler.registerInvocation((AbstractClientInvocationWithResult) invocation);
 					promise.addListener(f -> {

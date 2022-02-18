@@ -35,7 +35,7 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
 
     private final InetSocketAddress[] _addresses;
     private final ObjectBuilder<WireFormat> _wireFormatBuilder;
-    private final Map<String, Object> _header = new LinkedHashMap<String, Object>();
+    private final Map<String, Object> _header = new LinkedHashMap<>();
     private final long _timeoutMillis;
 
     private int _lastAddress = 0;
@@ -46,7 +46,7 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
         _addresses = parseConnectionString(connectionString);
         _timeoutMillis = timeoutMS;
         _wireFormatBuilder = new BinaryWireFormat.Builder(name, metaClasses, AccessUtils.isSafe() ?
-        		new VersionAwareVanillaPojoSerializer(metaClasses) : 
+        		new VersionAwareVanillaPojoSerializer(metaClasses) :
         		new VanillaPojoSerializer(metaClasses));
     }
 
@@ -68,7 +68,7 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
 
         for (int i = 0; i < parts.length; i++) {
         	int idx = parts[i].lastIndexOf(':');
-        	
+
             if (idx == -1) {
                 int port = Integer.parseInt(parts[i]);
                 addresses[i] = new InetSocketAddress(port);
@@ -88,9 +88,10 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
         return addresses;
     }
 
-    public DataSocket acquire(String name) throws Exception {
+    @Override
+	public DataSocket acquire(String name) throws Exception {
         WireFormat wireFormat = _wireFormatBuilder.create();
-        Map<String, Object> header = new LinkedHashMap<String, Object>(_header);
+        Map<String, Object> header = new LinkedHashMap<>(_header);
         long timeoutMillis = _timeoutMillis < Long.MAX_VALUE
                         ? System.currentTimeMillis() + _timeoutMillis
                         : Long.MAX_VALUE;
@@ -133,11 +134,13 @@ public class DataSocketFactory extends VanillaResource implements Factory<String
         throw lastException;
     }
 
-    public void recycle(DataSocket dataSocket) {
+    @Override
+	public void recycle(DataSocket dataSocket) {
         dataSocket.close();
     }
 
-    protected void finalize() throws Throwable {
+    @Override
+	protected void finalize() throws Throwable {
         try {
             close();
         }

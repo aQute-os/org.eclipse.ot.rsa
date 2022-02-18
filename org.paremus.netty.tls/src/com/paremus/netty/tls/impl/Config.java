@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -20,7 +20,7 @@ public @interface Config {
 
     @AttributeDefinition(description="Set this flag to make the TLS provider insecure. No handlers will be available and all other configuration will be ignored")
     boolean insecure() default false;
-    
+
     @AttributeDefinition(description="The TLS protocol to use")
     String tls_protocol() default "TLSv1.2";
 
@@ -29,7 +29,7 @@ public @interface Config {
 
     @AttributeDefinition(description="The SSL provider to use")
     ProviderType provider() default ProviderType.JRE_DEFAULT;
-    
+
     @AttributeDefinition(description="The Key Manager algorithm to use, defaults to the JRE default")
     String key_manager_algorithm() default "";
 
@@ -53,10 +53,10 @@ public @interface Config {
 
     @AttributeDefinition(description="The location of the trust store providing the local trust anchors")
     String truststore_location();
-    
+
     @AttributeDefinition(description="The password of the trust store providing the local trust anchors")
     String _truststore_password();
-    
+
     @AttributeDefinition(description="Configure whether client authentication is required, permitted, or not needed")
     ClientAuth client_auth() default ClientAuth.NEED;
 }

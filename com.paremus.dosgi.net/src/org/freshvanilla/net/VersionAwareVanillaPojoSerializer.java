@@ -30,6 +30,7 @@ public class VersionAwareVanillaPojoSerializer extends VanillaPojoSerializer {
         super(metaclasses);
     }
 
+	@Override
 	public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException {
     	String classWithParameters = (String)wf.readObject(rb);
         MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
@@ -40,7 +41,7 @@ public class VersionAwareVanillaPojoSerializer extends VanillaPojoSerializer {
         } else if (clazz.getType() == Version.class) {
         	int idx = wf.getPojoIndex();
         	@SuppressWarnings("unchecked")
-			Pojo tmp = (Pojo) new Version((int)wf.readNum(rb), (int)wf.readNum(rb), 
+			Pojo tmp = (Pojo) new Version((int)wf.readNum(rb), (int)wf.readNum(rb),
         			(int)wf.readNum(rb), (String)wf.readObject(rb));
         	wf.registerPojo(idx, tmp);
         	pojo = tmp;

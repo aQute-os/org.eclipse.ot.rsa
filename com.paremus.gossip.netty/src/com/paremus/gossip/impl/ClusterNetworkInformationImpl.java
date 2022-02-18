@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -25,13 +25,13 @@ public class ClusterNetworkInformationImpl implements ClusterNetworkInformation 
 	private final InetAddress fibreAddress;
 
 	private final String clusterName;
-	
+
 	private final GossipComms comms;
 
 	private final boolean firewalled;
-	
+
 	private final UUID id;
-	
+
 	public ClusterNetworkInformationImpl(InetAddress fibreAddress, String clusterName,
 			GossipComms comms, UUID id) {
 		this.fibreAddress = fibreAddress;

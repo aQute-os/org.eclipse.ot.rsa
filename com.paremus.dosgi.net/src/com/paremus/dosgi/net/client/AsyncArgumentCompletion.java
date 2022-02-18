@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,14 +27,14 @@ import io.netty.channel.ChannelPromise;
 
 public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessageType> {
 
-	private final int parameterIndex; 
-	
+	private final int parameterIndex;
+
 	private final Object result;
 
 	private final ClientInvocation invocation;
-	
+
 	public AsyncArgumentCompletion(boolean success, ClientInvocation invocation, int i, Object result) {
-		super(success ? ASYNC_ARG_SUCCESS : ASYNC_ARG_FAILURE, invocation.getServiceId(), 
+		super(success ? ASYNC_ARG_SUCCESS : ASYNC_ARG_FAILURE, invocation.getServiceId(),
 				invocation.getCallId(), invocation.getSerializer());
 
 		this.invocation = invocation;
@@ -61,7 +61,7 @@ public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessag
 		buffer.writeByte(parameterIndex);
 		getSerializer().serializeReturn(buffer, result);
 		writeLength(buffer);
-		
+
 		promise.addListener(f -> {
 			if(!f.isSuccess()) {
 				// TODO log this?

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -19,8 +19,8 @@ import java.util.Map;
 
 import com.paremus.dto.api.struct;
 import com.paremus.entire.attributes.api.AD;
-import com.paremus.entire.attributes.api.ADA;
 import com.paremus.entire.attributes.api.AD.Unit;
+import com.paremus.entire.attributes.api.ADA;
 import com.paremus.entire.viewers.api.Bars;
 import com.paremus.entire.viewers.api.Summary;
 
@@ -96,7 +96,7 @@ public class FibreExt extends struct {
 		groups = HIDE,
 		description = "General Properties",
 		diff = true)
-	public Map<String, Object>	properties	= new HashMap<String, Object>();
+	public Map<String, Object>	properties	= new HashMap<>();
 
 	/**
 	 * Average CPU load

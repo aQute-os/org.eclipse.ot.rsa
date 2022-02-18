@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -106,11 +106,11 @@ public class JsseDTLSTest extends AbstractDTLSTest {
 
 		ByteBuf buffer = Unpooled.buffer();
 		buffer.writeCharSequence("Hello from Alice", UTF_8);
-		assertTrue(alice.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) bob.localAddress())).await(2000)); 
+		assertTrue(alice.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) bob.localAddress())).await(2000));
 
 		buffer = Unpooled.buffer();
 		buffer.writeCharSequence("Hello from Bob", UTF_8);
-		assertTrue(bob.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) alice.localAddress())).await(2000)); 
+		assertTrue(bob.writeAndFlush(new DatagramPacket(buffer, (InetSocketAddress) alice.localAddress())).await(2000));
 
 		assertEquals("Hello from Alice", bobMessages.poll(100, TimeUnit.MILLISECONDS));
 		assertEquals("Hello from Bob", aliceMessages.poll(100, TimeUnit.MILLISECONDS));

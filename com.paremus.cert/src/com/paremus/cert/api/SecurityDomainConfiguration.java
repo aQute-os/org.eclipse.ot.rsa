@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -15,16 +15,16 @@ package com.paremus.cert.api;
 /**
  * This interface provides constants used to interact with the Security Domain Manager
  * managed keystores and truststores.
- * 
- * Key stores and trust stores are accessed by name using property values of the form 
+ *
+ * Key stores and trust stores are accessed by name using property values of the form
  * <code>${name}</code>. These values will be replaced by a file path, or a password,
  * as appropriate.
- * 
+ *
  * To tell the configuration plugin which property keys require replacement the configuration
  * must contain one or more of the following properties:
  */
 public interface SecurityDomainConfiguration {
-    
+
     /**
      * This key maps to one or more keys in the configuration that should be transformed
      * into key store locations

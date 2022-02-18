@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -52,26 +52,26 @@ public class ProxyHostBundleFactory {
      * The new Bundle has the same version as the dosgi net bundle and has a
      * Bundle-SymbolicName of {@value #PEER_PROXY_BUNDLE_SYMBOLIC_NAME} or
      * {@value #CHILD_PROXY_BUNDLE_SYMBOLIC_NAME}
-     * 
+     *
      * @param target the framework into which the proxy bundle should be installed
      * @return the new virtual bundle
      */
     public Bundle getProxyBundle(Framework target) {
-       
+
     	Bundle dosgiBundle = FrameworkUtil.getBundle(ProxyHostBundleFactory.class);
 		boolean peer = dosgiBundle.getBundleContext().getBundle(0).equals(target);
-    	
+
         // use name & version of the installer bundle to create the proxy host
         String proxySymbolicName = peer ? PEER_PROXY_BUNDLE_SYMBOLIC_NAME : CHILD_PROXY_BUNDLE_SYMBOLIC_NAME;
         Version proxyVersion = dosgiBundle.getVersion();
 
         BundleContext targetContext = target.getBundleContext();
-        
+
         Optional<Bundle> existing = Arrays.stream(targetContext.getBundles())
         	.filter(b -> proxySymbolicName.equals(b.getSymbolicName()))
         	.filter(b -> proxyVersion.equals(b.getVersion()))
         	.findAny();
-        
+
         return existing.orElseGet(() -> createBundle(proxySymbolicName, proxyVersion, targetContext));
     }
 
@@ -84,12 +84,12 @@ public class ProxyHostBundleFactory {
 			a.put(new Name(Constants.BUNDLE_NAME), PROXY_BUNDLE_NAME);
 			a.put(new Name(Constants.BUNDLE_SYMBOLICNAME), proxySymbolicName);
 			a.put(new Name(Constants.BUNDLE_VERSION), proxyVersion.toString());
-			
+
 			try (ByteArrayOutputStream stream = new ByteArrayOutputStream(1024)) {
 				try (JarOutputStream out = new JarOutputStream(stream, m)){ }
 				// nothing to write, so just close again
 				stream.close();
-				
+
 				// "materialize" the bundle
 				String location = UUID.randomUUID().toString();
 				InputStream input = new ByteArrayInputStream(stream.toByteArray());

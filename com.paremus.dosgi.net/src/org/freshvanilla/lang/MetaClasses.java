@@ -30,12 +30,12 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class MetaClasses {
 
-    private static final Set<Class<?>> PRIMITIVES = new HashSet<Class<?>>(
+    private static final Set<Class<?>> PRIMITIVES = new HashSet<>(
         Arrays.asList(new Class<?>[]{boolean.class, byte.class, char.class, short.class, int.class,
             float.class, double.class, long.class}));
 
-    private static final Map<String, Class<?>> NAMED_PRIMITIVES = new HashMap<String, Class<?>>();
-    
+    private static final Map<String, Class<?>> NAMED_PRIMITIVES = new HashMap<>();
+
     static {
     	NAMED_PRIMITIVES.put("boolean", boolean.class);
     	NAMED_PRIMITIVES.put("byte", byte.class);
@@ -47,9 +47,9 @@ public class MetaClasses {
     	NAMED_PRIMITIVES.put("long", long.class);
     }
 
-    private final ConcurrentMap<String, MetaClass> NAME_META_CLASS_MAP = new ConcurrentHashMap<String, MetaClass>();
-    private final ConcurrentMap<Class<?>, MetaClass> META_CLASS_MAP = new ConcurrentHashMap<Class<?>, MetaClass>();
-    private final ConcurrentMap<String, Throwable> NO_CLASS_SET = new ConcurrentHashMap<String, Throwable>();
+    private final ConcurrentMap<String, MetaClass> NAME_META_CLASS_MAP = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Class<?>, MetaClass> META_CLASS_MAP = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Throwable> NO_CLASS_SET = new ConcurrentHashMap<>();
 
     private final ClassLoader _classLoader;
 
@@ -98,7 +98,7 @@ public class MetaClasses {
 
         MetaClass<Pojo> metaClass = metaclasses.acquireMetaClass((Class<Pojo>)pojo.getClass());
         MetaField<Pojo, ?>[] metaFields = metaClass.fields();
-        Map<String, Object> ret = new LinkedHashMap<String, Object>(metaFields.length * 2);
+        Map<String, Object> ret = new LinkedHashMap<>(metaFields.length * 2);
 
         for (MetaField<Pojo, ?> field : metaFields) {
             ret.put(field.getName(), field.get(pojo));
@@ -159,8 +159,8 @@ public class MetaClasses {
             String[] parts = classDescription.split(",");
             String clazz2 = parts[0];
             int arrayDepth = 0;
-            
-            
+
+
             try {
             	Class<?> raw;
             	if(clazz2.charAt(0) == '[') {
@@ -168,28 +168,28 @@ public class MetaClasses {
             		char type = clazz2.charAt(arrayDepth);
 					if(type != 'L') {
             			switch(type) {
-            				case 'Z': 
+            				case 'Z':
             					raw = boolean.class;
             					break;
-            				case 'B': 
+            				case 'B':
             					raw = byte.class;
             					break;
-            				case 'S': 
+            				case 'S':
             					raw = short.class;
             					break;
-            				case 'C': 
+            				case 'C':
             					raw = char.class;
             					break;
-            				case 'I': 
+            				case 'I':
             					raw = int.class;
             					break;
-            				case 'J': 
+            				case 'J':
             					raw = long.class;
             					break;
-            				case 'F': 
+            				case 'F':
             					raw = float.class;
             					break;
-            				case 'D': 
+            				case 'D':
             					raw = double.class;
             					break;
             				default :
@@ -201,13 +201,13 @@ public class MetaClasses {
             	} else {
             		raw = _classLoader.loadClass(clazz2);
             	}
-                
+
                 if(arrayDepth > 0) {
                 	metaClass = acquireMetaClass((Class)newInstance(raw, new int[arrayDepth]).getClass());
                 } else {
                 	metaClass = acquireMetaClass((Class)raw);
                 }
-                
+
                 MetaField<T, ?>[] metaFields = metaClass.fields();
                 boolean okay = false;
 
@@ -241,7 +241,7 @@ public class MetaClasses {
     public <T> MetaClass<T> acquireMetaClass(Class<T> aClass) {
         MetaClass<T> vanillaClass = META_CLASS_MAP.get(aClass);
         if (vanillaClass == null) {
-            vanillaClass = new VanillaClass<T>(aClass);
+            vanillaClass = new VanillaClass<>(aClass);
             MetaClass<T> prev = META_CLASS_MAP.putIfAbsent(aClass, vanillaClass);
             if (prev != null) {
                 vanillaClass = prev;

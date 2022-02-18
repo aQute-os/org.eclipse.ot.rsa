@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,7 +27,7 @@ import com.paremus.fabric.v1.dto.FibreExt;
  * The following type defines the data we receive about a fibre. This type is
  * extended in {@link FibreExt} because it hides lots of important info in
  * attributes.
- * 
+ *
  */
 public class Fibre extends struct {
 
@@ -55,16 +55,16 @@ public class Fibre extends struct {
 	public final static String	BUNDLES_G			= "bundles";
 	public final static String	SERVICES_G			= "services";
 
-	
+
 
 	/**
 	 * @formatter:off
-	 * 
+	 *
 	 * FABRIC/FIBRE section
 	 */
-	
+
 	@ADA(
-		groups=HIDE_G, 
+		groups=HIDE_G,
 		description = "The identity of a fibre, this "
 					+ "name is unique in a Fabric")
 																		public String					id;
@@ -73,64 +73,64 @@ public class Fibre extends struct {
 		description="Current fibre status, this based on "
 				+ "frequent samples of the fibre")
 																		public Status					status					= Status.UNKNOWN;
-	
+
 	@ADA(
 			groups=INFO_G,
 			description="Infrastructure fibre")
 																		public boolean					infrastructure 			= false;
-		
+
 
 	@ADA(
 			groups=INFO_G,
 			description="Leading Infrastructure fibre")
 																		public boolean					leader 			= false;
-		
+
 	@ADA(
 			groups=FIBRE_G,
 			description="Framework UUID")
 																		public String					frameworkUUID;
-		
+
 
 	@ADA(
-			groups=FIBRE_G, 
+			groups=FIBRE_G,
 			description="Fabric Version")
 																		public String					version;
-	
+
 	@ADA(
-		groups=FIBRE_G, 
-		description = "Qualified host name of the fibre")																	
+		groups=FIBRE_G,
+		description = "Qualified host name of the fibre")
 																		public String					hostname;
 	@ADA(
-			groups=FIBRE_G, 
+			groups=FIBRE_G,
 			unit = Unit.time,
 			viewer="age",
-			description = "Boot time of the fibre")																	
+			description = "Boot time of the fibre")
 																		public long						bootTime;
 
 	@ADA(
-		groups=HIDE_G, 
+		groups=HIDE_G,
 		deflt="0",
 		description = "The instance id of the machine. Each fibre "
 				+ "has an instance id that is used to discriminate "
 				+ "between multiple fibres on the same"
-				+ "machine.")																	
+				+ "machine.")
 																		public int 						instance;
-	
+
 	@ADA(
-		groups=FIBRE_G, 
+		groups=FIBRE_G,
 		deflt="false",
-		description = "True if security is on, False if off")																	
+		description = "True if security is on, False if off")
 																		public boolean					security;
-	
+
 	@ADA(
-		groups=HIDE_G, 
+		groups=HIDE_G,
 		description = "URN of the fibre.")
 																		public URI						uri;
 
 
-	
+
 	@ADA(
-		groups=HIDE_G, 
+		groups=HIDE_G,
 		description = "The Fabric name")
 																		public String					fabric;
 
@@ -143,14 +143,14 @@ public class Fibre extends struct {
 			groups=FIBRE_G,
 			description = "A system message")
 																		public String					message;
-		
+
 	@ADA(
 			groups={FIBRE_G,JVM_G},
 			description = "Java version")
 																		public String					java;
-		
+
 	@ADA(
-			groups=HIDE_G, 
+			groups=HIDE_G,
 			description = "Fibre features are properties set per Fibre.", diff=true)
 																			public Map<String, Object>		features				= map();
 
@@ -165,7 +165,7 @@ public class Fibre extends struct {
 		description = "Number of recent log errors (moving average)")
 																		public long						logErrors;
 
-	
+
 	@ADA(
 		groups=FIBRE_G,
 		unit = Unit.time,
@@ -177,25 +177,25 @@ public class Fibre extends struct {
 	 **************************************/
 
 	@ADA(
-		groups=HIDE_G, 
+		groups=HIDE_G,
 		viewer="summary",
 		description="Machine information")
 																		public Asset					machine				= new Asset();
 
-	
-	
+
+
 	@ADA(
-		groups=MACHINE_G, 
+		groups=MACHINE_G,
 		viewer="summary",
 		description="Operating System information.")
 																		public Asset					os					= new Asset();
 	@ADA(
-		groups=MACHINE_G, 
+		groups=MACHINE_G,
 		viewer="summary",
 		description="Central Processing Unit information")
 																		public Asset					cpu					= new Asset();
 	@ADA(
-		groups=MACHINE_G, 
+		groups=MACHINE_G,
 		description="Processor architecture")
 																		public String					architecture;
 
@@ -237,7 +237,7 @@ public class Fibre extends struct {
 																		public long						clockSpeed;
 
 
-	
+
 	@ADA(
 		groups=FILESYS_G,
 		viewer = "machine-filesys",
@@ -271,14 +271,14 @@ public class Fibre extends struct {
 	/**************************************
 	 * JVM
 	 **************************************/
-	
+
 	@ADA(
 		name = "JVM",
 		description = "Identification of the VM",
 		groups = JVM_G,
 		viewer = "summary")
 																		public Asset				jvm						= new Asset();
-	
+
 	@ADA(
 		name = "Java Specification",
 		description = "Provides the detail of what Java "
@@ -286,28 +286,28 @@ public class Fibre extends struct {
 		groups = JVM_G,
 		viewer = "summary")
 																		public Asset				jvmSpecification		= new Asset();
-	
+
 	@ADA(
 		name = "Garbage Collectors",
 		description = "Identification of the VM",
 		groups = JVM_G,
 		viewer = "fibre-gc")
 																		public List<FibreGCInfo>	jvmGarbageCollectors	= list();
-	
+
 	@ADA(
 		description = "Available Java VM heap memory",
 		viewer = "stacked",
 		groups = JVM_G,
 		diff = true)
 																		public FibreMemoryInfo		jvmHeap					= new FibreMemoryInfo();
-	
+
 	@ADA(
 		description = "Available Java VM non-heap memory",
 		viewer = "stacked",
 		groups = JVM_G,
 		diff = true)
 																		public FibreMemoryInfo		jvmNonHeap				= new FibreMemoryInfo();
-	
+
 	@ADA(
 		name = "Thread Pools",
 		description = "Thread Pool running on the Fibre",
@@ -323,7 +323,7 @@ public class Fibre extends struct {
 				+ "cycle. This should normally be 0",
 		groups = JVM_G,
 		min = 0,
-		high = 1, 
+		high = 1,
 		threshold= 1)
 																		public List<String>			deadlockedThread		= list();
 
@@ -335,23 +335,23 @@ public class Fibre extends struct {
 																		public SystemProperties 	systemProperties;
 
 	@ADA(
-			groups=HIDE_G, 
+			groups=HIDE_G,
 			unit = Unit.time,
 			description = "Time this sample was taken")
 																		public long	sampleTime;
 	@ADA(
-			groups=HIDE_G, 
+			groups=HIDE_G,
 			description = "The id of this sample this is a monotonically"
 					+ "increasing number that increments each time a new"
-					+ "sample is made.")	
+					+ "sample is made.")
 																		public int	sampleId;
 
 	@ADA(
-			groups=HIDE_G, 
+			groups=HIDE_G,
 			unit = Unit.ms,
 			description = "Duration between this and previous sample")
 																		public long	sampleInterval;
-	
+
 	@ADA(
 			groups=FIBRE_G,
 			diff=true,

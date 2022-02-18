@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -53,11 +53,11 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class LocalDiscoveryListener implements ServiceFactory<Object> {
 
 	private class EndpointListenerService implements EndpointEventListener, EndpointListener {
-		
+
 		private final Bundle client;
-		
+
 		private final AtomicReference<ListenerType> typeWatcher = new AtomicReference<>();
-		
+
 		public EndpointListenerService(Bundle client) {
 			this.client = client;
 		}
@@ -69,7 +69,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 		}
 
 		private void checkEventListener() {
-			if(typeWatcher.updateAndGet(old -> old == null ? ListenerType.EVENT_LISTENER : old) 
+			if(typeWatcher.updateAndGet(old -> old == null ? ListenerType.EVENT_LISTENER : old)
 					!= ListenerType.EVENT_LISTENER) {
 				throw new IllegalStateException("An RSA 1.1 EndpointEventListener must not be "
 							+ "called in addition to an EndpointListener from the same bundle");
@@ -80,51 +80,51 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 		public void endpointRemoved(EndpointDescription endpoint,
 				String matchedFilter) {
 			checkListener();
-			worker.execute(() -> endpointNotification(client, 
+			worker.execute(() -> endpointNotification(client,
 					new EndpointEvent(REMOVED, endpoint), matchedFilter));
 		}
-				
+
 		@Override
 		public void endpointAdded(EndpointDescription endpoint, String matchedFilter) {
 			checkListener();
-			worker.execute(() -> endpointNotification(client, 
+			worker.execute(() -> endpointNotification(client,
 					new EndpointEvent(ADDED, endpoint), matchedFilter));
 		}
-				
+
 		private void checkListener() {
-			if(typeWatcher.updateAndGet(old -> old == null ? ListenerType.LISTENER : old) 
+			if(typeWatcher.updateAndGet(old -> old == null ? ListenerType.LISTENER : old)
 					!= ListenerType.LISTENER) {
 				throw new IllegalStateException("An RSA 1.1 EndpointListener must not be "
 						+ "called in addition to an EndpointEventListener from the same bundle");
 			}
 		}
 	}
-	
+
 	private static enum ListenerType {
 		LISTENER, EVENT_LISTENER;
 	}
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(LocalDiscoveryListener.class);
-	
+
 	private final ConcurrentMap<Bundle, Map<String, Integer>> sponsoredEndpoints = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, EndpointDescription> localEndpoints = new ConcurrentHashMap<>();
-	
+
 	private final ConcurrentMap<UUID, RemoteDiscoveryEndpoint> remotes = new ConcurrentHashMap<>();
 	private final ConcurrentMap<UUID, Set<String>> remoteSponsors = new ConcurrentHashMap<>();
-	
+
 	private final Lock publishLock = new ReentrantLock();
 
 	private final EventExecutorGroup worker;
 
 	private final ScheduledFuture<?> reminderTask;
-	
+
 	public LocalDiscoveryListener(long reminderInterval, EventExecutorGroup worker) {
 		this.worker = worker;
 		reminderTask = worker.scheduleAtFixedRate(
-				() -> remotes.values().stream().forEach(RemoteDiscoveryEndpoint::sendReminder), 
+				() -> remotes.values().stream().forEach(RemoteDiscoveryEndpoint::sendReminder),
 				reminderInterval, reminderInterval, TimeUnit.MILLISECONDS);
 	}
-	
+
 	@Override
 	public Object getService(Bundle sponsor,
 			ServiceRegistration<Object> registration) {
@@ -143,7 +143,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 					EndpointDescription ed = localEndpoints.get(k);
 					remotes.values().forEach(r -> r.revokeEndpoint(v + 1, ed));
 				});
-				
+
 				localEndpoints.keySet().removeAll(endpoints.keySet());
 			}
 		} finally {
@@ -154,7 +154,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 	public void destroy() {
 		reminderTask.cancel(true);
 	}
-	
+
 	public void updateRemote(String clusterName, UUID id, int port, EndpointFilter endpointFilter,
 			Supplier<RemoteDiscoveryEndpoint> generator) {
 		publishLock.lock();
@@ -202,7 +202,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 				.filter(e -> e.getValue().contains(clusterName))
 				.map(Entry::getKey)
 				.collect(toSet());
-			
+
 			//All ids that no longer have a sponsor
 			ids = ids.stream()
 				.filter(i -> remoteSponsors.computeIfPresent(i, (x,v) -> {
@@ -211,7 +211,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 							.collect(toSet());
 					return set.isEmpty() ? null : set;
 				}) == null).collect(toSet());
-			
+
 			//Ids that have a remote to remove
 			ids = ids.stream()
 				.filter(remotes::containsKey)
@@ -221,9 +221,9 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 				.map(remotes::get)
 				.filter(rd -> rd != null)
 				.forEach(RemoteDiscoveryEndpoint::stopCalling);
-			
+
 			remotes.keySet().removeAll(ids);
-			
+
 			return ids;
 		} finally {
 			publishLock.unlock();
@@ -237,7 +237,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 				logger.debug("Publishing endpoints {} to {}",
 						new Object[] {localEndpoints.values(), rd.getId()});
 			}
-			
+
 			sponsoredEndpoints.values().forEach(m -> m.entrySet().forEach(
 					e -> {
 						EndpointDescription ed = localEndpoints.get(e.getKey());
@@ -249,7 +249,7 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 	}
 
 	private void endpointNotification(Bundle sponsor, EndpointEvent event, String filter) {
-		
+
 		if(logger.isDebugEnabled()) {
 			String type;
 			switch(event.getType()) {
@@ -268,15 +268,15 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 				default:
 					type = "UNKNOWN";
 			}
-			
+
 			logger.debug("Received local endpoint event {} from bundle {} for endpoint {}",
 					new Object[] {type, sponsor.getBundleId(), event.getEndpoint().getId()});
 		}
-		
+
 		final EndpointDescription endpoint = event.getEndpoint();
 		final String endpointId = endpoint.getId();
 		int eventType = event.getType();
-		
+
 		switch(eventType) {
 			case EndpointEvent.ADDED:
 			case EndpointEvent.MODIFIED:
@@ -308,13 +308,13 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 				return endpoints;
 			}).get(endpointId);
 			localEndpoints.put(endpointId, endpoint);
-			
+
 			if(logger.isDebugEnabled()) {
 				logger.debug("Publishing update {} for endpoint {} from {} to {}",
-					new Object[] {counter, endpointId, endpoint.getFrameworkUUID(), 
+					new Object[] {counter, endpointId, endpoint.getFrameworkUUID(),
 						remotes.values().stream().collect(toSet())});
 			}
-			
+
 			remotes.values().forEach(r -> r.publishEndpoint(counter, endpoint, false));
 		} finally {
 			publishLock.unlock();
@@ -328,16 +328,16 @@ public class LocalDiscoveryListener implements ServiceFactory<Object> {
 			EndpointDescription ed = localEndpoints.remove(endpointId);
 			Integer counter = sponsoredEndpoints.getOrDefault(sponsor, new HashMap<>()).get(endpointId);
 			if(counter != null) {
-				sponsoredEndpoints.computeIfPresent(sponsor, 
+				sponsoredEndpoints.computeIfPresent(sponsor,
 						(k,v) -> v.entrySet().stream().filter(e -> !endpointId.equals(e.getKey()))
 						.collect(toMap(Entry::getKey, Entry::getValue)));
 				Integer revocationCounter = counter + 1;
-				
+
 				if(logger.isDebugEnabled()) {
 					logger.debug("Revoking endpoint {} with counter {}",
 						new Object[] {endpointId, counter});
 				}
-				
+
 				remotes.values().forEach(r -> r.revokeEndpoint(revocationCounter, ed));
 			} else {
 				if(logger.isDebugEnabled()) {

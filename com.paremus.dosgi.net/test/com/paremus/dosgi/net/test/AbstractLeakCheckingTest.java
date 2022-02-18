@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -28,15 +28,15 @@ public abstract class AbstractLeakCheckingTest {
 
 	@BeforeEach
 	public final void setupLeakChecking(TestInfo name) throws IOException {
-		
+
 		System.setProperty("io.netty.leakDetection.maxRecords", "100");
         System.setProperty("io.netty.customResourceLeakDetector", TestResourceLeakDetector.class.getName());
         TestResourceLeakDetector.addResourceTypeToIgnore(HashedWheelTimer.class);
-	    
+
 		ResourceLeakDetector.setLevel(PARANOID);
 		LoggerFactory.getLogger(getClass()).info("Beginning test {}", name.getDisplayName());
 	}
-	
+
     @AfterEach
     public final void leakCheck() throws IOException {
     	TestResourceLeakDetector.assertNoLeaks();

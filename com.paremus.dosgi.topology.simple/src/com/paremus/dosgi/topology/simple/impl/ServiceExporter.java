@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -50,70 +50,70 @@ import com.paremus.dosgi.topology.common.EndpointEventListenerInterest;
 public class ServiceExporter {
 
 	private static final Logger logger = LoggerFactory.getLogger(ServiceExporter.class);
-	
+
 	private final Set<ServiceReference<?>> services = new HashSet<>();
-	
-	private final ConcurrentMap<EndpointEventListener, EndpointEventListenerInterest> listeners = 
+
+	private final ConcurrentMap<EndpointEventListener, EndpointEventListenerInterest> listeners =
 			new ConcurrentHashMap<>();
-	
+
 	private final Set<RemoteServiceAdmin> rsas = new HashSet<>();
-	
+
 	private final ConcurrentMap<ExportRegistration, RemoteServiceAdmin> exportsToRSA = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<ExportRegistration, EndpointDescription> exportsToAdvertisedEndpoint = new ConcurrentHashMap<>();
 
 	private final ConcurrentMap<RemoteServiceAdmin, ConcurrentMap<ServiceReference<?>,
 	Collection<ExportRegistration>>> exportedEndpointsByRSA = new ConcurrentHashMap<>();
-	
-	private final ConcurrentMap<ServiceReference<?>, Set<ExportRegistration>> 
+
+	private final ConcurrentMap<ServiceReference<?>, Set<ExportRegistration>>
 		exportedEndpoints= new ConcurrentHashMap<>();
-	
+
 	private final Set<String> scopes = new LinkedHashSet<>();
 
 	public ServiceExporter(String[] localScopes) {
 		scopes.addAll(Arrays.asList(localScopes));
 	}
-	
+
 	public void checkExports() {
-		
+
 		exportedEndpoints.entrySet().stream()
 			.forEach(e -> {
 						Set<ExportRegistration> regs = e.getValue();
-						
+
 						Set<ExportRegistration> deadRegs = regs.stream()
 								.filter(er -> er.getException() != null)
 								.collect(toSet());
-						
+
 						regs.removeAll(deadRegs);
-						
+
 						deadRegs.stream().forEach(er -> {
 							notify(er);
 							RemoteServiceAdmin rsa = exportsToRSA.remove(er);
 							exportsToAdvertisedEndpoint.remove(er);
-							
+
 							ofNullable(exportedEndpoints.get(e.getKey()))
 								.ifPresent(s -> s.remove(er));
-							
+
 							if(rsa != null) {
 								ofNullable(exportedEndpointsByRSA.get(rsa))
 									.map(m -> m.get(e.getKey()))
 									.ifPresent(s -> s.remove(er));
 							}
 						});
-						
+
 						//Re-export to try to re-create anything that was lost
 						exportEndpoint(e.getKey());
 					});
 	}
-	
+
 	private void exportEndpoint(ServiceReference<?> ref) {
-		
+
 		if(logger.isDebugEnabled()) {
 			logger.debug("Service {} is being registered for export",
 					ref.getProperty(SERVICE_ID));
 		}
 		rsas.stream().forEach(r -> {
-				ConcurrentMap<ServiceReference<?>, Collection<ExportRegistration>> exports = 
+				ConcurrentMap<ServiceReference<?>, Collection<ExportRegistration>> exports =
 						exportedEndpointsByRSA.computeIfAbsent(r, k -> new ConcurrentHashMap<>());
 				if(!exports.containsKey(ref)) {
 					doExport(() -> r.exportService(ref, getExtraProps(ref)), ref, r, exports);
@@ -123,20 +123,20 @@ public class ServiceExporter {
 				}
 			});
 	}
-	
-	private <T extends RemoteServiceAdmin> void doExport(Supplier<Collection<ExportRegistration>> source, 
-			ServiceReference<?> s, T rsa, ConcurrentMap<ServiceReference<?>, 
+
+	private <T extends RemoteServiceAdmin> void doExport(Supplier<Collection<ExportRegistration>> source,
+			ServiceReference<?> s, T rsa, ConcurrentMap<ServiceReference<?>,
 			Collection<ExportRegistration>> exportsByRSA) {
-		
+
 		Collection<ExportRegistration> ers;
 		try {
 			ers = source.get();
 		} catch (Exception e) {
-			logger.error("Unable to export service {} using RSA {} because {}", 
+			logger.error("Unable to export service {} using RSA {} because {}",
 					new Object[] {s.getProperty(SERVICE_ID), rsa, e});
 			return;
 		}
-		
+
 		if (!ers.isEmpty()) {
 			if(logger.isDebugEnabled()) {
 				logger.debug("Exported service {} using RSA {}",
@@ -149,24 +149,24 @@ public class ServiceExporter {
 			exportsByRSA.put(s, new HashSet<>(ers));
 			Set<ExportRegistration> set = exportedEndpoints
 					.computeIfAbsent(s, k2 -> new HashSet<>());
-							
+
 			ers.stream().forEach(er -> {
 				//Do not readvertise things we have already seen - update will handle if necessary
 				if(set.add(er)) {
 					notify(er);
 				}
-			});			
+			});
         } else if(logger.isDebugEnabled()) {
 			logger.debug("The service {} is not supported by RSA {}",
 					new Object[] {s.getProperty(SERVICE_ID), rsa});
         }
 	}
-	
+
 	private void destroyExports(ServiceReference<?> ref) {
 		ofNullable(exportedEndpoints.remove(ref))
 			.ifPresent(s -> s.stream()
 					.forEach(er -> {
-						
+
 						//Clear the import to RSA link and rsa to endpoint link
 						RemoteServiceAdmin rsa = exportsToRSA.remove(er);
 						if(rsa != null) {
@@ -177,24 +177,24 @@ public class ServiceExporter {
 						notify(er);
 					}));
 	}
-	
+
 	public void addingRSA(RemoteServiceAdmin rsa) {
 		if(rsas.add(rsa)) {
-			services.stream().forEach(svc -> doExport(() -> rsa.exportService(svc, getExtraProps(svc)), 
-					svc, rsa, exportedEndpointsByRSA.computeIfAbsent(rsa, 
+			services.stream().forEach(svc -> doExport(() -> rsa.exportService(svc, getExtraProps(svc)),
+					svc, rsa, exportedEndpointsByRSA.computeIfAbsent(rsa,
 							x -> new ConcurrentHashMap<>())));
 		}
 	}
-	
+
 	private Map<String, Object> getExtraProps(ServiceReference<?> ref) {
 		Map<String, Object> extraProps = new HashMap<>();
-		
+
 		Object targetScope = ref.getProperty(PAREMUS_SCOPES_ATTRIBUTE);
-		
+
 		if(targetScope == null) {
 			extraProps.put(PAREMUS_SCOPES_ATTRIBUTE, PAREMUS_SCOPE_GLOBAL);
 			Object targetScopes = ref.getProperty(PAREMUS_TARGETTED_ATTRIBUTE);
-			
+
 			if(targetScopes != null) {
 				logger.warn("The service {} specifies target scopes {}, but is not using the targetted scope. This service will be made targetted}",
 						new Object[] {ref.getProperty(SERVICE_ID), targetScopes});
@@ -236,13 +236,13 @@ public class ServiceExporter {
 				}
 			}
 		}
-		
+
 		return extraProps;
 	}
 
 	public void removingRSA(RemoteServiceAdmin rsa) {
 		rsas.remove(rsa);
-		
+
 		ofNullable(exportedEndpointsByRSA.remove(rsa))
 			.ifPresent(m -> m.entrySet().stream().forEach(e -> {
 				ServiceReference<?> ref = e.getKey();
@@ -254,20 +254,20 @@ public class ServiceExporter {
 							s2.remove(er);
 							return s2.isEmpty() ? null : s2;
 						}));
-					
+
 					er.close();
 					notify(er);
 				});
 			}));
 
 	}
-	
+
 	public void addingEEL(EndpointEventListener eel,
 			ServiceReference<?> ref, List<String> filters) {
-		
+
 		EndpointEventListenerInterest interest = new EndpointEventListenerInterest(eel, ref, filters);
 		listeners.put(eel, interest);
-			
+
 		exportedEndpoints.values().stream().forEach(ers -> ers.stream()
 				.forEach(er -> ofNullable(exportsToAdvertisedEndpoint.get(er))
 					.ifPresent(e -> interest.notify(null, e))));
@@ -285,7 +285,7 @@ public class ServiceExporter {
 					}
 					return i;
 				});
-			
+
 		exportsToAdvertisedEndpoint.values().stream()
 			.filter(e -> e != null)
 			.forEach(e -> interest.notify(null, e));
@@ -294,9 +294,9 @@ public class ServiceExporter {
 	public void removingEEL(EndpointEventListener eel) {
 		listeners.remove(eel);
 	}
-	
+
 	public void exportService(ServiceReference<?> ref) {
-		
+
 		if(services.add(ref)) {
 			if(logger.isDebugEnabled()) {
 				logger.debug("A new service {} is being exported",
@@ -307,17 +307,17 @@ public class ServiceExporter {
 			updateExportedService(ref);
 		}
 	}
-	
+
 	public void updateExportedService(ServiceReference<?> ref) {
-		
+
 		if(services.contains(ref)) {
 
 			if(logger.isDebugEnabled()) {
 				logger.debug("The exported service {} is being modified",
 						new Object[] {ref.getProperty(SERVICE_ID)});
 			}
-			
-			// Update 
+
+			// Update
 			Map<String, Object> extraProps = getExtraProps(ref);
 
 			ofNullable(exportedEndpoints.get(ref))
@@ -326,7 +326,7 @@ public class ServiceExporter {
 							er.update(extraProps);
 							notify(er);
 						}));
-			
+
 			// Handle potentially increased number of acceptable RSAs
 			exportEndpoint(ref);
 		} else {
@@ -337,9 +337,9 @@ public class ServiceExporter {
 			exportService(ref);
 		}
 	}
-	
+
 	public void removeExportedService(ServiceReference<?> ref) {
-		
+
 		if(services.remove(ref)) {
 			if(logger.isDebugEnabled()) {
 				logger.debug("The exported service {} has been removed",
@@ -354,7 +354,7 @@ public class ServiceExporter {
 			}
 		}
 	}
-	
+
 	private void notify(ExportRegistration er) {
 		EndpointDescription after = ofNullable(er.getExportReference())
 				.map(ExportReference::getExportedEndpoint)
@@ -369,7 +369,7 @@ public class ServiceExporter {
 			logger.debug("Notifying Endpoint Event listeners of a state change for endpoint {}",
 					new Object[] {before == null ? after.getId() : before.getId()});
 		}
-		
+
 		listeners.values().forEach(l -> l.notify(before, after));
 	}
 
@@ -377,25 +377,25 @@ public class ServiceExporter {
 		if(logger.isDebugEnabled()) {
 			logger.debug("Shutting down RSA Topology Manager exports");
 		}
-		
+
 		services.clear();
 		rsas.clear();
 		exportedEndpointsByRSA.clear();
 		exportedEndpoints.clear();
-		
+
 		exportsToRSA.keySet().stream().forEach(ExportRegistration::close);
 		exportsToRSA.clear();
 	}
-	
+
 	public void updateScopes(String[] local_scopes) {
 		Set<String> oldScopes = new HashSet<>(scopes);
-		
+
 		scopes.clear();
 		scopes.addAll(Arrays.asList(local_scopes));
 
-		logger.info("Updating from scopes {} to scopes {}", 
+		logger.info("Updating from scopes {} to scopes {}",
 				new Object[]{oldScopes, scopes});
-		
+
 		// Update the endpoints to pick up potential scope changes
 		exportedEndpoints.keySet().stream()
 				.forEach(this::updateExportedService);

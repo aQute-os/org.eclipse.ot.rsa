@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -75,30 +75,30 @@ import io.netty.util.concurrent.ScheduledFuture;
 public class GossipImpl implements InternalClusterListener, Gossip {
 
 	private static final Logger logger = LoggerFactory.getLogger(GossipImpl.class);
-	
+
 	private final ClusterManager manager;
 	private final GossipComms comms;
-	
+
 	private final AtomicInteger updateCycles = new AtomicInteger();
-	
+
 	private final String cluster;
-	
+
 	private final Config config;
-	
+
 	private final List<InetSocketAddress> initialPeers;
-	
+
 	private final AtomicBoolean open = new AtomicBoolean(true);
-	
+
 	private final ConcurrentMap<UUID, Snapshot> toSend = new ConcurrentHashMap<>();
-	
+
 	private final BundleContext context;
-	
+
 	private final AtomicReference<ServiceRegistration<ClusterNetworkInformation>> netInfo = new AtomicReference<>();
 
 	private final ScheduledFuture<?> doGossip;
 
 	private final ScheduledFuture<?> doSync;
-	
+
 	public GossipImpl(BundleContext context, ClusterManager manager, Function<Gossip,GossipComms> commsCreator, Config config,
 			List<InetSocketAddress> initialPeers) throws Exception {
 		this.context = context;
@@ -106,13 +106,13 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 		this.cluster = config.cluster_name();
 		this.config = config;
 		this.initialPeers = initialPeers;
-		
+
 		this.comms = commsCreator.apply(this);
-		
+
 		EventExecutorGroup gossipWorker = manager.getEventExecutorGroup();
-		
+
 		doGossip = gossipWorker.scheduleAtFixedRate(this::gossip, config.gossip_interval(), config.gossip_interval(), MILLISECONDS);
-		
+
 		long sync_interval = config.sync_interval();
 		if(sync_interval > 0) {
 			doSync = gossipWorker.scheduleAtFixedRate(() -> manager.selectRandomPartners(1).stream().findAny()
@@ -130,10 +130,10 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 		try {
 			if(!open.get())
 				return;
-			
+
 			AbstractGossipMessage gossip = (AbstractGossipMessage) message;
 			Runnable action;
-			
+
 			switch(message.getType()) {
 				case FIRST_CONTACT_REQUEST:
 					action = () -> respondToFirstContact(gossip.getUpdate(sender));
@@ -156,14 +156,14 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 				default:
 					throw new IllegalArgumentException("Unknown message type " + message.getType());
 			}
-			
+
 			if(cluster.equals(gossip.getClusterName())) {
 				action.run();
 			} else {
 				logger.warn("Receieved a message with the wrong cluster name at the node {}. The clusters {} and {} run on the same hosts and have overlapping port ranges",
 						new Object[] {manager.getLocalUUID(), gossip.getClusterName(), cluster});
 			}
-			
+
 		} catch (Exception e) {
 			logger.error("There was an error processing the gossip message", e);
 		}
@@ -171,7 +171,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 
 	private void handleGossip(InetSocketAddress sender, ForwardableGossipMessage gm) {
 		gm.getAllSnapshots(sender).stream().forEach((s) -> {
-			
+
 			if(comms.preventIndirectDiscovery() && manager.getMemberInfo(s.getId()) == null) {
 				if(logger.isDebugEnabled()) {
 					logger.debug("The node {} in cluster {} is not currently known and must be directly pinged.",
@@ -180,17 +180,17 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 				ping(s.getUdpAddress());
 				return;
 			}
-			
+
 			if(logger.isTraceEnabled()) {
 				logger.debug("The node {} in cluster {} has received an update.",
 						new Object[] {s.getId(), cluster});
 			}
-			
+
 			Update u = manager.mergeSnapshot(s);
 			if(manager.getLocalUUID().equals(s.getId()) && s.getUdpAddress() != null) {
 				registerClusterNetworkInfo(s.getUdpAddress().getAddress());
 			}
-			
+
 			switch(u) {
 				case RESYNC:
 					if(logger.isTraceEnabled()) { logger.trace("Out of sync with node {}", s.getId()); }
@@ -203,16 +203,16 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 					break;
 				case CONSUME:
 					break;
-				case FORWARD_LOCAL: 
+				case FORWARD_LOCAL:
 					if(s.forwardable() && !toSend.containsKey(s.getId())) {
 						if(logger.isTraceEnabled()) { logger.trace("Forward the local snapshot for {} as it is more up to date", s.getId()); }
 						MemberInfo info = manager.getMemberInfo(s.getId());
 						Snapshot s2 = info.toSnapshot(PAYLOAD_UPDATE, s.getRemainingHops());
-						
+
 						if(s.getMessageType() != PAYLOAD_UPDATE && s2.getStateSequenceNumber() == s.getStateSequenceNumber()) {
-							s2 = info.toSnapshot(HEARTBEAT, s.getRemainingHops());	
+							s2 = info.toSnapshot(HEARTBEAT, s.getRemainingHops());
 						}
-						
+
 						toSend.merge(s.getId(), s2, (o, n) -> (o.getSnapshotTimestamp() - n.getSnapshotTimestamp()) > 0 ? o : n);
 					}
 					break;
@@ -221,38 +221,38 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 			}
 		});
 	}
-	
+
 	private void respondToFirstContact(Snapshot s) {
 		if(logger.isDebugEnabled()) {
-			logger.debug("Responding to first contact from {} at {} in cluster {}", 
+			logger.debug("Responding to first contact from {} at {} in cluster {}",
 					new Object[] {s.getId(), s.getUdpAddress(), cluster});
 		}
 		manager.mergeSnapshot(s);
-		comms.publish(new FirstContactResponse(manager.getClusterName(), manager.getSnapshot(PAYLOAD_UPDATE, 0), s), 
+		comms.publish(new FirstContactResponse(manager.getClusterName(), manager.getSnapshot(PAYLOAD_UPDATE, 0), s),
 				Collections.singleton(s.getUdpAddress()));
 	}
-	
+
 	private void handlePingResponse(Snapshot s) {
 		if(logger.isDebugEnabled()) {
 			logger.debug("Received reply to ping request from {} at {}", s.getId(), s.getUdpAddress());
 		}
 		manager.mergeSnapshot(s);
 	}
-	
+
 	private void handlePingRequest(Snapshot s) {
 		if(logger.isDebugEnabled()) {
 			logger.debug("Received ping request from {} at {}", s.getId(), s.getUdpAddress());
 		}
 		manager.mergeSnapshot(s);
-		comms.publish(new PingResponse(cluster, manager.getSnapshot(PAYLOAD_UPDATE, 0)), 
+		comms.publish(new PingResponse(cluster, manager.getSnapshot(PAYLOAD_UPDATE, 0)),
 				Collections.singleton(s.getUdpAddress()));
 	}
-	
+
 	private void handleFirstContactResponse(InetSocketAddress sender, FirstContactResponse response) {
 		Snapshot firstContactInfo = response.getFirstContactInfo();
 		manager.mergeSnapshot(firstContactInfo);
 		Snapshot remote = response.getUpdate(sender);
-		
+
 		if(logger.isDebugEnabled()) {
 			logger.debug("Received reply to first contact from {} at {}", remote.getId(), remote.getUdpAddress());
 		}
@@ -266,17 +266,17 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	private void registerClusterNetworkInfo(InetAddress localAddress) {
 		if (netInfo.get() == null) {
 			if(logger.isDebugEnabled()) {
-				logger.debug("Registering network information for {} in the cluster {}", 
+				logger.debug("Registering network information for {} in the cluster {}",
 						new Object[] {manager.getLocalUUID(), cluster});
 			}
-			
-			ClusterNetworkInformationImpl impl = new ClusterNetworkInformationImpl(localAddress, cluster, comms, 
+
+			ClusterNetworkInformationImpl impl = new ClusterNetworkInformationImpl(localAddress, cluster, comms,
 					manager.getLocalUUID());
-			
+
 			Dictionary<String, Object> props = new Hashtable<>();
 			props.put("cluster.name", cluster);
-			
-			ServiceRegistration<ClusterNetworkInformation> reg = context.registerService(ClusterNetworkInformation.class, 
+
+			ServiceRegistration<ClusterNetworkInformation> reg = context.registerService(ClusterNetworkInformation.class,
 					impl, props);
 			if(!netInfo.compareAndSet(null, reg)) {
 				reg.unregister();
@@ -314,11 +314,11 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 				logger.debug("The node {} in cluster {} has received an update.",
 						new Object[] {snapshot.getId(), cluster});
 			}
-			
+
 			manager.mergeSnapshot(snapshot);
-			
+
 			if(manager.getLocalUUID().equals(snapshot.getId())){
-				
+
 				if(udpAddress == null) {
 					MemberInfo info = manager.getMemberInfo(snapshot.getId());
 					if(info != null) {
@@ -331,23 +331,23 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 			}
 		}
 	}
-	
+
 	private void gossip() {
 		try {
 			if(!open.get()) {
 				return;
 			}
-				
+
 			int updateCycle = updateCycles.getAndUpdate((i) -> (i < 1) ? 0 : i - 1);
 			SnapshotType type = (updateCycle > 0) ? PAYLOAD_UPDATE : HEARTBEAT;
-			
+
 			Collection<MemberInfo> partners =  manager.selectRandomPartners(config.gossip_fanout());
-			
+
 			if(logger.isTraceEnabled()) {
-				logger.trace("Sending a gossip message to members {} of cluster {}", 
+				logger.trace("Sending a gossip message to members {} of cluster {}",
 						partners.stream().map(MemberInfo::getId).collect(toSet()), cluster);
 			}
-			
+
 			final Snapshot s;
 			Runnable action;
 			if(partners.isEmpty()) {
@@ -355,32 +355,32 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 				action = () -> comms.publish(new FirstContactRequest(cluster, s), getEndpoints(partners));
 			} else {
 				s = manager.getSnapshot(type, config.gossip_hops());
-	
+
 				List<Snapshot> q = toSend.values().stream()
 						.collect(toList());
 				toSend.clear();
-				
-				action = () -> comms.publish(new ForwardableGossipMessage(cluster, s, q), 
+
+				action = () -> comms.publish(new ForwardableGossipMessage(cluster, s, q),
 						getEndpoints(partners));
 			}
-			
+
 			manager.mergeSnapshot(s);
 			action.run();
 		} catch (Exception e) {
 			logger.error("An error occurred while gossiping", e);
 		}
 	}
-	
+
 	private Collection<InetSocketAddress> getEndpoints(Collection<MemberInfo> partners) {
 		Set<InetSocketAddress> s = partners.stream().map(MemberInfo::getUdpAddress).collect(toSet());
-		
+
 		if(s.size() < config.gossip_fanout()) {
 			ArrayList<InetSocketAddress> peers = new ArrayList<>(initialPeers);
 			peers.removeIf(isa -> {
 				if(isa.getPort() != config.udp_port()) {
 					return false;
 				}
-				
+
 				if(isa.getAddress().equals(comms.getBindAddress())) {
 					return true;
 				} else if (comms.getBindAddress().isAnyLocalAddress()) {
@@ -393,13 +393,13 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 					return false;
 				}
 			});
-			s.addAll(ClusterManagerImpl.selectRandomPartners(config.gossip_fanout() - s.size(), 
+			s.addAll(ClusterManagerImpl.selectRandomPartners(config.gossip_fanout() - s.size(),
 					peers));
 		}
-		
+
 		return s;
 	}
-	
+
 	private void resynchronize(MemberInfo member) {
 		if(!open.get()) return;
 		if(logger.isDebugEnabled()) {
@@ -409,7 +409,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 			logger.debug("TCP synchronization has been disabled");
 			return;
 		}
-		
+
 		comms.replicate(member, manager.getMemberSnapshots(HEADER))
 			.addListener(f -> {
 					if(!f.isSuccess() && !f.isCancelled()) {
@@ -422,12 +422,12 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 					}
 				});
 	}
-	
+
 	private Future<?> retryResyncInFuture(MemberInfo member, long delay) {
 		Promise<Object> newPromise = manager.getEventExecutorGroup().next().newPromise();
-		
+
 		manager.getEventExecutorGroup().schedule(
-				() -> comms.replicate(member, manager.getMemberSnapshots(HEADER)), 
+				() -> comms.replicate(member, manager.getMemberSnapshots(HEADER)),
 				delay, MILLISECONDS).addListener(new PromiseNotifier<>(newPromise));
 		return newPromise;
 	}
@@ -440,17 +440,17 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	@Override
 	public List<Future<?>> destroy() {
 		open.set(false);
-		
+
 		ServiceRegistration<?> reg = netInfo.getAndSet(null);
 		if(reg != null) reg.unregister();
-		
+
 		doGossip.cancel(false);
-		
+
 		if(doSync != null) {
 			doSync.cancel(false);
 		}
-		
-		comms.publish(new DisconnectionMessage(cluster, manager.getSnapshot(HEARTBEAT, 0)), 
+
+		comms.publish(new DisconnectionMessage(cluster, manager.getSnapshot(HEARTBEAT, 0)),
 				manager.getMemberSnapshots(HEARTBEAT).stream().map(Snapshot::getUdpAddress).collect(toList()));
 		return comms.destroy();
 	}
@@ -462,7 +462,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 		}
 		darkNodes.stream().forEach(this::ping);
 	}
-	
+
 	private void ping(MemberInfo mi) {
 		mi.markUnreachable();
 		InetSocketAddress udpAddress = mi.getUdpAddress();

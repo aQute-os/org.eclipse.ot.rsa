@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -160,11 +160,13 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
         close(ctx, true).addListener(f -> ctx.close(promise));
     }
 
-    public Future<Void> closeFuture() {
+    @Override
+	public Future<Void> closeFuture() {
         return closePromise;
     }
 
-    public Future<Void> close(ChannelHandlerContext ctx, boolean sendCloseData) {
+    @Override
+	public Future<Void> close(ChannelHandlerContext ctx, boolean sendCloseData) {
         if (closed) {
             return closePromise;
         } else {
@@ -347,10 +349,10 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
 
     @SuppressWarnings("deprecation")
     private ChannelFuture processOperationRequired(ChannelHandlerContext ctx, OperationRequired operationRequired) {
-        
+
         PromiseCombiner combiner = null;
         ChannelFuture cf = null;
-        
+
         handshake_loop: for (;;) {
             switch (operationRequired) {
             case NONE:
@@ -370,7 +372,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
             case DATA_TO_SEND:
                 LOG.debug("Generating handshake data to send to {}", remotePeer);
                 ChannelFuture tmp = handshakeWrap(ctx);
-                
+
                 if (cf == null) {
                     cf = tmp;
                 } else {
@@ -380,7 +382,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
                     }
                     combiner.add(tmp);
                 }
-                // The handshakeWrap call will exhaust the sslEngine of wrap tasks, 
+                // The handshakeWrap call will exhaust the sslEngine of wrap tasks,
                 // but we may have additional other tasks
                 operationRequired = sslEngine.getOperationRequired();
                 continue handshake_loop;
@@ -401,7 +403,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
                 }
             }
         }
-    
+
         if (combiner != null) {
             ChannelPromise cp = ctx.newPromise();
             combiner.finish(cp);
@@ -476,7 +478,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
                 DtlsEngineResult result;
 
                 try {
-                    result = sslEngine.handleReceivedData(unwrapAgain ? Unpooled.EMPTY_BUFFER : 
+                    result = sslEngine.handleReceivedData(unwrapAgain ? Unpooled.EMPTY_BUFFER :
                         encrypted, decrypted);
                 } catch (Exception exception) {
                     LOG.error("Failed to receive data from {}", dp.sender(), exception);
@@ -499,7 +501,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
                         return;
                     }
                     overflow = true;
-                    
+
                     decrypted = resizedOutputBuffer(ctx, maxReceiveOutputBufferSize, decrypted);
                     continue outer_loop;
                 case INSUFFICIENT_INPUT:
@@ -562,7 +564,7 @@ public abstract class ParemusBaseDTLSHandler extends ChannelDuplexHandler implem
                 output.capacity(newCapacity);
             }
         }
-       
+
         return output;
     }
 

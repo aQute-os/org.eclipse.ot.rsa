@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -20,7 +20,7 @@ public class SystemProperties extends struct {
 	private static final long	serialVersionUID	= 1L;
 
 	public SystemProperties() throws Exception {}
-	
+
 	public int		basePort												; //  9000;
 	public int		clientCdsDiscoveryTimeout								; //  20000;
 	public int		discardWait												; //  50000;
@@ -44,7 +44,7 @@ public class SystemProperties extends struct {
 	public int		minPort													; //  9010;
 	public boolean	old_dds													; //  (old.dds) false;
 	public String	persistDir												; //  "/Ws/paremus/sf/dsf/build/generated/dist/var/";
-	
+
 	/*
 	 * Definitions in org.cauldron.newton.provisioner.ProvisionerImpl
 	 */
@@ -59,7 +59,7 @@ public class SystemProperties extends struct {
 	public boolean	provisionerRemoteRebalancing							; //  true;
 	// this is the one used in org.cauldron.newton.provisioner.ProvisionerImpl
 	public boolean	provisionerRemoteRebalance							; //  true;
-	
+
 	public boolean	provisionerRemoteBoundary							; //  true;
 	public boolean	provisionerRemoteWaitHosted							; //  true;
 	public boolean	provisionerRemoteTicketDelta							; //  true;

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -18,7 +18,7 @@ import com.paremus.dto.api.struct;
 
 /**
  * And Attribute Descriptor (AD) describes an attribute so that the user
- * interface can be automatically generated. 
+ * interface can be automatically generated.
  */
 public class AD extends struct {
 	private static final long	serialVersionUID	= 1L;
@@ -28,14 +28,14 @@ public class AD extends struct {
 	 */
 	public enum BasicType {
 		number, string, list, struct, map, bool, any;
-	};
+	}
 
 	/*
-	 * Units 
+	 * Units
 	 */
 	public enum Unit {
 		none, unit, percentage, bytes, bytes_s, ms, seconds, time, date, hertz, watt, meter, load, candela, sievert, kg, kelvin, mol, ampere, m_s, m_s2, m2, m3, newton, pascal, joule, coulomb, volt, farad, ohm, siemens, weber, tesla, lux, gray, kat, rad;
-	};
+	}
 
 	@ADA(
 		description = "The identity of this Attribute Descriptor")
@@ -108,7 +108,7 @@ public class AD extends struct {
 	@ADA(
 		description = "Groups for which this attribute is a member. No groups means common membership. Groups are used to split objects in tabs, etc.")
 	public String[]				groups;
-	
+
 	@ADA(
 			description="Diff non-nummeric values. By default, no non-nummeric values are not compared since they are usually static")
 	public boolean diff=false;

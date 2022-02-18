@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -39,17 +39,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class EndpointFilter {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(EndpointFilter.class);
 
 	private final String rootCluster;
-	
+
 	private final Set<String> clusters = new HashSet<>();
-	
+
 	private final Set<String> baseScopes = new HashSet<>();
 
 	private final Set<String> scopes = new HashSet<>();
-	
+
 	private final boolean readOnly;
 
 	private EndpointFilter(String rootCluster) {
@@ -65,15 +65,15 @@ public class EndpointFilter {
 		this.scopes.addAll(this.baseScopes);
 		readOnly = false;
 	}
-	
+
 	public static EndpointFilter createFilter(DataInput input) {
 		try {
 			if(input.readUnsignedByte() != 1) {
 				throw new IllegalStateException("An unknown endpoint descriptor format");
 			}
-			
+
 			String rootCluster = input.readUTF();
-			
+
 			EndpointFilter ef = new EndpointFilter(rootCluster);
 
 			int size = input.readUnsignedShort();
@@ -98,8 +98,8 @@ public class EndpointFilter {
 			clusters.stream()
 				.filter(s -> !rootCluster.equals(s))
 				.forEach(s -> {
-					try { 
-						dos.writeUTF(s); 
+					try {
+						dos.writeUTF(s);
 					} catch (IOException ioe) {
 						throw new RuntimeException(ioe);
 					}
@@ -107,18 +107,18 @@ public class EndpointFilter {
 			dos.writeShort(scopes.size());
 			scopes.stream()
 				.forEach(s -> {
-					try { 
-						dos.writeUTF(s); 
+					try {
+						dos.writeUTF(s);
 					} catch (IOException ioe) {
 						throw new RuntimeException(ioe);
 					}
 				});
-				
+
 		} catch (IOException ioe) {
 			throw new RuntimeException(ioe);
 		}
 	}
-	
+
 	public void addCluster(String clusterName) {
 		if(readOnly) {
 			throw new IllegalArgumentException("Unable to update a remote endpoint filter");
@@ -141,63 +141,60 @@ public class EndpointFilter {
 		}
 		scopes.add(scope);
 	}
-	
+
 	public void removeScope(String scope) {
 		if(readOnly) {
 			throw new IllegalArgumentException("Unable to update a remote endpoint filter");
 		}
-		
+
 		if(baseScopes.contains(scope)) {
 			logger.info("The base scope {} cannot be removed", scope);
 		} else {
 			scopes.remove(scope);
 		}
 	}
-	
+
 	public boolean accept(EndpointDescription ed, Set<String> localTargetClusters) {
 		Map<String, Object> properties = ed.getProperties();
-		
-		Collection<String> scopes = getOrDefault(properties, PAREMUS_SCOPES_ATTRIBUTE, 
+
+		Collection<String> scopes = getOrDefault(properties, PAREMUS_SCOPES_ATTRIBUTE,
 				PAREMUS_SCOPE_GLOBAL);
-		
+
 		// Universal is everywhere
 		if(scopes.contains(PAREMUS_SCOPE_UNIVERSAL)) {
 			return true;
 		}
-		
-		Collection<String> endpointTargetClusters = concat(getOrDefault(properties, 
-				PAREMUS_CLUSTERS_ATTRIBUTE, rootCluster).stream(), getOrDefault(properties, 
+
+		Collection<String> endpointTargetClusters = concat(getOrDefault(properties,
+				PAREMUS_CLUSTERS_ATTRIBUTE, rootCluster).stream(), getOrDefault(properties,
 				PAREMUS_CLUSTERS_EXTRA_ATTRIBUTE, emptySet()).stream()).collect(toSet());
-		
+
 		// Not universal, so if it doesn't match our cluster then it can't match
-		if(Collections.disjoint(clusters, endpointTargetClusters)) {
-			return false;
-		}
 		// The remote may be in more clusters than we are, so we must also check the local targets
-		if(!localTargetClusters.isEmpty() && 
-				Collections.disjoint(localTargetClusters, endpointTargetClusters)) {
+		if(Collections.disjoint(clusters, endpointTargetClusters) || (!localTargetClusters.isEmpty() &&
+				Collections.disjoint(localTargetClusters, endpointTargetClusters))) {
 			return false;
 		}
-		
+
 		// It matches our cluster and is global
 		if(scopes.contains(PAREMUS_SCOPE_GLOBAL)) {
 			return true;
 		}
 
-		Collection<String> endpointTargetScopes = concat(getOrDefault(properties, 
-				PAREMUS_TARGETTED_ATTRIBUTE, emptySet()).stream(), getOrDefault(properties, 
+		Collection<String> endpointTargetScopes = concat(getOrDefault(properties,
+				PAREMUS_TARGETTED_ATTRIBUTE, emptySet()).stream(), getOrDefault(properties,
 				PAREMUS_TARGETTED_EXTRA_ATTRIBUTE, emptySet()).stream()).collect(toSet());
-		
+
 		//If it's targetted and any targets match then yes
-		if(scopes.contains(PAREMUS_SCOPE_TARGETTED) && 
+		if(scopes.contains(PAREMUS_SCOPE_TARGETTED) &&
 				!Collections.disjoint(this.scopes, endpointTargetScopes)) {
 			return true;
 		}
-		
+
 		// No matching, so not acceptable
 		return false;
 	}
-	
+
 	private Collection<String> getOrDefault(Map<String, Object> map, String key, Object defaultValue) {
 		Object o = map.getOrDefault(key, defaultValue);
 		if(o instanceof String) {
@@ -222,5 +219,5 @@ public class EndpointFilter {
 	public Set<String> getScopes() {
 		return scopes.stream().collect(toSet());
 	}
-	
+
 }

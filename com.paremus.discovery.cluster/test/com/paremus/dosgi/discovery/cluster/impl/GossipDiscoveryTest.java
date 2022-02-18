@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -75,50 +76,50 @@ public class GossipDiscoveryTest {
 
 	public static final String CLUSTER_A = "clusterA";
 	public static final String CLUSTER_B = "clusterB";
-	
+
 	@Mock
 	BundleContext context;
-	
+
 	@Mock
 	ClusterInformation clusterInfo;
-	
+
 	@Mock
 	ClusterNetworkInformation fni;
 
 	@Mock
 	LocalDiscoveryListener ldl;
-	
+
 	@Mock
 	ParemusNettyTLS tls;
 
 	Config config;
-	
+
 	private Semaphore sem = new Semaphore(0);
-	
+
 	private ClusterDiscoveryImpl gd;
-	
+
 	private EventExecutorGroup localWorker, remoteWorker;
-	
+
 	@BeforeEach
 	public void setUp() throws Exception {
 		config = standardConverter().convert(singletonMap("root.cluster", CLUSTER_A)).to(Config.class);
-		
+
 		Mockito.when(clusterInfo.getAddressFor(REMOTE_UUID_1)).thenReturn(InetAddress.getLoopbackAddress());
 		Mockito.when(clusterInfo.getAddressFor(REMOTE_UUID_2)).thenReturn(InetAddress.getLoopbackAddress());
-		
+
 		Mockito.doAnswer(i -> {
 			sem.release();
 			return null;
-		}).when(clusterInfo).updateAttribute(Mockito.eq(PAREMUS_DISCOVERY_DATA), Mockito.any(byte[].class));
-		
+		}).when(clusterInfo).updateAttribute(ArgumentMatchers.eq(PAREMUS_DISCOVERY_DATA), ArgumentMatchers.any(byte[].class));
+
 		localWorker = new DefaultEventExecutorGroup(1);
 		remoteWorker = new DefaultEventExecutorGroup(1);
 	}
-	
+
 	@AfterEach
 	public void tearDown() throws Exception {
 		gd.destroy();
-		
+
 		localWorker.shutdownGracefully(10, 1000, TimeUnit.MILLISECONDS).sync();
 		remoteWorker.shutdownGracefully(10, 1000, TimeUnit.MILLISECONDS).sync();
 	}
@@ -126,26 +127,26 @@ public class GossipDiscoveryTest {
 	@Test
 	public void testPortRegistration() {
 		gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-		
+
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
-		
+
 		gd.addClusterInformation(clusterInfo);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.addNetworkInformation(fni);
-		
-		Mockito.verify(clusterInfo).updateAttribute(Mockito.eq(PAREMUS_DISCOVERY_DATA), Mockito.any(byte[].class));
+
+		Mockito.verify(clusterInfo).updateAttribute(ArgumentMatchers.eq(PAREMUS_DISCOVERY_DATA), ArgumentMatchers.any(byte[].class));
 	}
-	
+
 	private byte[] getPortPlusFilter(int port, String cluster) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try (DataOutputStream dos = new DataOutputStream(baos)) {
 			dos.writeShort(port);
-			new EndpointFilter(cluster, new String[0]).writeOut(dos);		
+			new EndpointFilter(cluster, new String[0]).writeOut(dos);
 		}
 		return baos.toByteArray();
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testRegisterEndpoints() throws Exception{
@@ -153,44 +154,44 @@ public class GossipDiscoveryTest {
 			DatagramSocket remote2 = new DatagramSocket(0, InetAddress.getLoopbackAddress())) {
 			remote.setSoTimeout(2000);
 			remote2.setSoTimeout(2000);
-			
+
 			Mockito.when(clusterInfo.getMemberAttribute(REMOTE_UUID_1, PAREMUS_DISCOVERY_DATA))
 				.thenReturn(getPortPlusFilter(remote.getLocalPort(), CLUSTER_A));
 			Mockito.when(clusterInfo.getMemberAttribute(REMOTE_UUID_2, PAREMUS_DISCOVERY_DATA))
 				.thenReturn(getPortPlusFilter(remote2.getLocalPort(), CLUSTER_A));
-			
+
 			Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 			Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
-			
+
 			gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-			
+
 			gd.addClusterInformation(clusterInfo);
 			gd.addNetworkInformation(fni);
 			gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 			gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-			
+
 			assertTrue(sem.tryAcquire(1000, TimeUnit.MILLISECONDS));
-			
+
 			@SuppressWarnings("rawtypes")
 			ArgumentCaptor<Supplier> captor = ArgumentCaptor.forClass(Supplier.class);
-			Mockito.verify(ldl).updateRemote(Mockito.eq(CLUSTER_A), Mockito.eq(REMOTE_UUID_1), 
-					Mockito.eq(remote.getLocalPort()), Mockito.any(EndpointFilter.class), captor.capture());
-			
+			Mockito.verify(ldl).updateRemote(ArgumentMatchers.eq(CLUSTER_A), ArgumentMatchers.eq(REMOTE_UUID_1),
+					ArgumentMatchers.eq(remote.getLocalPort()), ArgumentMatchers.any(EndpointFilter.class), captor.capture());
+
 			EndpointDescription ed = getTestEndpointDescription(ENDPOINT_1);
 			((RemoteDiscoveryEndpoint)captor.getValue().get()).publishEndpoint(1, ed, false);
-			
+
 			DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
 			remote.receive(dp);
-			
+
 			checkPlainEndpointAnnounce(ed, dp, 1);
-			
+
 			gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_2, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-			
-			Mockito.verify(ldl).updateRemote(Mockito.eq(CLUSTER_A), Mockito.eq(REMOTE_UUID_2), 
-					Mockito.eq(remote2.getLocalPort()), Mockito.any(EndpointFilter.class), captor.capture());
-			
+
+			Mockito.verify(ldl).updateRemote(ArgumentMatchers.eq(CLUSTER_A), ArgumentMatchers.eq(REMOTE_UUID_2),
+					ArgumentMatchers.eq(remote2.getLocalPort()), ArgumentMatchers.any(EndpointFilter.class), captor.capture());
+
 			((RemoteDiscoveryEndpoint)captor.getValue().get()).publishEndpoint(1, ed, false);
-			
+
 			remote2.receive(dp);
 			checkPlainEndpointAnnounce(ed, dp, 1);
 		}
@@ -202,55 +203,55 @@ public class GossipDiscoveryTest {
 			.thenReturn(getPortPlusFilter(1234, CLUSTER_A));
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
-		
+
 		gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-		
+
 		gd.addClusterInformation(clusterInfo);
 		gd.addNetworkInformation(fni);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-		
+
 		assertTrue(sem.tryAcquire(1000, TimeUnit.MILLISECONDS));
-		
-		Mockito.verify(ldl).updateRemote(Mockito.eq(CLUSTER_A), Mockito.eq(REMOTE_UUID_1), 
-				Mockito.eq(1234), Mockito.any(EndpointFilter.class), Mockito.any());
-		
+
+		Mockito.verify(ldl).updateRemote(ArgumentMatchers.eq(CLUSTER_A), ArgumentMatchers.eq(REMOTE_UUID_1),
+				ArgumentMatchers.eq(1234), ArgumentMatchers.any(EndpointFilter.class), ArgumentMatchers.any());
+
 		gd.clusterEvent(clusterInfo, Action.REMOVED, REMOTE_UUID_1, emptySet(), emptySet(), emptySet());
-		
+
 		Mockito.verify(ldl).removeRemote(CLUSTER_A, REMOTE_UUID_1);
 	}
-	
+
 	@Test
 	public void testRevokeMemberVisibleFromTwoClusters() throws Exception{
 		Mockito.when(clusterInfo.getMemberAttribute(REMOTE_UUID_1, PAREMUS_DISCOVERY_DATA))
 			.thenReturn(getPortPlusFilter(1234, CLUSTER_A));
-		
+
 		gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-		
+
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
 		gd.addClusterInformation(clusterInfo);
-		
+
 		gd.addNetworkInformation(fni);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-		
+
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_B);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_B);
 		gd.addClusterInformation(clusterInfo);
-		
+
 		gd.addNetworkInformation(fni);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-		
+
 		assertTrue(sem.tryAcquire(2, 1000, TimeUnit.MILLISECONDS));
-		
-		Mockito.verify(ldl).updateRemote(Mockito.eq(CLUSTER_A), Mockito.eq(REMOTE_UUID_1), 
-				Mockito.eq(1234), Mockito.any(EndpointFilter.class), Mockito.any());
-		
+
+		Mockito.verify(ldl).updateRemote(ArgumentMatchers.eq(CLUSTER_A), ArgumentMatchers.eq(REMOTE_UUID_1),
+				ArgumentMatchers.eq(1234), ArgumentMatchers.any(EndpointFilter.class), ArgumentMatchers.any());
+
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		gd.clusterEvent(clusterInfo, Action.REMOVED, REMOTE_UUID_1, emptySet(), emptySet(), emptySet());
-		
+
 		Mockito.verify(ldl).removeRemote(CLUSTER_A, REMOTE_UUID_1);
 		Mockito.verify(ldl, Mockito.never()).removeRemote(CLUSTER_B, REMOTE_UUID_1);
 	}
@@ -261,17 +262,17 @@ public class GossipDiscoveryTest {
 		Mockito.when(clusterInfo.getMemberAttribute(REMOTE_UUID_2, PAREMUS_DISCOVERY_DATA)).thenReturn(new byte[] {(byte) 5678, (byte) 5678});
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
-		
+
 		gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-		
+
 		gd.addClusterInformation(clusterInfo);
 		gd.addNetworkInformation(fni);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_2, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-		
+
 		gd.removeClusterInformation(clusterInfo);
-		
+
 		Mockito.verify(ldl).removeRemotesForCluster(CLUSTER_A);
 	}
 
@@ -281,22 +282,22 @@ public class GossipDiscoveryTest {
 		Mockito.when(clusterInfo.getMemberAttribute(REMOTE_UUID_2, PAREMUS_DISCOVERY_DATA)).thenReturn(new byte[] {(byte) 5678, (byte) 5678});
 		Mockito.when(clusterInfo.getClusterName()).thenReturn(CLUSTER_A);
 		Mockito.when(fni.getClusterName()).thenReturn(CLUSTER_A);
-		
+
 		gd = new ClusterDiscoveryImpl(context, LOCAL_UUID, ldl, tls, config, localWorker, remoteWorker);
-		
+
 		gd.addClusterInformation(clusterInfo);
 		gd.addNetworkInformation(fni);
 		gd.clusterEvent(clusterInfo, ADDED, LOCAL_UUID, emptySet(), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_1, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
 		gd.clusterEvent(clusterInfo, ADDED, REMOTE_UUID_2, singleton(PAREMUS_DISCOVERY_DATA), emptySet(), emptySet());
-		
+
 		gd.addClusterInformation(clusterInfo);
-		
+
 		Mockito.verify(ldl).removeRemotesForCluster(CLUSTER_A);
 	}
 
 	private EndpointDescription getTestEndpointDescription(String endpointId) {
-		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		Map<String, Object> m = new LinkedHashMap<>();
 
         // required
         m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});
@@ -307,19 +308,19 @@ public class GossipDiscoveryTest {
 
         return new EndpointDescription(m);
 	}
-	
+
 	private void checkPlainEndpointAnnounce(EndpointDescription ed, DatagramPacket dp, int state)
 			throws IOException {
 		ByteBuf buf = Unpooled.wrappedBuffer(dp.getData(), dp.getOffset(), dp.getLength());
-		
+
 		//Version 2, plain text
 		assertEquals(2, buf.readByte());
 		assertEquals(MessageType.ANNOUNCEMENT.ordinal(), buf.readByte());
-		
+
 		EndpointDescription received = EndpointSerializer.deserializeEndpoint(buf);
 		assertEquals(ed.getId(), received.getId());
 		assertEquals(state, buf.readInt());
-		
+
 		assertEquals(0, buf.readableBytes());
 		buf.release();
 	}

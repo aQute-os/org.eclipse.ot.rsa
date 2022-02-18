@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -39,9 +39,9 @@ public class EndpointSerializer {
 	 * Each entry is a UTF-8 String Key, followed by a one byte type indicator
 	 * and then the bytes for that type
 	 */
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(EndpointSerializer.class);
-	
+
 	private static final byte V_1 = 1;
 
 	/* TYPE CODES */
@@ -60,13 +60,13 @@ public class EndpointSerializer {
 	private static final byte MAP = 12;
 	private static final byte PRIMITIVE_ARRAY = 13;
 	private static final byte ARRAY = 14;
-	
+
 	public static void serialize(EndpointDescription ed, ByteBuf buf) {
 		Map<String, Object> endpointProperties = ed.getProperties();
 
 		buf.writeByte(V_1);
 		buf.writeInt(endpointProperties.size());
-		
+
 		endpointProperties.forEach((k,v) -> {
 			try {
 				int writerIndex = buf.writerIndex();
@@ -86,14 +86,14 @@ public class EndpointSerializer {
 			throw new IllegalArgumentException("Unable to serialize: " + v, ioe);
 		}
 	}
-	
+
 	private static void writeType(Object v, ByteBuf buf) throws IOException {
-		
+
 		if(v == null) {
 			buf.writeByte(NULL);
 			return;
 		}
-		
+
 		if(v instanceof Boolean) {
 			buf.writeByte(BOOLEAN);
 			buf.writeBoolean((Boolean) v);
@@ -117,7 +117,7 @@ public class EndpointSerializer {
 			buf.writeChar(((Character) v).charValue());
 			return;
 		}
-		
+
 		if(v instanceof Integer) {
 			buf.writeByte(INT);
 			buf.writeInt((Integer) v);
@@ -129,7 +129,7 @@ public class EndpointSerializer {
 			buf.writeFloat((Float) v);
 			return;
 		}
-		
+
 		if(v instanceof Long) {
 			buf.writeByte(LONG);
 			buf.writeLong((Long) v);
@@ -176,7 +176,7 @@ public class EndpointSerializer {
 			});
 			return;
 		}
-		
+
 		if(v.getClass().isArray()) {
 			Class<?> componentType = v.getClass().getComponentType();
 			boolean primitive = componentType.isPrimitive();
@@ -184,17 +184,17 @@ public class EndpointSerializer {
 			writeTypeOnly(componentType, buf);
 			int length = Array.getLength(v);
 			buf.writeInt(length);
-			
+
 			for(int i =0; i < length; i++) {
 				writeType(Array.get(v, i), buf);
 			}
 			return;
 		}
-		
+
 		if(logger.isInfoEnabled()) {
 			logger.info("Unable to serialize the value {} of type {}. It will be treated as a String.", v, v.getClass());
 		}
-		
+
 		buf.writeByte(STRING);
 		int writerIndex = buf.writerIndex();
 		buf.writerIndex(writerIndex + 2);
@@ -202,7 +202,7 @@ public class EndpointSerializer {
 	}
 
 	private static void writeTypeOnly(Class<?> componentType, ByteBuf dos) throws IOException {
-		
+
 		if(componentType.isArray()) {
 			Class<?> nestedComponentType = componentType.getComponentType();
 			boolean primitive = nestedComponentType.isPrimitive();
@@ -210,7 +210,7 @@ public class EndpointSerializer {
 			writeType(nestedComponentType, dos);
 			return;
 		}
-		
+
 		if(Boolean.class == componentType || boolean.class == componentType) {
 			dos.writeByte(BOOLEAN);
 			return;
@@ -260,13 +260,13 @@ public class EndpointSerializer {
 			if(version != V_1) {
 				throw new IllegalArgumentException("Version " + version + " is not supported");
 			}
-			
+
 			int size = input.readInt();
-			Map<String, Object> props = new HashMap<String, Object>();
+			Map<String, Object> props = new HashMap<>();
 			for(int i = 0; i < size; i++) {
 				props.put(input.readCharSequence(input.readUnsignedShort(), UTF_8).toString(), readType(input));
 			}
-			
+
 			return new EndpointDescription(props);
 		} catch (IOException ioe) {
 			throw new IllegalArgumentException(ioe);
@@ -317,7 +317,7 @@ public class EndpointSerializer {
 			case ARRAY: {
 				Class<?> componentType = determineComponentType(input);
 				int length = input.readInt();
-				
+
 				Object array = Array.newInstance(componentType, length);
 				for(int i = 0; i < length; i++) {
 					Array.set(array, i, readType(input));
@@ -340,7 +340,7 @@ public class EndpointSerializer {
 
 	private static Class<?> determineComponentType(ByteBuf input) throws IOException {
 		short typeCode = input.readUnsignedByte();
-		
+
 		switch (typeCode) {
 			case PRIMITIVE_ARRAY:
 				return createPrimitiveArray(input.readUnsignedByte(), 0).getClass();

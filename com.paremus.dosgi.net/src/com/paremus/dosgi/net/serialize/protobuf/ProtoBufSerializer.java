@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -43,7 +43,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 
 public class ProtoBufSerializer implements Serializer {
-	
+
 	private static final byte NULL_TAG = 0x00;
 	private static final byte BOOLEAN_TAG = 0x01;
 	private static final byte BYTE_TAG = 0x02;
@@ -71,22 +71,22 @@ public class ProtoBufSerializer implements Serializer {
 	private static final byte SORTED_MAP_TAG = 0x18;
 	private static final byte PROTOBUF_OBJECT_TAG = 0x19;
 	private static final byte JAVA_OBJECT_TAG = 0x1A;
-	
+
 	private interface SimpleTypeSerializer {
 		public void serialize(ByteBufOutputStream os, Object o) throws IOException;
 	}
-	
+
 	private static final Map<Class<?>, SimpleTypeSerializer> SERIALIZERS;
-	
+
 	static {
-		Map<Class<?>, SimpleTypeSerializer> map = new HashMap<Class<?>, SimpleTypeSerializer>();
-		
+		Map<Class<?>, SimpleTypeSerializer> map = new HashMap<>();
+
 		map.put(null, (os,o) -> os.write(NULL_TAG));
 		map.put(Boolean.class, (os,o) -> {
 				os.write(BOOLEAN_TAG);
 				os.write(((Boolean)o) ? 1 : 0);
 			});
-		map.put(Byte.class, (os,o) -> { 
+		map.put(Byte.class, (os,o) -> {
 				os.write(BYTE_TAG);
 				os.write((Byte)o);
 			});
@@ -173,12 +173,12 @@ public class ProtoBufSerializer implements Serializer {
 				for(String s : (String[])o)
 					os.writeUTF(s);
 			});
-		
+
 		SERIALIZERS = Collections.unmodifiableMap(map);
 	}
-	
+
 	private final Bundle classSpace;
-	
+
 	public ProtoBufSerializer(Bundle classSpace) {
 		this.classSpace = classSpace;
 	}
@@ -190,7 +190,7 @@ public class ProtoBufSerializer implements Serializer {
 		for(Object x : o)
 			serialzeWithProtoBuf(bbos, x);
 	}
-	
+
 	@Override
 	public void serializeReturn(ByteBuf buffer, Object o) throws IOException {
 		serialzeWithProtoBuf(new ByteBufOutputStream(buffer), o);
@@ -199,11 +199,11 @@ public class ProtoBufSerializer implements Serializer {
 	@Override
 	public Object[] deserializeArgs(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		Object[] o = new Object[buffer.readInt()];
-		for(int i = 0; i < o.length ; i++) 
+		for(int i = 0; i < o.length ; i++)
 			o[i] = deserializeWithProtoBuf(new ByteBufInputStream(buffer), classSpace);
 		return o;
 	}
-	
+
 	@Override
 	public Object deserializeReturn(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		return deserializeWithProtoBuf(new ByteBufInputStream(buffer), classSpace);
@@ -211,11 +211,11 @@ public class ProtoBufSerializer implements Serializer {
 
 	public static void serialzeWithProtoBuf(ByteBufOutputStream bbos,
 			Object e) throws IOException {
-		
+
 		Class<? extends Object> classType = e.getClass();
 
 		SimpleTypeSerializer s = SERIALIZERS.get(classType);
-		
+
 		if(s != null) {
 			s.serialize(bbos, e);
 			return;
@@ -248,7 +248,7 @@ public class ProtoBufSerializer implements Serializer {
 				} else {
 					bbos.write(MAP_TAG);
 				}
-				
+
 				bbos.writeInt(((Map<?,?>)e).size());
 				for(Entry<?,?> entry : ((Map<?,?>)e).entrySet()) {
 					serialzeWithProtoBuf(bbos, entry.getKey());
@@ -268,9 +268,9 @@ public class ProtoBufSerializer implements Serializer {
 			}
 		}
 	}
-	
+
 	public static Object deserializeWithProtoBuf(ByteBufInputStream bbis, Bundle classSpace) throws IOException {
-		
+
 		switch(bbis.read()) {
 			case NULL_TAG :
 				return null;
@@ -367,7 +367,7 @@ public class ProtoBufSerializer implements Serializer {
 			case ARRAY_TAG : {
 				String type = bbis.readUTF();
 				int length = bbis.readInt();
-				
+
 				try {
 					Class<? extends Object> componentType = null;
 					try {
@@ -390,7 +390,7 @@ public class ProtoBufSerializer implements Serializer {
 			}
 			case LIST_TAG : {
 				int length = bbis.readInt();
-				List<Object> list = new ArrayList<Object>(length);
+				List<Object> list = new ArrayList<>(length);
 				for(int i = 0; i < length; i++) {
 					list.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
@@ -398,7 +398,7 @@ public class ProtoBufSerializer implements Serializer {
 			}
 			case SET_TAG : {
 				int length = bbis.readInt();
-				Set<Object> set = new HashSet<Object>(length);
+				Set<Object> set = new HashSet<>(length);
 				for(int i = 0; i < length; i++) {
 					set.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
@@ -406,7 +406,7 @@ public class ProtoBufSerializer implements Serializer {
 			}
 			case SORTED_SET_TAG : {
 				int length = bbis.readInt();
-				SortedSet<Object> set = new TreeSet<Object>();
+				SortedSet<Object> set = new TreeSet<>();
 				for(int i = 0; i < length; i++) {
 					set.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
@@ -414,18 +414,18 @@ public class ProtoBufSerializer implements Serializer {
 			}
 			case MAP_TAG : {
 				int length = bbis.readInt();
-				Map<Object, Object> map = new HashMap<Object, Object>(length);
+				Map<Object, Object> map = new HashMap<>(length);
 				for(int i = 0; i < length; i++) {
-					map.put(deserializeWithProtoBuf(bbis, classSpace), 
+					map.put(deserializeWithProtoBuf(bbis, classSpace),
 							deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return map;
 			}
 			case SORTED_MAP_TAG : {
 				int length = bbis.readInt();
-				SortedMap<Object, Object> map = new TreeMap<Object, Object>();
+				SortedMap<Object, Object> map = new TreeMap<>();
 				for(int i = 0; i < length; i++) {
-					map.put(deserializeWithProtoBuf(bbis, classSpace), 
+					map.put(deserializeWithProtoBuf(bbis, classSpace),
 							deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return map;
@@ -480,6 +480,6 @@ public class ProtoBufSerializer implements Serializer {
 			default :
 				throw new IOException("Unknown state");
 		}
-		
+
 	}
 }

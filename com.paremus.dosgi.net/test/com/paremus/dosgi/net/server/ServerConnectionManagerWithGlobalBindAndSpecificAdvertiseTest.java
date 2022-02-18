@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -26,10 +26,11 @@ import org.junit.jupiter.api.Test;
 
 public class ServerConnectionManagerWithGlobalBindAndSpecificAdvertiseTest extends AbstractServerConnectionManagerTest {
 
+	@Override
 	protected Map<String, Object> getExtraConfig() {
-		Map<String, Object> toReturn = new HashMap<String, Object>();
+		Map<String, Object> toReturn = new HashMap<>();
 		toReturn.put("allow.insecure.transports", true);
-		
+
 		String ipv6 = "TCP;bind=[::];advertise=localhost";
 		String ipv4 = "TCP;bind=127.0.0.1;advertise=localhost";
 
@@ -37,8 +38,9 @@ public class ServerConnectionManagerWithGlobalBindAndSpecificAdvertiseTest exten
 		return toReturn;
 	}
 
+	@Override
 	protected ByteChannel getCommsChannel(URI uri) {
-		
+
 		try {
 			SocketChannel sc = SocketChannel.open();
 			sc.connect(new InetSocketAddress(uri.getHost(), uri.getPort()));
@@ -48,7 +50,7 @@ public class ServerConnectionManagerWithGlobalBindAndSpecificAdvertiseTest exten
 			throw new RuntimeException();
 		}
 	}
-	
+
 	@Test
 	public void checkURI() {
 		assertEquals("localhost", serviceUri.getHost());

@@ -16,14 +16,14 @@
 
 package org.freshvanilla.net;
 
-import io.netty.buffer.ByteBuf;
-
 import java.io.IOException;
 import java.io.NotSerializableException;
 
 import org.freshvanilla.lang.MetaClass;
 import org.freshvanilla.lang.MetaClasses;
 import org.freshvanilla.lang.MetaField;
+
+import io.netty.buffer.ByteBuf;
 
 public class VanillaPojoSerializer implements PojoSerializer {
 
@@ -34,7 +34,8 @@ public class VanillaPojoSerializer implements PojoSerializer {
         _metaClasses = metaclasses;
     }
 
-    public <Pojo> boolean canSerialize(Pojo pojo) {
+    @Override
+	public <Pojo> boolean canSerialize(Pojo pojo) {
         Class<?> clazz = pojo.getClass();
         if(clazz.isArray() || clazz.isEnum() || clazz.isPrimitive()) {
         	return false;
@@ -43,7 +44,8 @@ public class VanillaPojoSerializer implements PojoSerializer {
         return !className.startsWith("java") && !className.startsWith("com.sun.");
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+	@SuppressWarnings("unchecked")
     public <Pojo> void serialize(ByteBuf wb, WireFormat wf, Pojo pojo) throws IOException {
         MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass((Class<Pojo>)pojo.getClass());
         wf.writeTag(wb, clazz.nameWithParameters());
@@ -53,7 +55,8 @@ public class VanillaPojoSerializer implements PojoSerializer {
         }
     }
 
-    public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException {
+    @Override
+	public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException {
         String classWithParameters = (String)wf.readObject(rb);
         MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
 

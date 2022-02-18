@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -41,20 +41,20 @@ public class EndpointSerializerTest {
 	@Test
 	public void testRoundTrip() throws IOException {
 		EndpointDescription ed = getTestEndpointDescription();
-		
+
 		ByteBuf buf = Unpooled.buffer();
-		
+
 		EndpointSerializer.serialize(ed, buf);
-		
+
 		System.out.println("Serialized size was: " + buf.readableBytes());
-		
+
 		EndpointDescription ed2 = EndpointSerializer.deserializeEndpoint(buf);
-		
+
 		Map<String, Object> originalProps = ed.getProperties();
 		Map<String, Object> roundTrippedProps = ed2.getProperties();
-		
+
 		assertEquals(originalProps.size(), roundTrippedProps.size());
-		
+
 		for(String key : originalProps.keySet()) {
 			Object orig = originalProps.get(key);
 			Object roundTripped = roundTrippedProps.get(key);
@@ -77,7 +77,7 @@ public class EndpointSerializerTest {
 	}
 
     private EndpointDescription getTestEndpointDescription() {
-        Map<String, Object> m = new LinkedHashMap<String, Object>();
+        Map<String, Object> m = new LinkedHashMap<>();
 
         // required
         m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});
@@ -103,18 +103,18 @@ public class EndpointSerializerTest {
         m.put("Short2", (short)-99);
         m.put("char", '@');
         m.put("Character2", 'X');
-        
+
         m.put("version", new Version("1.2"));
         m.put("Version2", new Version("2.3"));
 
         // collections and arrays
-        List<Boolean> boolList = new ArrayList<Boolean>();
+        List<Boolean> boolList = new ArrayList<>();
         boolList.add(true);
         boolList.add(false);
         m.put("bool-list", boolList);
-        m.put("empty-set", new HashSet<Object>());
+        m.put("empty-set", new HashSet<>());
 
-        Set<String> stringSet = new LinkedHashSet<String>();
+        Set<String> stringSet = new LinkedHashSet<>();
         stringSet.add("Hello there");
         stringSet.add("How are you?");
         m.put("string-set", stringSet);
@@ -155,13 +155,13 @@ public class EndpointSerializerTest {
 
         String[] stringArray = new String[]{"foo", "bar"};
         m.put("string-array", stringArray);
-       
+
         Version[] versionArray = new Version[]{new Version("1.2.3"), new Version("2.3.4")};
         m.put("version-array", versionArray);
-        
+
         m.put("map", Collections.singletonMap("foo", "bar"));
 
-        
+
         // raw XML for good measure (must remain parseable with namespaces!)
         String LF = "\n";
         String xml = "<xml>" + LF + "<t1 xmlns=\"http://www.acme.org/xmlns/other/v1.0.0\">" + LF

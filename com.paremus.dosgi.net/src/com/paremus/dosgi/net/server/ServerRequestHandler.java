@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -44,13 +44,13 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 @Sharable
 class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ServerRequestHandler.class); 
-	
+	private static final Logger LOG = LoggerFactory.getLogger(ServerRequestHandler.class);
+
 	private final ProtocolScheme transport;
-	
-	private final ConcurrentHashMap<UUID, ServiceInvoker> registeredServices 
+
+	private final ConcurrentHashMap<UUID, ServiceInvoker> registeredServices
 		= new ConcurrentHashMap<>();
-	
+
 	private final ConcurrentHashMap<CacheKey, DataStream> registeredStreams
 		= new ConcurrentHashMap<>();
 
@@ -58,7 +58,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 		super();
 		this.transport = transport;
 	}
-	
+
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		ByteBuf buf = ((ByteBuf) msg);
@@ -66,7 +66,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 			byte callType = buf.readByte();
 			UUID serviceId = new UUID(buf.readLong(), buf.readLong());
 			int callId = buf.readInt();
-			
+
 			switch(callType) {
 				case CALL_WITH_RETURN :
 				case CALL_WITHOUT_RETURN:
@@ -85,9 +85,9 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 							callType, serviceId);
 					ctx.write(new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId,
 							"An unknown request type was received for service " + serviceId), ctx.voidPromise());
-					
+
 			}
-			
+
 		} finally {
 			buf.release();
 		}
@@ -95,7 +95,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 
 	private void invokerAction(ChannelHandlerContext ctx, ByteBuf buf, byte callType, UUID serviceId, int callId) {
 		ServiceInvoker invoker = registeredServices.get(serviceId);
-		
+
 		if(invoker != null) {
 			callInvoker(ctx, buf, callType, serviceId, callId, invoker);
 		} else {
@@ -127,11 +127,11 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 						callType, serviceId);
 		}
 	}
-	
+
 	private void missingInvoker(ChannelHandlerContext ctx, byte callType, int callId, UUID serviceId) {
 		switch(callType) {
 			case CALL_WITH_RETURN :
-				LOG.warn("The RSA distribution provider does not have a service {} registered with transport {};{}", 
+				LOG.warn("The RSA distribution provider does not have a service {} registered with transport {};{}",
 						new Object[] {serviceId, transport.getProtocol(), transport.getConfigurationString()});
 				ctx.channel().writeAndFlush(new ServerErrorResponse(NO_SERVICE, serviceId, callId), ctx.voidPromise());
 				break;
@@ -140,7 +140,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 			case ASYNC_METHOD_PARAM_DATA :
 			case ASYNC_METHOD_PARAM_CLOSE :
 			case ASYNC_METHOD_PARAM_FAILURE :
-				LOG.warn("The RSA distribution provider does not have a service {} registered with transport {};{}", 
+				LOG.warn("The RSA distribution provider does not have a service {} registered with transport {};{}",
 						new Object[] {serviceId, transport.getProtocol(), transport.getConfigurationString()});
 				break;
 			default :
@@ -152,7 +152,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 	private void streamAction(ChannelHandlerContext ctx, ByteBuf buf, byte callType, UUID serviceId, int callId) {
 		CacheKey key = new CacheKey(serviceId, callId);
 		DataStream dataStream = registeredStreams.get(key);
-		
+
 		if(dataStream != null) {
 			switch(callType) {
 				case CLIENT_OPEN:
@@ -167,7 +167,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 			}
 		} else if (callType != CLIENT_CLOSE) {
 			ctx.writeAndFlush(new ServerErrorMessageResponse(UNKNOWN_ERROR,
-					serviceId, callId, "The streaming response could not be found"), 
+					serviceId, callId, "The streaming response could not be found"),
 					ctx.voidPromise());
 		}
 	}
@@ -187,7 +187,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 		stream.closeFuture().addListener(f -> {
 				registeredStreams.remove(key);
 				if(!f.isSuccess()) {
-					ch.writeAndFlush(new ServerErrorMessageResponse(UNKNOWN_ERROR, id, callId, 
+					ch.writeAndFlush(new ServerErrorMessageResponse(UNKNOWN_ERROR, id, callId,
 						"No connection made to the stream before the timeout was reached"), ch.voidPromise());
 				}
 			});

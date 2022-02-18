@@ -141,7 +141,7 @@ public class RSAGogo implements Converter, EndpointEventListener, ClusterListene
 	public void clusterEvent(ClusterInformation cluster, Action action, UUID id, Set<String> addedKeys,
 			Set<String> removedKeys, Set<String> updatedKeys) {
 		System.out.println(cluster + " action=" + action + " id=" + id + " add=" + addedKeys + " remove=" + removedKeys + " update" + updatedKeys);
-		
+
 	}
 
 }

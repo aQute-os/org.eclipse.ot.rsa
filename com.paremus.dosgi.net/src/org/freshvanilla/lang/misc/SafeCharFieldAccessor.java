@@ -9,7 +9,8 @@ class SafeCharFieldAccessor implements FieldAccessor<Character> {
         this.f = f;
     }
 
-    public <Pojo> Character getField(Pojo pojo) {
+    @Override
+	public <Pojo> Character getField(Pojo pojo) {
     	try {
 			return (Character) f.get(pojo);
 		} catch (Exception e) {
@@ -17,19 +18,23 @@ class SafeCharFieldAccessor implements FieldAccessor<Character> {
 		}
     }
 
-    public <Pojo> boolean getBoolean(Pojo pojo) {
+    @Override
+	public <Pojo> boolean getBoolean(Pojo pojo) {
         return getField(pojo) != 0;
     }
 
-    public <Pojo> long getNum(Pojo pojo) {
+    @Override
+	public <Pojo> long getNum(Pojo pojo) {
     	return getField(pojo);
     }
 
-    public <Pojo> double getDouble(Pojo pojo) {
+    @Override
+	public <Pojo> double getDouble(Pojo pojo) {
     	return getField(pojo);
     }
 
-    public <Pojo> void setField(Pojo pojo, Character object) {
+    @Override
+	public <Pojo> void setField(Pojo pojo, Character object) {
     	try {
         	f.set(pojo, object);
         } catch (Exception e) {
@@ -37,15 +42,18 @@ class SafeCharFieldAccessor implements FieldAccessor<Character> {
         }
     }
 
-    public <Pojo> void setBoolean(Pojo pojo, boolean flag) {
+    @Override
+	public <Pojo> void setBoolean(Pojo pojo, boolean flag) {
         setField(pojo, (char)(flag ? 1 : 0));
     }
 
-    public <Pojo> void setNum(Pojo pojo, long value) {
+    @Override
+	public <Pojo> void setNum(Pojo pojo, long value) {
     	setField(pojo, (char)value);
     }
 
-    public <Pojo> void setDouble(Pojo pojo, double value) {
+    @Override
+	public <Pojo> void setDouble(Pojo pojo, double value) {
     	setField(pojo, (char)value);
     }
 }

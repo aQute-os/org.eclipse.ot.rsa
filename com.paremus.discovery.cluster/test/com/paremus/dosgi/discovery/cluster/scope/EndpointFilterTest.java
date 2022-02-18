@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -45,47 +45,47 @@ public class EndpointFilterTest {
 
 	public static final String SCOPE_A = "system-a";
 	public static final String SCOPE_B = "system-b";
-	
+
 	@Test
 	public void testDefault() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				null, null, null, null, null), emptySet()));
 	}
 
 	@Test
 	public void testScopeUniversal() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_UNIVERSAL, null, null, null, null), emptySet()));
 	}
 
 	@Test
 	public void testScopeGlobal() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, null, null, null, null), emptySet()));
 	}
 
 	@Test
 	public void testScopeGlobalWrongCluster() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, CLUSTER_B, null, null, null), emptySet()));
-		
+
 		filter.addCluster(CLUSTER_B);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, CLUSTER_B, null, null, null), emptySet()));
 	}
 
 	@Test
 	public void testScopeGlobalMultipleClusters() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, asList(CLUSTER_A, CLUSTER_B), null, null, null), emptySet()));
 
 		filter = new EndpointFilter(CLUSTER_B, new String[0]);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, asList(CLUSTER_A, CLUSTER_B), null, null, null), emptySet()));
 	}
 
@@ -93,22 +93,22 @@ public class EndpointFilterTest {
 	public void testScopeGlobalMultipleClustersButNotALocalTarget() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addCluster(CLUSTER_B);
-		
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, asList(CLUSTER_B), null, null, null), Collections.singleton(CLUSTER_A)));
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_GLOBAL, asList(CLUSTER_B), null, null, null), Collections.singleton(CLUSTER_B)));
 	}
 
 	@Test
 	public void testTargetScope() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
 
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
 	}
 
@@ -116,36 +116,36 @@ public class EndpointFilterTest {
 	public void testTargetScopeExtra() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_B);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
-		
+
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_B);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, SCOPE_B), emptySet()));
 	}
 
 	@Test
 	public void testTargetScopeCorrectCluster() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_A, null, SCOPE_A, null), emptySet()));
-		
+
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_A, null, SCOPE_A, null), emptySet()));
 	}
 
 	@Test
 	public void testTargetScopeWrongCluster() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_B, null, SCOPE_A, null), emptySet()));
-		
+
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_B, null, SCOPE_A, null), emptySet()));
 	}
 
@@ -153,72 +153,72 @@ public class EndpointFilterTest {
 	public void testTargetScopeExtraCluster() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_B, null, SCOPE_A, null), emptySet()));
-		
+
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, CLUSTER_B, CLUSTER_A, SCOPE_A, null), emptySet()));
 	}
 
 	@Test
 	public void testTargetScopeMultipleClusters() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, new String[]{CLUSTER_A, CLUSTER_B}, null, SCOPE_A, null), emptySet()));
-		
+
 		filter = new EndpointFilter(CLUSTER_A, new String[0]);
 		filter.addScope(SCOPE_A);
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, new String[]{CLUSTER_A, CLUSTER_B}, null, SCOPE_A, null), emptySet()));
 	}
 
 	@Test
 	public void testTargetScopeMultipleScopes() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[0]);
-		
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
 
 		filter.addScope(SCOPE_A);
 		filter.addScope(SCOPE_B);
-		
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, new String[] {SCOPE_A, SCOPE_B}, null), emptySet()));
 
 		filter.removeScope(SCOPE_A);
-		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertFalse(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, new String[] {SCOPE_A, SCOPE_B}, null), emptySet()));
 	}
 
 	@Test
 	public void testBaseScopeIncludedInScopes() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[] {SCOPE_A});
-		
+
 		assertTrue(filter.getScopes().contains(SCOPE_A), ()->"Scopes did not contain " + SCOPE_A + " " + filter.getScopes());
-		
-		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT, 
+
+		assertTrue(filter.accept(getTestEndpointDescription(ENDPOINT,
 				PAREMUS_SCOPE_TARGETTED, null, null, SCOPE_A, null), emptySet()));
 	}
 
 	@Test
 	public void testBaseScopeNotRemovable() {
 		EndpointFilter filter = new EndpointFilter(CLUSTER_A, new String[] {SCOPE_A});
-		
+
 		filter.removeScope(SCOPE_A);
 
 		assertTrue(filter.getScopes().contains(SCOPE_A), ()->"Scopes did not contain " + SCOPE_A + " " + filter.getScopes());
 	}
 
 
-	private EndpointDescription getTestEndpointDescription(String endpointId, String scope, 
+	private EndpointDescription getTestEndpointDescription(String endpointId, String scope,
 			Object cluster, Object clustersExtra, Object scopes, Object scopesExtra) {
-		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		Map<String, Object> m = new LinkedHashMap<>();
 
         // required
         m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -81,7 +82,7 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 	private MemberInfo memberA, memberB;
 
 	private ServerSocketChannel server;
-	
+
 	private ChannelGroup group;
 
 	@Mock
@@ -89,10 +90,10 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 
 	@Mock
 	NettyComms socketCommsA, socketCommsB;
-	
+
 	@Mock
 	ClusterInformation clusterInfo;
-	
+
 	private ServerBootstrap sb;
 	private Bootstrap b;
 	private NioEventLoopGroup nioEventLoopGroup;
@@ -101,11 +102,11 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 	public void setUp() throws Exception {
 		nioEventLoopGroup = new NioEventLoopGroup();
 		group = new DefaultChannelGroup(nioEventLoopGroup.next());
-		
+
 		b = new Bootstrap()
 				.group(nioEventLoopGroup)
 				.channel(NioSocketChannel.class);
-		
+
 		sb = new ServerBootstrap()
 				.group(nioEventLoopGroup)
 				.channel(NioServerSocketChannel.class)
@@ -117,7 +118,7 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 						ch.pipeline().addLast(new IncomingTCPReplicator(ch, IDB, gossipB));
 					}
 				});
-		
+
 		server = (ServerSocketChannel) sb.bind(new InetSocketAddress(getLoopbackAddress(), 0)).sync().channel();
 
 		snapA = new Snapshot(new Snapshot(IDA, 4567, (short) 1, PAYLOAD_UPDATE,
@@ -172,13 +173,13 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 		Snapshot snapDA = new Snapshot(new Snapshot(snapDId, 2, (short) 1,
 				PAYLOAD_UPDATE, singletonMap("bar", new byte[] { 0x7F }), 1),
 				new InetSocketAddress(getLoopbackAddress(), 1));
-		
+
 		Thread.sleep(50);
-		
+
 		Snapshot snapDB = new Snapshot(new Snapshot(snapDId, 2, (short) 1,
 				PAYLOAD_UPDATE, singletonMap("bar", new byte[] { 0x7F }), 1),
 				new InetSocketAddress(getLoopbackAddress(), 1));
-		
+
 		MemberInfo memberDA = new MemberInfo(standardConverter().convert(
 				config).to(Config.class), snapDA, clusterInfo, Collections.emptyList());
 		memberDA.update(snapDA);
@@ -197,16 +198,16 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 		Channel client = b.handler(new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel ch) throws Exception {
-				ch.pipeline().addLast(new OutgoingTCPReplicator(ch, IDA, gossipA, IDB, 72, 
-						Arrays.asList(memberA.toSnapshot(HEADER), memberB.toSnapshot(HEADER), 
+				ch.pipeline().addLast(new OutgoingTCPReplicator(ch, IDA, gossipA, IDB, 72,
+						Arrays.asList(memberA.toSnapshot(HEADER), memberB.toSnapshot(HEADER),
 								memberC.toSnapshot(HEADER), memberDA.toSnapshot(HEADER)), ch.newSucceededFuture()));
 			}
 		}).connect(server.localAddress()).sync().channel();
-		
-		
+
+
 		Future<Void> clientSync = client.closeFuture();
 		Future<Void> serverSync = group.newCloseFuture();
-		
+
 		clientSync.addListener(f -> semA.release());
 		serverSync.addListener(f -> semB.release());
 
@@ -214,14 +215,14 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 		assertTrue(semB.tryAcquire(2, SECONDS));
 
 		Mockito.verify(gossipB).merge(
-				Mockito.argThat(isSnapshotWithIdAndType(IDA, PAYLOAD_UPDATE)));
+				ArgumentMatchers.argThat(isSnapshotWithIdAndType(IDA, PAYLOAD_UPDATE)));
 		Mockito.verify(gossipB)
-				.merge(Mockito.argThat(isSnapshotWithIdAndType(snapCId,
+				.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapCId,
 						PAYLOAD_UPDATE)));
-		
-		Mockito.verify(gossipA, Mockito.never()).merge(Mockito.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
-		Mockito.verify(gossipB, Mockito.never()).merge(Mockito.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
-		
+
+		Mockito.verify(gossipA, Mockito.never()).merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
+		Mockito.verify(gossipB, Mockito.never()).merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
+
 		assertEquals(snapDB.getSnapshotTimestamp(), memberDA.toSnapshot(HEADER).getSnapshotTimestamp());
 	}
 

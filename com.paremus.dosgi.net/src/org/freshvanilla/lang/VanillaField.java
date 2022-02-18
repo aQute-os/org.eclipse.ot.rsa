@@ -18,8 +18,8 @@ package org.freshvanilla.lang;
 
 import java.lang.reflect.Field;
 
-import org.freshvanilla.lang.misc.FieldAccessor;
 import org.freshvanilla.lang.misc.AccessUtils;
+import org.freshvanilla.lang.misc.FieldAccessor;
 
 public class VanillaField<D, T> implements MetaField<D, T> {
     private final FieldAccessor<T> _accessor;
@@ -39,47 +39,58 @@ public class VanillaField<D, T> implements MetaField<D, T> {
         _primitive = MetaClasses.isPrimitive(type);
     }
 
-    public String getName() {
+    @Override
+	public String getName() {
         return _name;
     }
 
-    public void set(D pojo, T value) {
+    @Override
+	public void set(D pojo, T value) {
         _accessor.setField(pojo, value);
     }
 
-    public T get(D pojo) {
+    @Override
+	public T get(D pojo) {
         return _accessor.getField(pojo);
     }
 
-    public boolean isPrimitive() {
+    @Override
+	public boolean isPrimitive() {
         return _primitive;
     }
 
-    public Class<T> getType() {
+    @Override
+	public Class<T> getType() {
         return _type;
     }
 
-    public void setBoolean(D pojo, boolean flag) {
+    @Override
+	public void setBoolean(D pojo, boolean flag) {
         _accessor.setBoolean(pojo, flag);
     }
 
-    public boolean getBoolean(D pojo) {
+    @Override
+	public boolean getBoolean(D pojo) {
         return _accessor.getBoolean(pojo);
     }
 
-    public void setNum(D pojo, long value) {
+    @Override
+	public void setNum(D pojo, long value) {
         _accessor.setNum(pojo, value);
     }
 
-    public long getNum(D pojo) {
+    @Override
+	public long getNum(D pojo) {
         return _accessor.getNum(pojo);
     }
 
-    public void setDouble(D pojo, double value) {
+    @Override
+	public void setDouble(D pojo, double value) {
         _accessor.setDouble(pojo, value);
     }
 
-    public double getDouble(D pojo) {
+    @Override
+	public double getDouble(D pojo) {
         return _accessor.getDouble(pojo);
     }
 

@@ -34,8 +34,8 @@ import org.freshvanilla.utils.NamedThreadFactory;
 
 public class DataSockets {
 
-    private static final AtomicReference<ScheduledExecutorService> MANAGER = new AtomicReference<ScheduledExecutorService>();
-    private static final Map<DataSocket, String> DATA_SOCKETS = new ConcurrentHashMap<DataSocket, String>();
+    private static final AtomicReference<ScheduledExecutorService> MANAGER = new AtomicReference<>();
+    private static final Map<DataSocket, String> DATA_SOCKETS = new ConcurrentHashMap<>();
 
     static final long CHECK_PERIOD_MS = 1000;
 
@@ -52,7 +52,8 @@ public class DataSockets {
                 MANAGER.set(service);
 
                 Runnable checker = new Runnable() {
-                    public void run() {
+                    @Override
+					public void run() {
                         long now = System.currentTimeMillis();
                         for (Entry<DataSocket, String> e : DATA_SOCKETS.entrySet()) {
                             DataSocket ds = e.getKey();
@@ -118,7 +119,7 @@ public class DataSockets {
                 pos = 0;
             }
 
-            List<StackTraceElement> extended = new ArrayList<StackTraceElement>(original.subList(0, pos));
+            List<StackTraceElement> extended = new ArrayList<>(original.subList(0, pos));
 
             InetSocketAddress address = ds.getAddress();
 

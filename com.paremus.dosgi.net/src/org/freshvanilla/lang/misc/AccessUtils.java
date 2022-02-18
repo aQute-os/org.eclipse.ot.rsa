@@ -40,7 +40,7 @@ public class AccessUtils {
     }
 
     public static <T> T newInstance(Class<T> clazz) throws InstantiationException {
-        return (T)delegate.newInstance(clazz);
+        return delegate.newInstance(clazz);
     }
 
     @SuppressWarnings("rawtypes")

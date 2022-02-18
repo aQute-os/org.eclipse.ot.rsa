@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -57,30 +57,30 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
 	private static final Logger logger = LoggerFactory.getLogger(ManagedServiceFactoryImpl.class);
-	
+
 	private final BundleContext context;
-	
+
 	private final Timer timer;
-	
+
 	private final EventLoopGroup serverIo;
-	
+
 	private final EventLoopGroup clientIo;
-	
+
 	private final EventExecutorGroup serverWorkers;
-	
+
 	private final EventExecutorGroup clientWorkers;
-	
+
 	private final ByteBufAllocator allocator;
-	
+
 	private final ConcurrentHashMap<String, ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>> trackers = new ConcurrentHashMap<>();
-	
+
 	private final ConcurrentHashMap<String, RemoteServiceAdminFactoryImpl> rsas = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<RemoteServiceAdminFactoryImpl, ServiceRegistration<?>> registrations = new ConcurrentHashMap<>();
-	
+
 	private final ConcurrentHashMap<ServiceReference<ParemusNettyTLS>, List<RemoteServiceAdminFactoryImpl>> usedBy = new ConcurrentHashMap<>();
 
 	private volatile boolean open = true;
-	
+
 	public ManagedServiceFactoryImpl(BundleContext context, Timer timer, EventLoopGroup serverIo, EventLoopGroup clientIo,
 			EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, ByteBufAllocator allocator) {
 		this.context = context;
@@ -99,13 +99,13 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
 	@Override
 	public void updated(String pid, Dictionary<String, ?> properties) throws ConfigurationException {
-		
+
 		deleted(pid);
-		
+
 		if(!open) {
 			return;
 		}
-		
+
 		TransportConfig config;
 		try {
 			config = Converters.standardConverter().convert(toMap(properties)).to(TransportConfig.class);
@@ -113,14 +113,14 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			logger.error("Unable to process the configuration for pid {}", pid, e);
 			throw new ConfigurationException(null, e.getMessage());
 		}
-		
+
 		if(config.server_protocols().length == 0 && config.client_protocols().length == 0) {
 			logger.info("The pid {} defines no RSA transports, so no RSA will be created", pid);
 			return;
 		}
-		
+
 		String filter = config.encoding_scheme_target();
-		
+
 		Predicate<ServiceReference<ParemusNettyTLS>> selector;
 		if(filter.isEmpty()) {
 			selector = r -> true;
@@ -135,55 +135,55 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			}
 			selector = r -> f.match(r);
 		}
-		
+
 		ServiceTracker<ParemusNettyTLS, ParemusNettyTLS> tracker = new ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>(context, ParemusNettyTLS.class, null) {
 				@Override
 				public ParemusNettyTLS addingService(ServiceReference<ParemusNettyTLS> reference) {
 					ParemusNettyTLS esf = super.addingService(reference);
-					
+
 					if(esf != null && selector.test(reference) && !rsas.containsKey(pid)) {
 						setup(reference, esf, config);
 					}
-					
+
 					return esf;
 				}
 
 				private boolean setup(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS esf, TransportConfig cfg) {
 					RemoteServiceAdminFactoryImpl newRSA;
 					try {
-						newRSA = new RemoteServiceAdminFactoryImpl(context,config, esf, allocator, serverIo, 
+						newRSA = new RemoteServiceAdminFactoryImpl(context,config, esf, allocator, serverIo,
 								clientIo, serverWorkers, clientWorkers, timer);
 					} catch (IllegalArgumentException iae) {
 						logger.error("The RSA could not be created with encoding scheme {}", reference, iae);
 						return false;
 					}
-					
+
 					rsas.put(pid, newRSA);
 					usedBy.compute(reference, (k,v) -> v == null ? singletonList(newRSA) :
 								concat(v.stream(), of(newRSA)).collect(toList()));
-					
+
 					Hashtable<String, Object> props = new Hashtable<>();
-					
+
 					Enumeration<String> keys = properties.keys();
-					
+
 					while(keys.hasMoreElements()) {
 						String key = keys.nextElement();
 						if(!key.startsWith(".")) {
 							props.put(key, properties.get(key));
 						}
 					}
-					
+
 					props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, newRSA.getSupportedIntents());
 			        props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED, Collections.singletonList("com.paremus.dosgi.net"));
-			        
+
 					ServiceRegistration<?> newRSAReg = context.registerService(new String[] {
-							RemoteServiceAdmin.class.getName(), MultiFrameworkRemoteServiceAdmin.class.getName()}, 
+							RemoteServiceAdmin.class.getName(), MultiFrameworkRemoteServiceAdmin.class.getName()},
 							newRSA, props);
-					
+
 					registrations.put(newRSA, newRSAReg);
 					return true;
 				}
-				
+
 				@Override
 				public void modifiedService(ServiceReference<ParemusNettyTLS> reference,
 						ParemusNettyTLS service) {
@@ -191,12 +191,12 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 						removeAndAdd(reference);
 					}
 				}
-				
+
 				private void removeAndAdd(ServiceReference<ParemusNettyTLS> reference) {
 					RemoteServiceAdminFactoryImpl rsa = rsas.get(pid);
 					if(rsa != null) {
 						if(usedBy.getOrDefault(reference, emptyList()).contains(rsa)) {
-						
+
 							usedBy.compute(reference, (k,v) -> {
 									List<RemoteServiceAdminFactoryImpl> l = v == null ? emptyList() :
 										new ArrayList<>(v);
@@ -204,9 +204,9 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 									return l.isEmpty() ? null : l;
 								});
 							rsas.remove(pid, rsa);
-							
+
 							ServiceRegistration<?> reg = registrations.remove(rsa);
-							
+
 							if(reg != null) {
 								try {
 									reg.unregister();
@@ -214,7 +214,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 									// No matter
 								}
 							}
-							
+
 							rsa.close();
 						} else {
 							return;
@@ -233,9 +233,9 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 				}
 			};
 		trackers.put(pid, tracker);
-		
+
 		tracker.open();
-		
+
 		if(!open) {
 			deleted(pid);
 		}
@@ -250,7 +250,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 		}
 		return map;
 	}
-	
+
 	public void destroy() {
 		open = false;
 		trackers.keySet().stream().forEach(this::deleted);

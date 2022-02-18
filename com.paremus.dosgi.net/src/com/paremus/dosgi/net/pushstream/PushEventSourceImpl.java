@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,12 +27,12 @@ import io.netty.util.concurrent.Promise;
 class PushEventSourceImpl<T> implements PushEventSource<T> {
 
 	private final CacheKey key;
-	
+
 	private final OnConnect<T> onConnect;
 	private final Consumer<CacheKey> onClose;
 	private final EventExecutor executor;
 
-	public PushEventSourceImpl(CacheKey key, OnConnect<T> onConnect, 
+	public PushEventSourceImpl(CacheKey key, OnConnect<T> onConnect,
 			Consumer<CacheKey> onClose, EventExecutor executor) {
 		this.key = key;
 		this.onConnect = onConnect;
@@ -42,9 +42,9 @@ class PushEventSourceImpl<T> implements PushEventSource<T> {
 
 	@Override
 	public AutoCloseable open(PushEventConsumer<? super T> aec) throws Exception {
-		
+
 		Promise<Object> closePromise = executor.newPromise();
-		
+
 		onConnect.connect(key, executor, closePromise, t -> {
 				try {
 					return aec.accept(PushEvent.data(t));
@@ -71,7 +71,7 @@ class PushEventSourceImpl<T> implements PushEventSource<T> {
 					closePromise.trySuccess(null);
 				}
 			});
-		
+
 		return () -> {
 			onClose.accept(key);
 			closePromise.trySuccess(null);

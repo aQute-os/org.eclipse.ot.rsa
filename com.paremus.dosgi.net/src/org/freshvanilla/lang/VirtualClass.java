@@ -29,7 +29,7 @@ public class VirtualClass<T> implements MetaClass<T> {
         _metaClass = metaClass;
         _nameWithParameters = nameWithParameters;
 
-        Map<String, MetaField<T, ?>> fieldsByName = new LinkedHashMap<String, MetaField<T, ?>>();
+        Map<String, MetaField<T, ?>> fieldsByName = new LinkedHashMap<>();
         for (MetaField<T, ?> field : metaClass.fields()) {
             fieldsByName.put(field.getName(), field);
         }
@@ -40,33 +40,39 @@ public class VirtualClass<T> implements MetaClass<T> {
             MetaField<T, ?> field = fieldsByName.get(nameWithParametersSplit[i + 1]);
             if (field == null) {
                 final String name = nameWithParametersSplit[i + 1];
-                field = new VanillaField<T, Void>(name, null, Void.class);
+                field = new VanillaField<>(name, null, Void.class);
             }
             _fields[i] = field;
         }
     }
 
-    public Class<T> getType() {
+    @Override
+	public Class<T> getType() {
         return _metaClass.getType();
     }
 
-    public String nameWithParameters() {
+    @Override
+	public String nameWithParameters() {
         return _nameWithParameters;
     }
 
-    public MetaField<T, ?>[] fields() {
+    @Override
+	public MetaField<T, ?>[] fields() {
         return _fields;
     }
 
-    public T newInstance() throws InstantiationException {
+    @Override
+	public T newInstance() throws InstantiationException {
         return _metaClass.newInstance();
     }
 
-    public boolean definesEquals() {
+    @Override
+	public boolean definesEquals() {
         return _metaClass.definesEquals();
     }
 
-    public Class<?> getComponentType() {
+    @Override
+	public Class<?> getComponentType() {
         return null;
     }
 

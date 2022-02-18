@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -45,6 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -114,10 +115,10 @@ public class RemoteServiceAdminImplTest {
 
     EventExecutorGroup _serverWorkers;
     EventExecutorGroup _clientWorkers;
-    
+
     @Mock
     Timer _timer;
-    
+
     UUID _rootFrameworkId = UUID.randomUUID();
     UUID _childFrameworkId = UUID.randomUUID();
 
@@ -128,7 +129,7 @@ public class RemoteServiceAdminImplTest {
 	public void setUp() throws Exception {
         _serverWorkers = new DefaultEventExecutorGroup(1);
         _clientWorkers = new DefaultEventExecutorGroup(1);
-        
+
         when(_serviceBundle.getBundleContext()).thenReturn(_serviceContext);
         when(_serviceBundle.adapt(BundleWiring.class)).thenReturn(_wiring);
 
@@ -141,30 +142,30 @@ public class RemoteServiceAdminImplTest {
         when(_serviceReference.getProperty(SERVICE_ID)).thenReturn(42L);
 
         when(_secureProvider.isSecure()).thenReturn(true);
-        when(_secureProvider.registerService(Mockito.any(), Mockito.any()))
+        when(_secureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any()))
         	.thenReturn(Collections.singleton(new URI("ptcps://localhost:12345")));
-        when(_insecureProvider.registerService(Mockito.any(), Mockito.any()))
+        when(_insecureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any()))
         	.thenReturn(Collections.singleton(new URI("ptcp://localhost:23456")));
-        
+
         when(_framework.getBundleContext()).thenReturn(_frameworkContext);
         when(_frameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(_rootFrameworkId.toString());
-        
-        when(_proxyHostBundleFactory.getProxyBundle(Mockito.any())).thenReturn(_proxyBundle);
+
+        when(_proxyHostBundleFactory.getProxyBundle(ArgumentMatchers.any())).thenReturn(_proxyBundle);
         when(_proxyBundle.getBundleContext()).thenReturn(_proxyContext);
-        when(_proxyContext.registerService(Mockito.any(String[].class), Mockito.any(), Mockito.any())).thenReturn(_imported);
+        when(_proxyContext.registerService(ArgumentMatchers.any(String[].class), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(_imported);
         when(_imported.getReference()).thenReturn(_importedRef);
         when(_importedRef.getProperty(Constants.SERVICE_ID)).thenReturn(5L);
-        
+
         intents = new ArrayList<>(Collections.singletonList("asyncInvocation"));
-        
-        _rsa = new RemoteServiceAdminImpl(_factory, _framework, _publisher, asList(_insecureProvider, _secureProvider), 
+
+        _rsa = new RemoteServiceAdminImpl(_factory, _framework, _publisher, asList(_insecureProvider, _secureProvider),
         		_clientConnectionManager, intents, _proxyHostBundleFactory,
         		_serverWorkers, _clientWorkers, _timer, Converters.standardConverter().convert(
         				Collections.emptyMap()).to(TransportConfig.class));
-        
+
         Mockito.when(_factory.getRemoteServiceAdmins()).thenReturn(Collections.singletonList(_rsa));
     }
-    
+
     @AfterEach
     public void tearDown() {
     	_clientWorkers.shutdownGracefully();
@@ -229,14 +230,14 @@ public class RemoteServiceAdminImplTest {
     public void testExportWithDefaultConfigurationType() throws Exception {
 		// we need a valid service for this test
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
-		
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-	
+
 		EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference().getExportedEndpoint();
-	
+
 		assertEquals(asList("com.paremus.dosgi.net"), exportedEndpoint.getConfigurationTypes());
 		assertEquals(asList("java.lang.String", "java.lang.CharSequence"), exportedEndpoint.getInterfaces());
 		assertEquals(42L, exportedEndpoint.getServiceId());
@@ -249,19 +250,19 @@ public class RemoteServiceAdminImplTest {
 		// we need a valid service for this test
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
 		when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_CONFIGS)).thenReturn("com.paremus.dosgi.net");
-		
+
 		List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
     	keyList.add(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
-    	
+
     	when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-		
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-	
+
 		EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference().getExportedEndpoint();
-	
+
 		assertEquals(asList("com.paremus.dosgi.net"), exportedEndpoint.getConfigurationTypes());
 		assertEquals(asList("java.lang.String", "java.lang.CharSequence"), exportedEndpoint.getInterfaces());
 		assertEquals(42L, exportedEndpoint.getServiceId());
@@ -275,19 +276,19 @@ public class RemoteServiceAdminImplTest {
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
 		when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_CONFIGS))
 			.thenReturn(asList("unsupported.config.type", "com.paremus.dosgi.net"));
-		
+
 		List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
     	keyList.add(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
-    	
+
     	when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-		
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-	
+
 		EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference().getExportedEndpoint();
-	
+
 		assertEquals(asList("com.paremus.dosgi.net"), exportedEndpoint.getConfigurationTypes());
 		assertEquals(asList("java.lang.String", "java.lang.CharSequence"), exportedEndpoint.getInterfaces());
 		assertEquals(42L, exportedEndpoint.getServiceId());
@@ -301,78 +302,78 @@ public class RemoteServiceAdminImplTest {
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
 		when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTERFACES))
 			.thenReturn("java.lang.CharSequence");
-		
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-	
+
 		EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference().getExportedEndpoint();
-	
+
 		assertEquals(asList("com.paremus.dosgi.net"), exportedEndpoint.getConfigurationTypes());
 		assertEquals(asList("java.lang.CharSequence"), exportedEndpoint.getInterfaces());
 		assertEquals(42L, exportedEndpoint.getServiceId());
 		assertEquals(_rootFrameworkId.toString(), exportedEndpoint.getFrameworkUUID());
 		assertEquals(Collections.singletonList("asyncInvocation"), exportedEndpoint.getIntents());
 	}
-	
+
     @Test
 	public void testNoExportForWrongConfigurationType() throws Exception {
     	// we need a valid service for this test
     	when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_CONFIGS))
     		.thenReturn("unsupported.config.type");
-    	
+
     	List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
     	keyList.add(RemoteConstants.SERVICE_EXPORTED_CONFIGS);
-    	
+
     	when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-    	
-    	
+
+
     	// must return a valid export
     	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
     	assertNotNull(exRefs);
     	assertEquals(0, exRefs.size());
     }
-	
+
     @Test
 	public void testExportWithSupportedIntents() throws Exception {
     	// we need a valid service for this test
     	when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
     	when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTENTS))
     		.thenReturn("asyncInvocation");
-    	
+
     	List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
     	keyList.add(RemoteConstants.SERVICE_EXPORTED_INTENTS);
-    	
+
     	when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-    	
-    	
+
+
     	// must return a valid export
     	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-	
+
 		EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference().getExportedEndpoint();
-	
+
 		assertEquals(asList("com.paremus.dosgi.net"), exportedEndpoint.getConfigurationTypes());
 		assertEquals(asList("java.lang.String", "java.lang.CharSequence"), exportedEndpoint.getInterfaces());
 		assertEquals(42L, exportedEndpoint.getServiceId());
 		assertEquals(_rootFrameworkId.toString(), exportedEndpoint.getFrameworkUUID());
 		assertEquals(Collections.singletonList("asyncInvocation"), exportedEndpoint.getIntents());
     }
-	
+
     @Test
 	public void testNoExportWithUnsupportedIntents() throws Exception {
     	// we need a valid service for this test
     	when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTENTS))
     		.thenReturn("unsupported.intent");
-    	
+
     	List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
     	keyList.add(RemoteConstants.SERVICE_EXPORTED_INTENTS);
-    	
+
     	when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-    	
-    	
+
+
     	// must return a valid export
     	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
     	assertNotNull(exRefs);
@@ -384,49 +385,49 @@ public class RemoteServiceAdminImplTest {
 		// we need a valid service for this test
 		when(_serviceReference.getProperty(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA))
 		.thenReturn("unsupported.intent");
-		
+
 		List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
 		keyList.add(RemoteConstants.SERVICE_EXPORTED_INTENTS_EXTRA);
-		
+
 		when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-		
-		
+
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(0, exRefs.size());
 	}
-    
+
     @Test
 	public void testNoExportWithBadSerializer() throws Exception {
 		// we need a valid service for this test
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
 		when(_serviceReference.getProperty("com.paremus.dosgi.net.serialization"))
 			.thenReturn("unsupported.serializer");
-		
+
 		List<String> keyList = new ArrayList<>(asList(_serviceReference.getPropertyKeys()));
 		keyList.add("com.paremus.dosgi.net.serialization");
-		
+
 		when(_serviceReference.getPropertyKeys()).thenReturn(keyList.toArray(new String[0]));
-		
+
 		try {
 			_rsa.exportService(_serviceReference, null);
 			fail("Should fail with IllegalArgumentException");
 		} catch (IllegalArgumentException uoe) {}
 	}
-	
+
     @Test
     public void testInsecureExportGetsBothURIs() throws Exception {
     	// we need a valid service for this test
     	when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
-    	
+
     	// must return a valid export
     	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
     	assertNotNull(exRefs);
     	assertEquals(1, exRefs.size());
     	// a valid export must not have an exception
     	assertNull(exRefs.iterator().next().getException());
-    	
+
     	EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference()
     			.getExportedEndpoint();
 		@SuppressWarnings("unchecked")
@@ -444,13 +445,13 @@ public class RemoteServiceAdminImplTest {
     	intents.add("confidentiality.message");
 
     	// must return a valid export
-    	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, 
+    	Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference,
     			Collections.singletonMap(RemoteConstants.SERVICE_EXPORTED_INTENTS, "confidentiality.message"));
     	assertNotNull(exRefs);
     	assertEquals(1, exRefs.size());
     	// a valid export must not have an exception
     	assertNull(exRefs.iterator().next().getException());
-    	
+
     	EndpointDescription exportedEndpoint = exRefs.iterator().next().getExportReference()
     			.getExportedEndpoint();
 		@SuppressWarnings("unchecked")
@@ -460,7 +461,7 @@ public class RemoteServiceAdminImplTest {
     	assertEquals(42L, exportedEndpoint.getServiceId());
 		assertEquals(_rootFrameworkId.toString(), exportedEndpoint.getFrameworkUUID());
     }
-    
+
     @Test
     public void testClosingExportUngetsService() throws Exception {
         // we need a valid service for this test
@@ -475,7 +476,7 @@ public class RemoteServiceAdminImplTest {
 
         // make sure export is registered with RSA
         assertEquals(1, _rsa.getExportedServices().size());
-        
+
         // verify that getService() was called
         verify(_serviceContext).getService(_serviceReference);
 
@@ -485,10 +486,10 @@ public class RemoteServiceAdminImplTest {
         assertEquals(1, exRefs2.size());
         // a valid export must not have an exception
         assertNull(exRefs2.iterator().next().getException());
-        
+
         // verify that getService() was called a second time
         verify(_serviceContext, times(2)).getService(_serviceReference);
-        
+
         // make sure both exports are registered with RSA
         assertEquals(2, _rsa.getExportedServices().size());
 
@@ -500,7 +501,7 @@ public class RemoteServiceAdminImplTest {
 
         // now close export1
         exRefs.iterator().next().close();
-        
+
         // verify that ungetService() was called twice now
         verify(_serviceContext, times(2)).ungetService(_serviceReference);
 
@@ -512,35 +513,35 @@ public class RemoteServiceAdminImplTest {
     public void testUpdateExport() throws Exception {
 		// we need a valid service for this test
 		when(_serviceContext.getService(_serviceReference)).thenReturn("MyServiceObject");
-		
+
 		// must return a valid export
 		Collection<ExportRegistration> exRefs = _rsa.exportService(_serviceReference, null);
 		assertNotNull(exRefs);
 		assertEquals(1, exRefs.size());
-		
+
 		ExportRegistration exportRegistration = exRefs.iterator().next();
 		assertFalse(exportRegistration.getExportReference().getExportedEndpoint()
 				.getProperties().containsKey("foo"));
-	
+
 		exportRegistration.update(Collections.singletonMap("foo", "bar"));
-		
+
 		assertEquals("bar", exportRegistration.getExportReference().getExportedEndpoint()
 				.getProperties().get("foo"));
-		
+
 		//Update should remember the previous value
 		exportRegistration.update(null);
 		assertEquals("bar", exportRegistration.getExportReference().getExportedEndpoint()
 				.getProperties().get("foo"));
-		
+
 		//Update should remember the previous value
 		exportRegistration.update(null);
 		assertEquals("bar", exportRegistration.getExportReference().getExportedEndpoint()
 				.getProperties().get("foo"));
 	}
-    
+
     @Test
     public void testNoImportWithUnsupportedConfigType() throws Exception {
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, "my.endpoint.id");
         p.put(Constants.OBJECTCLASS, new String[]{"my.service.class"});
         p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "unsupportedConfiguration");
@@ -554,16 +555,16 @@ public class RemoteServiceAdminImplTest {
 
     @Test
     public void testImportService() throws Exception {
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, new UUID(78, 910).toString());
         p.put(Constants.OBJECTCLASS, new String[]{"my.primary.role", "my.secondary.role"});
         p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "com.paremus.dosgi.net");
         p.put("com.paremus.dosgi.net", "ptcp://localhost:1234");
         p.put("com.paremus.dosgi.net.methods", new String[] {"1=length[]","2=subSequence[int,int]"});
         EndpointDescription epd = new EndpointDescription(p);
-        
-        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
-        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+
+        Mockito.when(_clientConnectionManager.getChannelFor( ArgumentMatchers.eq(new URI("ptcp://localhost:1234")),
+        		ArgumentMatchers.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -586,21 +587,21 @@ public class RemoteServiceAdminImplTest {
         ireg.close();
         assertEquals(0, _rsa.getImportedEndpoints().size());
     }
-    
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
 	public void testUpdateImport() throws Exception {
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, new UUID(78, 910).toString());
         p.put(Constants.OBJECTCLASS, new String[]{"my.primary.role", "my.secondary.role"});
         p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "com.paremus.dosgi.net");
         p.put("com.paremus.dosgi.net", "ptcp://localhost:1234");
         p.put("com.paremus.dosgi.net.methods", new String[] {"1=length[]","2=subSequence[int,int]"});
         EndpointDescription epd = new EndpointDescription(p);
-        
-        
-        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
-        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+
+
+        Mockito.when(_clientConnectionManager.getChannelFor( ArgumentMatchers.eq(new URI("ptcp://localhost:1234")),
+        		ArgumentMatchers.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -608,32 +609,32 @@ public class RemoteServiceAdminImplTest {
         assertEquals(1, _rsa.getImportedEndpoints().size());
 
 		ArgumentCaptor<Dictionary> captor = ArgumentCaptor.forClass(Dictionary.class);
-        
-        Mockito.verify(_proxyContext).registerService(Mockito.any(String[].class), Mockito.any(), 
+
+        Mockito.verify(_proxyContext).registerService(ArgumentMatchers.any(String[].class), ArgumentMatchers.any(),
         		captor.capture());
         assertNull(captor.getValue().get("foo"));
-        
+
         p.put("foo", "bar");
         epd = new EndpointDescription(p);
         ireg.update(epd);
-        
+
         Mockito.verify(_imported).setProperties(captor.capture());
-        
+
         assertEquals("bar", captor.getValue().get("foo"));
     }
-    
+
     @Test
     public void testImportedServiceUnregisteredBySomeoneElse() throws Exception {
-        Map<String, Object> p = new HashMap<String, Object>();
+        Map<String, Object> p = new HashMap<>();
         p.put(RemoteConstants.ENDPOINT_ID, new UUID(78, 910).toString());
         p.put(Constants.OBJECTCLASS, new String[]{"my.primary.role", "my.secondary.role"});
         p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "com.paremus.dosgi.net");
         p.put("com.paremus.dosgi.net", "ptcp://localhost:1234");
         p.put("com.paremus.dosgi.net.methods", new String[] {"1=length[]","2=subSequence[int,int]"});
         EndpointDescription epd = new EndpointDescription(p);
-        
-        Mockito.when(_clientConnectionManager.getChannelFor( Mockito.eq(new URI("ptcp://localhost:1234")), 
-        		Mockito.any())).thenAnswer(Mockito.RETURNS_MOCKS);
+
+        Mockito.when(_clientConnectionManager.getChannelFor( ArgumentMatchers.eq(new URI("ptcp://localhost:1234")),
+        		ArgumentMatchers.any())).thenAnswer(Mockito.RETURNS_MOCKS);
 
         ImportRegistration ireg = _rsa.importService(epd);
         assertNotNull(ireg);
@@ -641,11 +642,11 @@ public class RemoteServiceAdminImplTest {
         assertEquals(1, _rsa.getImportedEndpoints().size());
 
         ArgumentCaptor<ServiceListener> captor = ArgumentCaptor.forClass(ServiceListener.class);
-        
-        verify(_frameworkContext).addServiceListener(captor.capture(), Mockito.eq("(service.id=5)"));
-        
+
+        verify(_frameworkContext).addServiceListener(captor.capture(), ArgumentMatchers.eq("(service.id=5)"));
+
         captor.getValue().serviceChanged(new ServiceEvent(UNREGISTERING, _importedRef));
-        
+
         assertEquals(0, _rsa.getImportedEndpoints().size());
         assertNotNull(ireg.getException());
     }

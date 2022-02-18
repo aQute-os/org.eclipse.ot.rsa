@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -43,22 +43,22 @@ public class MessagesTest {
 	private static final String TEST_MESSAGE = "Test Message";
 
 	private final UUID serviceId = UUID.randomUUID();
-	
+
 	private final int callId = 42;
-	
+
 	@Mock
 	ChannelPromise promise;
-	
+
 	@Test
 	public void testServerError() throws IOException {
 		ServerErrorResponse ser = new ServerErrorResponse(NO_SERVICE, serviceId, callId);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		ser.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V1.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);
@@ -73,13 +73,13 @@ public class MessagesTest {
 	public void testServerErrorWithMessage() throws IOException {
 		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId,
 				TEST_MESSAGE);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		ser.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V1.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);
@@ -90,17 +90,17 @@ public class MessagesTest {
 		assertEquals(TEST_MESSAGE, buffer.readCharSequence(buffer.readUnsignedShort(), StandardCharsets.UTF_8));
 		assertFalse(buffer.isReadable());
 	}
-	
+
 	@Test
 	public void testEndStream() {
 		ServerStreamCloseResponse sscr = new ServerStreamCloseResponse(serviceId, callId);
-		
+
 		ByteBuf buffer = Unpooled.buffer();
-		
+
 		sscr.write(buffer, promise);
-		
+
 		Mockito.verifyNoInteractions(promise);
-		
+
 		assertEquals(Protocol_V2.VERSION, buffer.readByte());
 		int length = buffer.readUnsignedMedium();
 		assertEquals(buffer.readableBytes(), length);

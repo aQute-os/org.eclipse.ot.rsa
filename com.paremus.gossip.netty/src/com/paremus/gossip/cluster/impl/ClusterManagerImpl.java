@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -65,36 +65,36 @@ import io.netty.util.concurrent.FastThreadLocalThread;
 import io.netty.util.concurrent.Future;
 
 public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ClusterManagerImpl.class);
-	
+
 	private final BundleContext context;
 
 	private final UUID id;
-	
+
 	private final Config config;
-	
+
 	private final int tcpPort;
-	
+
 	private final AtomicBoolean open = new AtomicBoolean(true);
-	
-	private final ConcurrentMap<ServiceReference<ClusterListener>, WrappedClusterListener> listeners = 
+
+	private final ConcurrentMap<ServiceReference<ClusterListener>, WrappedClusterListener> listeners =
 			new ConcurrentHashMap<>();
-	
+
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
-	
+
 	private short stateSequence;
-	
-	private ConcurrentMap<String, byte[]> data = new ConcurrentHashMap<String, byte[]>();
-	
+
+	private ConcurrentMap<String, byte[]> data = new ConcurrentHashMap<>();
+
 	private final ConcurrentMap<UUID, MemberInfo> members = new ConcurrentHashMap<>();
-	
+
 	private final EventExecutorGroup gossipWorker;
-	
+
 	private final EventExecutorGroup listenerWorker;
-	
+
 	private final InternalClusterListener internalListener;
-	
+
 	public ClusterManagerImpl(BundleContext context, UUID id, Config config, int udpPort, int tcpPort,
 			InetAddress localAddress, org.osgi.util.function.Function<ClusterManager, InternalClusterListener> listenerFactory) throws Exception {
 		this.context = context;
@@ -105,23 +105,24 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 			Thread t = new FastThreadLocalThread(r, "Gossip worker - " + config.cluster_name());
 			t.setDaemon(true);
 			return t;
-		});;
+		});
 		this.listenerWorker = new DefaultEventExecutorGroup(1, r -> {
 			Thread t = new FastThreadLocalThread(r, "Gossip Cluster Listener notification worker - " + config.cluster_name());
 			t.setDaemon(true);
 			return t;
 		});
-		
+
 		if(localAddress != null) {
 			mergeSnapshot(new Snapshot(getSnapshot(PAYLOAD_UPDATE, 0), new InetSocketAddress(localAddress, udpPort)));
 		} else {
 			mergeSnapshot(getSnapshot(HEARTBEAT, 0));
 		}
-		
+
 		internalListener = listenerFactory.apply(this);
 		gossipWorker.scheduleAtFixedRate(this::prune, 500, 500, TimeUnit.MILLISECONDS);
 	}
-	
+
+	@Override
 	public Set<Snapshot> getMemberSnapshots(SnapshotType snapshotType) {
 		return members.values().stream().filter(MemberInfo::isOpen)
 				.map(m -> m.toSnapshot(snapshotType)).collect(toSet());
@@ -138,14 +139,16 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 		members.values().removeIf((m) -> m.evictable(evict));
 	}
 
+	@Override
 	public Update mergeSnapshot(Snapshot snapshot) {
-		return members.computeIfAbsent(snapshot.getId(), 
+		return members.computeIfAbsent(snapshot.getId(),
 				(uuid) -> new MemberInfo(config, snapshot, this, listeners.values()))
 				.update(snapshot);
 	}
 
+	@Override
 	public Snapshot getSnapshot(SnapshotType type, int hops) {
-		lock.readLock().lock(); 
+		lock.readLock().lock();
 		try {
 			switch(type) {
 				case HEADER:
@@ -160,16 +163,18 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 			lock.readLock().unlock();
 		}
 	}
-	
+
+	@Override
 	public MemberInfo getMemberInfo(UUID uuid) {
 		return members.get(uuid);
 	}
-	
+
+	@Override
 	public Collection<MemberInfo> selectRandomPartners(int number) {
 		final List<MemberInfo> c = members.values().stream().filter(MemberInfo::isOpen)
 				.filter((m) -> !id.equals(m.getId()))
 				.collect(Collectors.toCollection(() -> new ArrayList<>()));
-		
+
 		return selectRandomPartners(number, c);
 	}
 
@@ -178,7 +183,7 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 		if(number > size) {
 			number = size;
 		}
-		
+
 		if(number == 0) {
 			return Collections.emptyList();
 		} else {
@@ -189,49 +194,51 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 				size--;
 				number--;
 			}
-			
+
 			return partners;
 		}
 	}
-	
+
+	@Override
 	public void listenerChange(ServiceReference<ClusterListener> ref, int state) {
-		
+
 		Set<String> clusters = getStringPlusProperty(ref, CLUSTER_NAMES);
-		
+
 		boolean forThisCluster = clusters.isEmpty() || clusters.contains(config.cluster_name());
-		
+
 		if(state == ServiceEvent.UNREGISTERING || !forThisCluster) {
 			listeners.remove(ref);
 		} else {
 			try {
-				listeners.computeIfAbsent(ref, 
-					(r) -> new WrappedClusterListener(context.getService(r), listenerWorker)).update(ref); 
+				listeners.computeIfAbsent(ref,
+					(r) -> new WrappedClusterListener(context.getService(r), listenerWorker)).update(ref);
 			} catch (IllegalStateException ise) {
 				//The service wasn't valid any more
 				return;
 			}
 		}
-		
+
 		members.values().forEach((m) -> m.updateListeners(listeners.values()));
 	}
-	
+
+	@Override
 	public void destroy() {
-		if ( open.getAndSet(false)==false)
+		if ( !open.getAndSet(false))
 			return;
-		
+
 		List<Future<?>> l = new ArrayList<>();
 		l.addAll(internalListener.destroy());
-		
+
 		members.values().forEach(MemberInfo::close);
 		members.clear();
-		
+
 		listeners.keySet().removeIf((r) -> context.ungetService(r) || true);
 
-		
+
 		l.add(gossipWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
 		l.add(listenerWorker.shutdownGracefully(500, 1000, TimeUnit.MILLISECONDS));
-		
-		
+
+
 		try {
 			for ( Future<?> f : l)
 				f.await(15000);
@@ -280,9 +287,9 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 				data.remove(key);
 			} else if (bytes.length > 512) {
 				throw new IllegalArgumentException("The supplied attribute data is too large. A maximum of 512 bytes is supported");
-			} else {	
+			} else {
 				if(bytes.length > 128) {
-					logger.warn("A large amount of data {} is being associated with attribute {}", 
+					logger.warn("A large amount of data {} is being associated with attribute {}",
 							new Object[] {bytes.length, key });
 				}
 				data.put(key, Arrays.copyOf(bytes, bytes.length));
@@ -291,7 +298,7 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 			if(logger.isDebugEnabled()) {
 				logger.debug("Updating advertised attribute {}. New state sequence is {}", key, stateSequence);
 			}
-			//Eagerly update ourselves 
+			//Eagerly update ourselves
 			Snapshot update = getSnapshot(PAYLOAD_UPDATE, 0);
 			mergeSnapshot(update);
 			internalListener.localUpdate(update);
@@ -302,11 +309,11 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 
 	@Override
 	public Map<String, byte[]> getMemberAttributes(UUID member) {
-		Function<Map<String, byte[]>, Map<String, byte[]>> copy = 
+		Function<Map<String, byte[]>, Map<String, byte[]>> copy =
 				m ->  m.entrySet().stream()
-				.collect(toMap(Entry::getKey, 
-					e -> (byte[]) Arrays.copyOf(e.getValue(), e.getValue().length)));
-		
+				.collect(toMap(Entry::getKey,
+					e -> Arrays.copyOf(e.getValue(), e.getValue().length)));
+
 		return ofNullable(members.get(member))
 				.filter(MemberInfo::isOpen)
 				.map(MemberInfo::getData)
@@ -314,10 +321,12 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 				.orElse(null);
 	}
 
+	@Override
 	public void leavingCluster(Snapshot update) {
 		ofNullable(members.get(update.getId())).ifPresent(MemberInfo::close);
 	}
 
+	@Override
 	public void markUnreachable(MemberInfo member) {
 		member.markUnreachable();
 	}

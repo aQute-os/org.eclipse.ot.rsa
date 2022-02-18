@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -42,7 +42,7 @@ import aQute.lib.json.JSONCodec;
 /**
  * A utility class that makes it look like Java got structs. It allows fast and
  * efficient handling of field based classes.
- * 
+ *
  */
 public class struct implements Serializable {
 	private static final long	serialVersionUID	= 1L;
@@ -59,21 +59,21 @@ public class struct implements Serializable {
 	 * Utility to set a list field.
 	 */
 	protected <T> List<T> list() {
-		return new ArrayList<T>();
+		return new ArrayList<>();
 	}
 
 	/**
 	 * Utility to set a set field.
 	 */
 	protected <T> Set<T> set() {
-		return new LinkedHashSet<T>();
+		return new LinkedHashSet<>();
 	}
 
 	/**
 	 * Utility to set a map field.
 	 */
 	protected <K, V> Map<K, V> map() {
-		return new LinkedHashMap<K, V>();
+		return new LinkedHashMap<>();
 	}
 
 	/**
@@ -103,7 +103,7 @@ public class struct implements Serializable {
 		Def(Class<?> c) {
 			this.clazz = c;
 
-			List<Field> fields = new ArrayList<Field>();
+			List<Field> fields = new ArrayList<>();
 			for (Field f : c.getFields()) {
 
 				if (Modifier.isStatic(f.getModifiers()))
@@ -115,7 +115,7 @@ public class struct implements Serializable {
 
 			Arrays.sort(this.fields, fieldComparator);
 
-			List<Field> primary = new ArrayList<Field>();
+			List<Field> primary = new ArrayList<>();
 			for (Field f : fields) {
 
 				if (Modifier.isStatic(f.getModifiers()))
@@ -152,7 +152,7 @@ public class struct implements Serializable {
 		/**
 		 * Calculate a hash code for this struct. If no primary keys are set, we
 		 * use the whole object
-		 * 
+		 *
 		 * @param target
 		 *            the target to calc the hashcode for
 		 * @return
@@ -182,7 +182,7 @@ public class struct implements Serializable {
 
 		/**
 		 * Calculate the equals for two objects.
-		 * 
+		 *
 		 * @param local
 		 * @param other
 		 * @return
@@ -197,10 +197,7 @@ public class struct implements Serializable {
 					Object lv = f.get(local);
 					Object ov = f.get(other);
 					if (lv != ov) {
-						if (lv == null)
-							return false;
-
-						if (!lv.equals(ov))
+						if ((lv == null) || !lv.equals(ov))
 							return false;
 					}
 				} catch (Exception e) {
@@ -214,7 +211,7 @@ public class struct implements Serializable {
 		/**
 		 * Assuming that we do not have lots of keys, the binary search is very
 		 * fast.
-		 * 
+		 *
 		 * @param key
 		 *            the name of the method
 		 * @return the field with the given name
@@ -241,7 +238,7 @@ public class struct implements Serializable {
 	/*
 	 * Stores the def fields.
 	 */
-	private transient static ConcurrentHashMap<Class<?>, Def>	defs	= new ConcurrentHashMap<Class<?>, struct.Def>();
+	private transient static ConcurrentHashMap<Class<?>, Def>	defs	= new ConcurrentHashMap<>();
 
 	protected Def def() {
 		return def(getClass());
@@ -299,7 +296,7 @@ public class struct implements Serializable {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -391,7 +388,7 @@ public class struct implements Serializable {
 	/**
 	 * Utility to copy fields from one struct into another, they do not have to
 	 * be the same type.
-	 * 
+	 *
 	 * @param other
 	 *            the struct containing the values
 	 */
@@ -477,7 +474,7 @@ public class struct implements Serializable {
 
 		@Override
 		public Set<String> keySet() {
-			Set<String> set = new LinkedHashSet<String>();
+			Set<String> set = new LinkedHashSet<>();
 			for (Field f : def.fields)
 				set.add(f.getName());
 
@@ -486,7 +483,7 @@ public class struct implements Serializable {
 
 		@Override
 		public Collection<Object> values() {
-			List<Object> values = new ArrayList<Object>();
+			List<Object> values = new ArrayList<>();
 			for (Field f : def.fields)
 				try {
 					values.add(convert(f.get(s)));
@@ -498,7 +495,7 @@ public class struct implements Serializable {
 
 		@Override
 		public Set<java.util.Map.Entry<String, Object>> entrySet() {
-			Set<Map.Entry<String, Object>> set = new LinkedHashSet<java.util.Map.Entry<String, Object>>();
+			Set<Map.Entry<String, Object>> set = new LinkedHashSet<>();
 			for (final Field f : def.fields)
 				try {
 					set.add(new Map.Entry<String, Object>() {
@@ -535,10 +532,12 @@ public class struct implements Serializable {
 			return set;
 		}
 
+		@Override
 		public String toString() {
 			return s.toString();
 		}
 
+		@Override
 		public boolean equals(Object other) {
 			if (other instanceof Map) {
 				@SuppressWarnings({ "rawtypes" })
@@ -548,6 +547,7 @@ public class struct implements Serializable {
 			return false;
 		}
 
+		@Override
 		public int hashCode() {
 			return entrySet().hashCode();
 		}
@@ -585,13 +585,10 @@ public class struct implements Serializable {
 	 * names, arrays and list by index, and collections can use the *, which
 	 * will allow selecting a field in the list, e.g. foo.*.bar will get the bar
 	 * fields of all objects in the foo collection.
-	 * 
-	 * @param n
-	 *            where to start in the path
-	 * @param path
-	 *            the path
-	 * @param o
-	 *            the object to traverse
+	 *
+	 * @param n where to start in the path
+	 * @param path the path
+	 * @param ox the object to traverse
 	 * @return an object or null if not found
 	 */
 	@SuppressWarnings("unchecked")
@@ -626,7 +623,7 @@ public class struct implements Serializable {
 
 			} else if (index.equals("*")) {
 
-				List<Object> list = new ArrayList<Object>();
+				List<Object> list = new ArrayList<>();
 
 				if (rover instanceof Iterable) {
 					for (Object m : (Iterable<?>) rover) {
@@ -651,30 +648,28 @@ public class struct implements Serializable {
 
 		return rover;
 	}
+
 	/**
 	 * Provide path based access to an object. struct and maps are accessed by
 	 * names, arrays and list by index, and collections can use the *, which
 	 * will allow setting a field in the list, e.g. foo.*.bar will set the bar
 	 * fields of all objects in the foo collection.
-	 * 
-	 * @param n
-	 *            where to start in the path
-	 * @param path
-	 *            the path
-	 * @param o
-	 *            the object to traverse
+	 *
+	 * @param n where to start in the path
+	 * @param path the path
+	 * @param ox the object to traverse
 	 * @return an object or null if not found
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes"})
 	public static Object set(int n, String path[], Object ox, Object vx) throws Exception {
 		Object rover = ox;
 		Type type = Object.class;
-		
-		
+
+
 		for (; n < path.length - 1 && rover != null; n++) {
 
 			String index = path[n];
-			
+
 			if (rover instanceof struct) {
 
 				struct s = (struct) rover;
@@ -684,7 +679,7 @@ public class struct implements Serializable {
 
 				rover = field.get(rover);
 				type = field.getGenericType();
-				
+
 			} else if (rover instanceof Map) {
 				rover = ((Map<?, ?>) rover).get(index);
 				if ( type instanceof ParameterizedType) {
@@ -702,7 +697,7 @@ public class struct implements Serializable {
 						type = ptype.getActualTypeArguments()[0];
 					} else
 						type = Object.class;
-					
+
 				} else if (rover.getClass().isArray()) {
 					rover = Array.get(rover, num);
 					if ( type instanceof GenericArrayType) {
@@ -716,27 +711,27 @@ public class struct implements Serializable {
 			} else if (index.equals("*")) {
 
 				if (rover instanceof Iterable) {
-					
+
 					if ( type instanceof ParameterizedType) {
 						ParameterizedType ptype = (ParameterizedType) type;
 						type = ptype.getActualTypeArguments()[0];
 					} else
 						type = Object.class;
-					
-					List<Object> result = new ArrayList<Object>();;
+
+					List<Object> result = new ArrayList<>();
 					for (Object m : (Iterable<?>) rover) {
 						result.add(set(n + 1, path, m, vx));
 					}
 					return result;
 				} else if (rover.getClass().isArray()) {
-					
+
 					if ( type instanceof GenericArrayType) {
 						ParameterizedType ptype = (ParameterizedType) type;
 						type = ptype.getActualTypeArguments()[0];
 					} else
 						type = rover.getClass().getComponentType();
-					
-					List<Object> result = new ArrayList<Object>();;
+
+					List<Object> result = new ArrayList<>();
 					for (int i = 0; i < Array.getLength(rover); i++) {
 						set(n + 1, path, Array.get(rover, i), vx);
 					}
@@ -751,9 +746,9 @@ public class struct implements Serializable {
 		if (rover == null) {
 			throw new IllegalArgumentException("Parent not found for " + Arrays.toString(path) + " for object " + ox);
 		}
-		
+
 		String segment = path[path.length-1];
-		
+
 		if ( rover instanceof Map) {
 			Map mr = (Map) rover;
 			if ( type instanceof ParameterizedType) {
@@ -761,7 +756,7 @@ public class struct implements Serializable {
 				vx = Converter.cnv(type, vx);
 			} else
 				type = Object.class;
-			
+
 			return mr.put(segment, vx);
 		} else if ( rover instanceof Collection) {
 			if ( type instanceof ParameterizedType) {
@@ -770,14 +765,14 @@ public class struct implements Serializable {
 			} else
 				type = Object.class;
 
-			
-			if (!segment.matches("-|[\\d]+|\\+")) 
+
+			if (!segment.matches("-|[\\d]+|\\+"))
 				throw new IllegalArgumentException("A collection but index is not +|-|digit");
-			
-			if ( segment.equals("+")) {	
+
+			if ( segment.equals("+")) {
 				((Collection<Object>)rover).add(vx);
 				return null;
-			}				
+			}
 			else if ( segment.equals("-"))	{
 				if (((Collection<Object>)rover).remove(vx))
 					return vx;
@@ -790,24 +785,24 @@ public class struct implements Serializable {
 				Object old = index < list.size() ? list.get(index) : null;
 				while ( list.size() <= index)
 					list.add(null);
-				
+
 				list.set(index, vx);
 				return old;
 			} else {
 				throw new IllegalArgumentException("A collection indexed with a number but collection does not implement List");
 			}
 		} else if ( rover.getClass().isArray()) {
-			if (!segment.matches("[\\d]+")) 
+			if (!segment.matches("[\\d]+"))
 				throw new IllegalArgumentException("An array but index is not digit");
-			
+
 			int index = Integer.parseInt(segment);
-			
+
 			if ( type instanceof GenericArrayType) {
 				type = ((GenericArrayType) type).getGenericComponentType();
 				vx = Converter.cnv(type, vx);
 			} else
 				type = Object.class;
-			
+
 			Object old = Array.get(rover, index);
 			Array.set(rover, index, vx);
 			return old;
@@ -818,7 +813,7 @@ public class struct implements Serializable {
 			f.set(rover,  Converter.cnv(f.getGenericType(), vx));
 			return old;
 		}
-		
+
 		throw new IllegalArgumentException("Cannot set with path " + Arrays.toString(path) + " " + ox + " " + vx);
 	}
 	public static Object get(String path, Object o) throws Exception {
@@ -828,13 +823,14 @@ public class struct implements Serializable {
 	public static Object set(String path, Object o, Object v) throws Exception {
 		return set(0, path.split("\\."), o, v);
 	}
+
 	/**
 	 * Create a deep copy of the given object. This is not completely complete.
 	 * Recursively copied are struct, non-primitive array, collection, and map.
 	 * Primitive arrays and other objects are considered immutable in practice.
-	 * 
+	 *
 	 * @param object
-	 * @return
+	 * @return a copy
 	 * @throws Exception
 	 */
 	@SuppressWarnings("unchecked")
@@ -856,7 +852,7 @@ public class struct implements Serializable {
 				return (T) newInstance;
 
 			} else if (object instanceof Collection) {
-				
+
 				Collection<Object> c = (Collection<Object>) object.getClass().newInstance();
 				for (Object member : ((Collection<?>) object)) {
 					c.add(copy(member));
@@ -897,7 +893,7 @@ public class struct implements Serializable {
 	}
 
 
-	
+
 
 
 

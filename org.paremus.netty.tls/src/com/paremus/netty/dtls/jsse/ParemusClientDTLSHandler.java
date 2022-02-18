@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -33,11 +33,11 @@ import io.netty.util.concurrent.Future;
 public class ParemusClientDTLSHandler extends ParemusBaseDTLSHandler implements DTLSClientHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(ParemusClientDTLSHandler.class);
-    
+
     public ParemusClientDTLSHandler(DtlsEngine engine) {
         super(engine);
     }
-    
+
     public ParemusClientDTLSHandler(DtlsEngine engine, ChannelHandlerContext ctx, InetSocketAddress remotePeer) {
         super(engine, ctx, remotePeer);
     }
@@ -57,12 +57,12 @@ public class ParemusClientDTLSHandler extends ParemusBaseDTLSHandler implements 
         }
         if(remotePeer == null) {
             remotePeer = (InetSocketAddress) socketAddress;
-        } else if(!remotePeer.equals(socketAddress)){
+        } else if(!remotePeer.equals(socketAddress) && ctx != null){
             LOG.error("This handler is already bound to {}", remotePeer);
             return ctx.executor().newFailedFuture(new IllegalStateException("This handler is already bound to " + remotePeer));
         }
         beginHandShake(ctx);
-        
+
         return handshakeFuture();
     }
 
@@ -71,7 +71,7 @@ public class ParemusClientDTLSHandler extends ParemusBaseDTLSHandler implements 
         if(!isHandshakeMessage(msg)) {
             return false;
         }
-        
+
         switch(getHandshakeMessageType(msg)) {
             case HandshakeType.client_hello:
             case HandshakeType.certificate:
@@ -114,6 +114,6 @@ public class ParemusClientDTLSHandler extends ParemusBaseDTLSHandler implements 
         } else if(received.getUnsignedByte(index) == ContentType.application_data){
             removeMessages(currentlyRetransmitting, epoch);
         }
-        
+
     }
 }

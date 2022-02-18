@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -67,40 +67,40 @@ import io.netty.util.concurrent.Promise;
  * IllegalArgumentException etc.) are forwarded to the caller.
  */
 public class ServiceInvocationHandler implements InvocationHandler {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ServiceInvocationHandler.class);
-	
+
     private final ImportRegistrationImpl _importRegistration;
     private final Channel _channel;
     private final EventExecutorGroup _executor;
     private final Timer _timer;
     private final Serializer _serializer;
     private final IntSupplier _callIdGenerator;
-    
+
     private final Future<Boolean> _trueReturn;
     private final Future<Boolean> _falseReturn;
-    
+
     public static interface CallHandler {
     	Future<?> handle(boolean withReturn, Object proxy, Method m, Object[] args) throws Exception;
     }
-    
+
     private static class InvocationInfo {
     	final CallHandler handler;
     	final Function<Future<?>, Object> returnTransformer;
-    	
+
 		public InvocationInfo(CallHandler handler, //ArgumentTransformFunction argsTransformer,
 				Function<Future<?>, Object> returnTransformer) {
 			this.handler = handler;
 			this.returnTransformer = returnTransformer;
 		}
-    	
+
     }
-    
+
     private final Map<Method, InvocationInfo> actions = new HashMap<>();
-   
+
     public ServiceInvocationHandler(ImportRegistrationImpl importRegistration, EndpointDescription endpoint,
     		Bundle callingContext, Class<?> proxyClass, List<Class<?>> interfaces, Class<?> promiseClass, boolean isAsyncDelegate,
-    		Class<?> pushStreamClass, Class<?> pushEventSourceClass, Channel channel, Serializer serializer, IntSupplier callIdGenerator, 
+    		Class<?> pushStreamClass, Class<?> pushEventSourceClass, Channel channel, Serializer serializer, IntSupplier callIdGenerator,
     		AtomicLong serviceCallTimeout, EventExecutorGroup executor, Timer timer) {
     	_importRegistration = Objects.requireNonNull(importRegistration, "ImportRegistration cannot be null");
         _channel = Objects.requireNonNull(channel, "A communications channel must be supplied");
@@ -108,26 +108,26 @@ public class ServiceInvocationHandler implements InvocationHandler {
         _timer = Objects.requireNonNull(timer, "A timer must be supplied");
         _serializer = Objects.requireNonNull(serializer, "A Serializer must be supplied");
         _callIdGenerator = Objects.requireNonNull(callIdGenerator, "A call id generator must be supplied");
-        
+
         _trueReturn = executor.next().newSucceededFuture(true);
         _falseReturn = executor.next().newSucceededFuture(false);
-        
+
         Map<String, Integer> reverseMappings = importRegistration.getMethodMappings().entrySet().stream()
         		.collect(Collectors.toMap(Entry::getValue, Entry::getKey));
-        
+
         Function<Future<?>, Object> promiseTransformer = getPromiseTransformer(promiseClass);
-        
+
         Function<Future<?>, Object> pushStreamTransformer = getPushStreamTransformer(pushStreamClass);
 
         Function<Future<?>, Object> pushEventSourceTransformer = getPushEventSourceTransformer(pushEventSourceClass);
-        
+
         Function<EventExecutor, Promise<Object>> nettyPromiseSupplier = PromiseFactory.nettyPromiseCreator(promiseClass, _timer);
-        
+
         Function<Object, Future<Object>> nettyFutureAdapter = promiseClass == null ? null :
         	PromiseFactory.toNettyFutureAdapter(promiseClass);
-        
+
         Set<Method> objectMethods = stream(Object.class.getMethods()).collect(toSet());
-        
+
         interfaces.stream()
         	.map(Class::getMethods)
         	.flatMap(Arrays::stream)
@@ -136,12 +136,12 @@ public class ServiceInvocationHandler implements InvocationHandler {
 	        	if(objectMethods.contains(m)) {
 	        		action = OBJECT_DELEGATOR;
 	        	} else {
-	        		action = getReturnActionFor(m, reverseMappings, promiseClass, promiseTransformer, 
+	        		action = getReturnActionFor(m, reverseMappings, promiseClass, promiseTransformer,
 	        				serviceCallTimeout, nettyPromiseSupplier, nettyFutureAdapter, pushStreamClass,
 	        				pushStreamTransformer, pushEventSourceClass, pushEventSourceTransformer);
 	        	}
 	        	actions.put(m, action);
-	        	//We must also add the concrete type mapping in here for people who do 
+	        	//We must also add the concrete type mapping in here for people who do
 	        	//reflective lookups on the type for async/execute calls
 	        	try {
 	        		actions.put(proxyClass.getMethod(m.getName(), m.getParameterTypes()), action);
@@ -149,23 +149,23 @@ public class ServiceInvocationHandler implements InvocationHandler {
 					LOG.warn("The proxy class was missing a concrete method for " + m.toGenericString(), e);
 				}
 	        });
-        
+
         try {
-        	actions.put(Object.class.getMethod("equals", Object.class), 
-        			new InvocationInfo((x,o,m,a) -> proxyEquals(o, a[0]), 
+        	actions.put(Object.class.getMethod("equals", Object.class),
+        			new InvocationInfo((x,o,m,a) -> proxyEquals(o, a[0]),
         					DEFAULT_RETURN_TRANSFORM));
-        	actions.put(Object.class.getMethod("hashCode"), 
-        			new InvocationInfo((x,o,m,a) -> proxyHashCode(o), 
+        	actions.put(Object.class.getMethod("hashCode"),
+        			new InvocationInfo((x,o,m,a) -> proxyHashCode(o),
         					DEFAULT_RETURN_TRANSFORM));
-        	actions.put(Object.class.getMethod("toString"), 
-        			new InvocationInfo((x,o,m,a) -> proxyToString(o), 
+        	actions.put(Object.class.getMethod("toString"),
+        			new InvocationInfo((x,o,m,a) -> proxyToString(o),
         					DEFAULT_RETURN_TRANSFORM));
-        	
+
         	if(isAsyncDelegate) {
         		Class<?> asyncClass = interfaces.stream()
         			.filter(c -> ASYNC_DELEGATE_TYPE.equals(c.getName()))
         			.findFirst().get();
-        		
+
         		actions.put(asyncClass.getMethod("async", Method.class, Object[].class),
         				new InvocationInfo((x,o,m,a) -> {
         					Method actual = (Method) a[0];
@@ -176,7 +176,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
         						return invocationInfo.handler.handle(true, o, actual, (Object[]) a[1]);
         					}
         				}, promiseTransformer));
-        		actions.put(asyncClass.getMethod("execute", Method.class, Object[].class), 
+        		actions.put(asyncClass.getMethod("execute", Method.class, Object[].class),
         				new InvocationInfo((x,o,m,a) -> {
         					Method actual = (Method) a[0];
         					InvocationInfo invocationInfo = actions.get(actual);
@@ -195,29 +195,29 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
 	private InvocationInfo getReturnActionFor(Method method, Map<String, Integer> signaturesToIds,
 			Class<?> promiseClass, Function<Future<?>, Object> promiseTransform, AtomicLong timeout,
-			Function<EventExecutor, Promise<Object>> nettyPromiseSupplier, Function<Object, Future<Object>> nettyFutureAdapter, 
-			Class<?> pushStreamClass, Function<Future<?>, Object> pushStreamTransformer, 
+			Function<EventExecutor, Promise<Object>> nettyPromiseSupplier, Function<Object, Future<Object>> nettyFutureAdapter,
+			Class<?> pushStreamClass, Function<Future<?>, Object> pushStreamTransformer,
 			Class<?> pushEventSourceClass, Function<Future<?>, Object> pushEventSourceTransformer) {
-		
+
 		Integer i = signaturesToIds.get(toSignature(method));
-		
+
 		if(i != null) {
 			int methodId = i;
-			Function<Future<?>, Object> transformer = 
-					getReturnTransformer(method, promiseClass, promiseTransform, 
+			Function<Future<?>, Object> transformer =
+					getReturnTransformer(method, promiseClass, promiseTransform,
 							pushStreamClass, pushStreamTransformer, pushEventSourceClass, pushEventSourceTransformer);
-			
+
 			int[] promiseArgs = promiseClass == null ? new int[0] : getArgsOfType(method, promiseClass);
 			int[] completableFutureArgs = getArgsOfType(method, CompletableFuture.class, CompletionStage.class);
-			
+
 			UUID id = _importRegistration.getId();
-			ClientInvocation template = new ClientInvocation(false, id, methodId, -1, null, 
+			ClientInvocation template = new ClientInvocation(false, id, methodId, -1, null,
 					promiseArgs, completableFutureArgs, _serializer, nettyFutureAdapter, null, timeout, method.toString());
-			
+
 			return new InvocationInfo((w,o,m,a) -> {
 					Promise<Object> result = nettyPromiseSupplier.apply(_executor.next());
 					_channel.writeAndFlush(template.fromTemplate(
-						w, _callIdGenerator.getAsInt(), a, result), 
+						w, _callIdGenerator.getAsInt(), a, result),
 							_channel.newPromise().addListener(f -> {
 									if(!f.isSuccess()) {
 										result.tryFailure(new ServiceException("Failed to send the remote invocation", ServiceException.REMOTE, f.cause()));
@@ -226,16 +226,16 @@ public class ServiceInvocationHandler implements InvocationHandler {
 					return result;
 				}, transformer);
 		}
-		
+
 		return new InvocationInfo((a,b,c,d) -> {
-					throw new NoSuchMethodException("The remote service does not define a method " 
+					throw new NoSuchMethodException("The remote service does not define a method "
 							+ method.toGenericString());
 				}, UNREACHABLE_RETURN_TRANSFORMER);
 	}
 
 	private int[] getArgsOfType(Method method, Class<?>... clazz) {
 		Class<?>[] parameterTypes = method.getParameterTypes();
-		
+
 		Builder builder = IntStream.builder();
 		for(int i = 0; i < parameterTypes.length; i++) {
 			Class<?> toCheck = parameterTypes[i];
@@ -247,18 +247,18 @@ public class ServiceInvocationHandler implements InvocationHandler {
 	}
 
 	private Function<Future<?>, Object> getReturnTransformer(Method method, Class<?> promiseClass,
-			Function<Future<?>, Object> promiseTransform, Class<?> pushStreamClass, 
+			Function<Future<?>, Object> promiseTransform, Class<?> pushStreamClass,
 			Function<Future<?>, Object> pushStreamTransformer, Class<?> pushEventSourceClass, Function<Future<?>, Object> pushEventSourceTransformer) {
 		Class<?> returnType = method.getReturnType();
-		
-		return (promiseClass != null && 
+
+		return (promiseClass != null &&
 				promiseClass.equals(returnType)) ?
-						promiseTransform : 
-				(pushStreamClass != null && 
-				pushStreamClass.equals(returnType)) ? 
+						promiseTransform :
+				(pushStreamClass != null &&
+				pushStreamClass.equals(returnType)) ?
 						pushStreamTransformer :
-				(pushEventSourceClass != null && 
-				pushEventSourceClass.equals(returnType)) ? 
+				(pushEventSourceClass != null &&
+				pushEventSourceClass.equals(returnType)) ?
 						pushEventSourceTransformer :
 				java.util.concurrent.Future.class.equals(returnType) ?
 						IDENTITY_RETURN_TRANSFORM :
@@ -288,7 +288,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 			pushStreamReturnAction = UNREACHABLE_RETURN_TRANSFORMER;
 		} else {
 			try {
-				pushStreamReturnAction = PushStreamFactory.pushStreamHandler(pushStreamClass, 
+				pushStreamReturnAction = PushStreamFactory.pushStreamHandler(pushStreamClass,
 						_executor, new PushStreamConnector(_channel, _serializer), (key) -> {
 							_channel.writeAndFlush(new EndStreamingInvocation(key.getId(), key.getCallId()));
 						});
@@ -305,7 +305,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 			pushEventSourceReturnAction = UNREACHABLE_RETURN_TRANSFORMER;
 		} else {
 			try {
-				pushEventSourceReturnAction = PushStreamFactory.pushEventSourceHandler(pushEventSourceClass, 
+				pushEventSourceReturnAction = PushStreamFactory.pushEventSourceHandler(pushEventSourceClass,
 						_executor, new PushEventSourceConnector(_timer, _channel, _serializer), (key) -> {});
 			} catch (NoClassDefFoundError | Exception e) {
 				throw new RuntimeException("The PushStream package is not supported", e);
@@ -314,23 +314,23 @@ public class ServiceInvocationHandler implements InvocationHandler {
 		return pushEventSourceReturnAction;
 	}
 
-	private static final Function<Future<?>, Object> UNREACHABLE_RETURN_TRANSFORMER = 
+	private static final Function<Future<?>, Object> UNREACHABLE_RETURN_TRANSFORMER =
 			t -> { throw new IllegalStateException("This transformer should never be called");};
-	
+
 	private static final Function<Future<?>, Object> DEFAULT_RETURN_TRANSFORM = f -> {
 			try {
 				return f.sync().getNow();
 			} catch (InterruptedException ie) {
 				Thread.currentThread().interrupt();
-				throw new ServiceException("Interrupted while waiting for a remote service response", 
+				throw new ServiceException("Interrupted while waiting for a remote service response",
 						ServiceException.REMOTE, ie);
 			}
 		};
-					
+
 	private static final Function<Future<?>, Object> IDENTITY_RETURN_TRANSFORM = f -> f;
 
 	private static final Function<Future<?>, Object> COMPLETABLE_FUTURE_RETURN_TRANSFORM = f -> {
-			CompletableFuture<Object> cf = 
+			CompletableFuture<Object> cf =
 					new CompletableFuture<>();
 			f.addListener(c -> {
 					if(c.isSuccess()) {
@@ -341,7 +341,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 				});
 			return cf;
 		};
-	
+
     private static final InvocationInfo OBJECT_DELEGATOR = new InvocationInfo((x,o,m,a) -> {
 			try {
 				return ImmediateEventExecutor.INSTANCE.newSucceededFuture(m.invoke(o, a));
@@ -351,11 +351,12 @@ public class ServiceInvocationHandler implements InvocationHandler {
 				throw e;
 			}
 		}, DEFAULT_RETURN_TRANSFORM);
-    
+
     private static final InvocationInfo MISSING_METHOD_HANDLER = new InvocationInfo((x,o,m,a) -> {
 			throw new NoSuchMethodException(String.format("The method %s is not known to this handler", m));
 		}, UNREACHABLE_RETURN_TRANSFORMER);
-    
+
+	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         try {
             InvocationInfo info = actions.getOrDefault(method, MISSING_METHOD_HANDLER);
@@ -365,9 +366,9 @@ public class ServiceInvocationHandler implements InvocationHandler {
             if (t instanceof RuntimeException) {
                 throw t;
             }
-            
+
             if(t instanceof NoSuchMethodException) {
-            	LOG.error("The local service interface contains methods that are not available on the remote object. The client attempted to call {} and so this registration will now be closed.", 
+            	LOG.error("The local service interface contains methods that are not available on the remote object. The client attempted to call {} and so this registration will now be closed.",
             			method.toGenericString());
             	_importRegistration.close();
             	throw new ServiceException("The method invoked is not supported for remote calls. This indicates a version mismatch between the service APIs on the client and server.",
@@ -381,7 +382,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
                     throw t;
                 }
             }
-            
+
             throw new ServiceException("Failed to invoke method: " + method.getName(),
                 ServiceException.REMOTE, t);
         }
@@ -414,7 +415,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
         Class<?>[] interfaces = proxy.getClass().getInterfaces();
         if (interfaces.length > 0) {
-            List<String> names = new ArrayList<String>(interfaces.length);
+            List<String> names = new ArrayList<>(interfaces.length);
             for (Class<?> iface : interfaces) {
                 names.add(iface.getName());
             }

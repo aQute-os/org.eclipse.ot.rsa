@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -19,14 +19,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelPromise;
 
 public abstract class AbstractRSAMessage<M extends MessageType> {
-	
+
 	private final M type;
-	
+
 	private final UUID serviceId;
-	
+
 	private final int callId;
-	
-	
+
+
 	public AbstractRSAMessage(M type, UUID serviceId, int callId) {
 		this.type = type;
 		this.serviceId = serviceId;
@@ -46,7 +46,7 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 	}
 
 	public abstract void write(ByteBuf buffer, ChannelPromise promise) throws IOException;
-	
+
 	protected final void writeHeader(ByteBuf buffer) {
 		buffer
 			.writeByte(type.getVersion())
@@ -56,7 +56,7 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 			.writeLong(serviceId.getLeastSignificantBits())
 			.writeInt(callId);
 	}
-	
+
 	protected final void writeLength(ByteBuf buffer) {
 		final int pos = buffer.readerIndex();
 		final int length = buffer.readableBytes() - 4;
@@ -75,14 +75,14 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 					"length does not fit into a medium integer: " + length);
 		}
 	}
-	
+
 	public final CacheKey getKey() {
 		return new CacheKey(getServiceId(), getCallId());
 	}
 
 	public static final class CacheKey {
 		private final UUID serviceId;
-		
+
 		private final int callId;
 
 		public CacheKey(UUID serviceId, int callId) {
@@ -99,9 +99,7 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;
-			if (obj == null)
-				return false;
-			if (!(obj instanceof CacheKey))
+			if ((obj == null) || !(obj instanceof CacheKey))
 				return false;
 			CacheKey other = (CacheKey) obj;
 			if (callId != other.callId)
@@ -117,7 +115,7 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 		public UUID getId() {
 			return serviceId;
 		}
-		
+
 		public int getCallId() {
 			return callId;
 		}

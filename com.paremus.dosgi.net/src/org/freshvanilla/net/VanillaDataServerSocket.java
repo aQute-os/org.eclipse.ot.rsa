@@ -93,7 +93,8 @@ public class VanillaDataServerSocket extends VanillaResource implements Runnable
         return port;
     }
 
-    public void run() {
+    @Override
+	public void run() {
         try {
             while (!isClosed()) {
                 final SocketChannel socketChannel = _channel.accept();
@@ -109,7 +110,8 @@ public class VanillaDataServerSocket extends VanillaResource implements Runnable
         }
     }
 
-    public void close() {
+    @Override
+	public void close() {
         super.close();
         try {
             _channel.close();
@@ -132,7 +134,8 @@ public class VanillaDataServerSocket extends VanillaResource implements Runnable
             this.socketChannel = socketChannel;
         }
 
-        public void run() {
+        @Override
+		public void run() {
             DataSocket ds = null;
             DataSocketHandler socketHandler = null;
             try {

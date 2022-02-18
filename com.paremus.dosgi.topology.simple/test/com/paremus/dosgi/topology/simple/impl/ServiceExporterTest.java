@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -67,7 +68,7 @@ public class ServiceExporterTest {
 
 	@Mock
 	private EndpointEventListener listener;
-	
+
 	@Mock
 	private ServiceReference<EndpointEventListener> listenerRef;
 
@@ -87,7 +88,7 @@ public class ServiceExporterTest {
 	}
 
 	private void setupRSA(RemoteServiceAdmin rsa, ExportRegistration reg, ExportReference ref, EndpointDescription ed) {
-		Mockito.when(rsa.exportService(Mockito.any(), Mockito.anyMap())).thenReturn(singleton(reg));
+		Mockito.when(rsa.exportService(ArgumentMatchers.any(), ArgumentMatchers.anyMap())).thenReturn(singleton(reg));
 		setupRegistration(reg, ref, ed);
 	}
 
@@ -98,7 +99,7 @@ public class ServiceExporterTest {
 			return null;
 		}).when(reg).close();
 		Mockito.when(ref.getExportedEndpoint()).thenReturn(ed);
-		Mockito.when(ed.matches(Mockito.anyString())).thenReturn(true);
+		Mockito.when(ed.matches(ArgumentMatchers.anyString())).thenReturn(true);
 	}
 
 	private ArgumentMatcher<Map<String, Object>> mapWith(String scope, String... scopes) {
@@ -109,7 +110,7 @@ public class ServiceExporterTest {
 			public boolean matches(Map<String, Object> item) {
 				boolean matches = true;
 				if (item instanceof Map) {
-					Map<String, Object> m = (Map<String, Object>) item;
+					Map<String, Object> m = item;
 					if (scope != null) {
 						matches &= scope.equals(m.get(Constants.PAREMUS_SCOPES_ATTRIBUTE));
 					} else {
@@ -146,7 +147,7 @@ public class ServiceExporterTest {
 			public boolean matches(EndpointEvent item) {
 				boolean matches = true;
 				if (item instanceof EndpointEvent) {
-					EndpointEvent ee = (EndpointEvent) item;
+					EndpointEvent ee = item;
 					matches &= ed.equals(ee.getEndpoint());
 					matches &= ee.getType() == type;
 				} else {
@@ -165,14 +166,14 @@ public class ServiceExporterTest {
 		exporter.addingRSA(rsaA);
 		exporter.addingRSA(rsaB);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 	}
 
 	@Test
@@ -183,14 +184,14 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 
 	}
 
@@ -201,24 +202,24 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 
 		exporter.removeExportedService(ref);
 
 		Mockito.verify(regA).close();
 		Mockito.verify(regB).close();
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.REMOVED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, EndpointEvent.REMOVED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, EndpointEvent.REMOVED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, EndpointEvent.REMOVED)),
+				ArgumentMatchers.anyString());
 	}
 
 	@Test
@@ -228,22 +229,22 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 
 		exporter.exportService(ref);
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, MODIFIED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, MODIFIED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, MODIFIED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, MODIFIED)),
+				ArgumentMatchers.anyString());
 
 	}
 
@@ -254,25 +255,25 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 
 		exporter.updateExportedService(ref);
 
-		Mockito.verify(regA).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(regB).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(regA).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(regB).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, MODIFIED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, MODIFIED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, MODIFIED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, MODIFIED)),
+				ArgumentMatchers.anyString());
 
 	}
 
@@ -283,28 +284,28 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
 
-		Mockito.when(refADesc.matches(Mockito.anyString())).thenReturn(false);
-		Mockito.when(refBDesc.matches(Mockito.anyString())).thenReturn(false);
+		Mockito.when(refADesc.matches(ArgumentMatchers.anyString())).thenReturn(false);
+		Mockito.when(refBDesc.matches(ArgumentMatchers.anyString())).thenReturn(false);
 
 		exporter.updateExportedService(ref);
 
-		Mockito.verify(regA).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(regB).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(regA).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(regB).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, MODIFIED_ENDMATCH)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, MODIFIED_ENDMATCH)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, MODIFIED_ENDMATCH)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, MODIFIED_ENDMATCH)),
+				ArgumentMatchers.anyString());
 
 	}
 
@@ -318,17 +319,17 @@ public class ServiceExporterTest {
 		exporter.addingRSA(rsaA);
 		exporter.addingRSA(rsaB);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
 	}
 
 	@Test
@@ -340,17 +341,17 @@ public class ServiceExporterTest {
 
 		exporter.exportService(ref);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
 	}
 
 	@Test
@@ -361,40 +362,40 @@ public class ServiceExporterTest {
 		exporter.exportService(ref);
 
 		exporter.destroy();
-		
+
 		Mockito.verify(regA).close();
 		Mockito.verify(regB).close();
 	}
 
 	@Test
 	public void testModifyFrameworkScope() throws Exception {
-		
+
 		Mockito.when(ref.getProperty(Constants.PAREMUS_SCOPES_ATTRIBUTE)).thenReturn(Constants.PAREMUS_SCOPE_TARGETTED);
-		
+
 		exporter.addingRSA(rsaA);
 		exporter.addingRSA(rsaB);
 
 		exporter.exportService(ref);
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref),
-				Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref),
+				ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_A, SCOPE_B)));
 
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
-				Mockito.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, EndpointEvent.ADDED)),
+				ArgumentMatchers.anyString());
 
 		exporter.updateScopes(new String[] {SCOPE_C});
-		
-		Mockito.verify(regA).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_C)));
-		Mockito.verify(regB).update(Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_C)));
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, EndpointEvent.MODIFIED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, EndpointEvent.MODIFIED)),
-				Mockito.anyString());
+
+		Mockito.verify(regA).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_C)));
+		Mockito.verify(regB).update(ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_TARGETTED, SCOPE_C)));
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, EndpointEvent.MODIFIED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, EndpointEvent.MODIFIED)),
+				ArgumentMatchers.anyString());
 	}
 
 	@Test
@@ -404,17 +405,17 @@ public class ServiceExporterTest {
 		exporter.addingRSA(rsaA);
 		exporter.addingRSA(rsaB);
 
-		Mockito.verify(rsaA).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
-		Mockito.verify(rsaB).exportService(Mockito.same(ref), Mockito.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaA).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
+		Mockito.verify(rsaB).exportService(ArgumentMatchers.same(ref), ArgumentMatchers.argThat(mapWith(Constants.PAREMUS_SCOPE_GLOBAL)));
 
 		exporter.addingEEL(listener, listenerRef, Arrays.asList(""));
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refADesc, ADDED)),
-				Mockito.anyString());
-		Mockito.verify(listener).endpointChanged(Mockito.argThat(endpointEventWith(refBDesc, ADDED)),
-				Mockito.anyString());
-		
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refADesc, ADDED)),
+				ArgumentMatchers.anyString());
+		Mockito.verify(listener).endpointChanged(ArgumentMatchers.argThat(endpointEventWith(refBDesc, ADDED)),
+				ArgumentMatchers.anyString());
+
 		exporter.removingRSA(rsaA);
-		
+
 		Mockito.verify(regA).close();
 		Mockito.verify(regB, Mockito.never()).close();
 	}

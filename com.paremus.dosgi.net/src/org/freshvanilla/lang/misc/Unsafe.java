@@ -37,7 +37,7 @@ class Unsafe implements Accessor {
 	 */
 	@Override
 	public <T> T newInstance(Class<T> clazz) throws InstantiationException {
-        return (T)unsafe.allocateInstance(clazz);
+        return unsafe.allocateInstance(clazz);
     }
 
     /* (non-Javadoc)

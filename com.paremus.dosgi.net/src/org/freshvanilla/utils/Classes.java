@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class Classes {
 
-    private static final Map<Class<?>, Class<?>> WRAPPER_TYPES = new HashMap<Class<?>, Class<?>>(31);
+    private static final Map<Class<?>, Class<?>> WRAPPER_TYPES = new HashMap<>(31);
 
     static {
         WRAPPER_TYPES.put(boolean.class, Boolean.class);
@@ -101,11 +101,11 @@ public class Classes {
     }
 
     public static List<MetaMethod<?>> getMemberMethods(Class<?> clazz) {
-        List<MetaMethod<?>> methodList = new ArrayList<MetaMethod<?>>();
+        List<MetaMethod<?>> methodList = new ArrayList<>();
         for (Method method : clazz.getMethods()) {
             if (isPublicNonStatic(method)) {
                 method.setAccessible(true);
-                methodList.add(new MetaMethod<Object>(method.getName(), method.getParameterTypes(), method));
+                methodList.add(new MetaMethod<>(method.getName(), method.getParameterTypes(), method));
             }
         }
         return methodList;

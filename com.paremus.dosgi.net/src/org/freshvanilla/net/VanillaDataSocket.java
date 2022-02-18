@@ -16,9 +16,6 @@
 
 package org.freshvanilla.net;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,6 +35,9 @@ import org.freshvanilla.utils.NamedThreadFactory;
 import org.freshvanilla.utils.VanillaResource;
 import org.slf4j.Logger;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+
 public class VanillaDataSocket extends VanillaResource implements DataSocket {
 
     private static final int MIN_PACKET_SIZE = 256;
@@ -51,7 +51,7 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
     private final WireFormat _wireFormat;
     private final AtomicLong _microTimestamp = new AtomicLong(System.currentTimeMillis() * 1000L);
     private final Object _executorLock = new Object();
-    private final ConcurrentMap<Long, Callback<?>> _callbackMap = new ConcurrentHashMap<Long, Callback<?>>();
+    private final ConcurrentMap<Long, Callback<?>> _callbackMap = new ConcurrentHashMap<>();
     private final ByteBuffer _readBuffer;
     private final ByteBuffer _writeBuffer;
     private final Map<String, Object> _otherHeader;
@@ -103,7 +103,8 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         getLog().debug(name + ": connected to " + socket + ' ' + _otherHeader);
     }
 
-    public InetSocketAddress getAddress() {
+    @Override
+	public InetSocketAddress getAddress() {
         return _address;
     }
 
@@ -112,23 +113,28 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         return ByteBuffer.allocateDirect(maximumMessageSize);
     }
 
-    public Map<String, Object> getOtherHeader() {
+    @Override
+	public Map<String, Object> getOtherHeader() {
         return _otherHeader;
     }
 
-    public WireFormat wireFormat() {
+    @Override
+	public WireFormat wireFormat() {
         return _wireFormat;
     }
 
-    public void addCallback(long sequenceNumber, Callback<?> callback) {
+    @Override
+	public void addCallback(long sequenceNumber, Callback<?> callback) {
         _callbackMap.put(sequenceNumber, callback);
     }
 
-    public Callback<?> removeCallback(long sequenceNumber) {
+    @Override
+	public Callback<?> removeCallback(long sequenceNumber) {
         return _callbackMap.remove(sequenceNumber);
     }
 
-    public void setReader(final Callback<DataSocket> reader) {
+    @Override
+	public void setReader(final Callback<DataSocket> reader) {
         synchronized (_executorLock) {
             if (_executor != null) {
                 return;
@@ -139,14 +145,16 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         }
     }
 
-    public ByteBuffer writeBuffer() {
+    @Override
+	public ByteBuffer writeBuffer() {
         _writeBuffer.clear();
         // so we can write the length later.
         _writeBuffer.position(4);
         return _writeBuffer;
     }
 
-    public ByteBuffer read() throws IOException {
+    @Override
+	public ByteBuffer read() throws IOException {
         final ByteBuffer rb = _readBuffer;
         rb.rewind();
         rb.limit(MIN_PACKET_SIZE);
@@ -251,7 +259,8 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         }
     }
 
-    public void flush() throws IOException {
+    @Override
+	public void flush() throws IOException {
         final ByteBuffer wb = _writeBuffer;
         int len = wb.position();
         wb.flip();
@@ -272,11 +281,13 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         }
     }
 
-    public long microTimestamp() {
+    @Override
+	public long microTimestamp() {
         return _microTimestamp.getAndIncrement();
     }
 
-    public void close() {
+    @Override
+	public void close() {
         super.close();
         DataSockets.unregisterDataSocket(this);
 
@@ -306,7 +317,8 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
             _reader = reader;
         }
 
-        public void run() {
+        @Override
+		public void run() {
             while (!isClosed()) {
                 try {
                     _reader.onCallback(VanillaDataSocket.this);
@@ -325,7 +337,8 @@ public class VanillaDataSocket extends VanillaResource implements DataSocket {
         }
     }
 
-    public void timedCheck(long timeMillis) {
+    @Override
+	public void timedCheck(long timeMillis) {
         if (_reading) {
             if (_readTimeMillis == 0) {
                 _readTimeMillis = timeMillis;

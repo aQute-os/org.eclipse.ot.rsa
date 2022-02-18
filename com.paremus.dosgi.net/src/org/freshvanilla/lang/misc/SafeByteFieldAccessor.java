@@ -9,7 +9,8 @@ class SafeByteFieldAccessor implements FieldAccessor<Byte> {
         this.f = f;
     }
 
-    public <Pojo> Byte getField(Pojo pojo) {
+    @Override
+	public <Pojo> Byte getField(Pojo pojo) {
     	try {
 			return (Byte) f.get(pojo);
 		} catch (Exception e) {
@@ -17,19 +18,23 @@ class SafeByteFieldAccessor implements FieldAccessor<Byte> {
 		}
     }
 
-    public <Pojo> boolean getBoolean(Pojo pojo) {
+    @Override
+	public <Pojo> boolean getBoolean(Pojo pojo) {
         return getField(pojo) != 0;
     }
 
-    public <Pojo> long getNum(Pojo pojo) {
+    @Override
+	public <Pojo> long getNum(Pojo pojo) {
     	return getField(pojo);
     }
 
-    public <Pojo> double getDouble(Pojo pojo) {
+    @Override
+	public <Pojo> double getDouble(Pojo pojo) {
     	return getField(pojo);
     }
 
-    public <Pojo> void setField(Pojo pojo, Byte object) {
+    @Override
+	public <Pojo> void setField(Pojo pojo, Byte object) {
     	try {
         	f.set(pojo, object);
         } catch (Exception e) {
@@ -37,15 +42,18 @@ class SafeByteFieldAccessor implements FieldAccessor<Byte> {
         }
     }
 
-    public <Pojo> void setBoolean(Pojo pojo, boolean flag) {
+    @Override
+	public <Pojo> void setBoolean(Pojo pojo, boolean flag) {
         setField(pojo, (byte)(flag ? 1 : 0));
     }
 
-    public <Pojo> void setNum(Pojo pojo, long value) {
+    @Override
+	public <Pojo> void setNum(Pojo pojo, long value) {
     	setField(pojo, (byte)value);
     }
 
-    public <Pojo> void setDouble(Pojo pojo, double value) {
+    @Override
+	public <Pojo> void setDouble(Pojo pojo, double value) {
     	setField(pojo, (byte)value);
     }
 }

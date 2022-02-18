@@ -28,15 +28,18 @@ public class VanillaResource implements SimpleResource {
         _name = name;
     }
 
-    public String getName() {
+    @Override
+	public String getName() {
         return _name;
     }
 
-    public boolean isClosed() {
+    @Override
+	public boolean isClosed() {
         return _closed;
     }
 
-    public void close() {
+    @Override
+	public void close() {
         _closed = true;
     }
 
@@ -46,6 +49,7 @@ public class VanillaResource implements SimpleResource {
         }
     }
 
+	@Override
 	protected void finalize() throws Throwable {
         try {
             if (!_closed) {

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -30,7 +30,7 @@ import com.paremus.entire.attributes.api.AD.Unit;
 /**
  * Build an {@link AD} from its field. This allows us to use the return type and
  * any annotations.
- * 
+ *
  * TODO Use javax.validation annotations as well?
  */
 public class ADBuilder {
@@ -57,7 +57,7 @@ public class ADBuilder {
 
 	/*
 	 * Build an AD from a data type
-	 * 
+	 *
 	 * @param type the given data type.
 	 */
 	private ADBuilder(Type type) throws Exception {
@@ -66,7 +66,7 @@ public class ADBuilder {
 
 	/**
 	 * Use a field to provide the AD from the field type and any annotations.
-	 * 
+	 *
 	 * @param field
 	 *            the field to create an AD for.
 	 */
@@ -95,7 +95,7 @@ public class ADBuilder {
 
 	/**
 	 * Provide an annotation to fill the AD from.,
-	 * 
+	 *
 	 * @param annotation
 	 *            the given annotation
 	 * @return A Builder so that call can be chained.
@@ -103,15 +103,15 @@ public class ADBuilder {
 	public ADBuilder annotation(ADA annotation) throws Exception {
 		if (annotation == null)
 			return this;
-		
+
 		ad.required = annotation.required();
-			
+
 		if (!annotation.name().equals(""))
 			ad.name = annotation.name();
 
 		if (!annotation.placeholder().equals(""))
 			ad.placeholder = annotation.placeholder();
-		
+
 		if (!annotation.deflt().isEmpty())
 			ad.deflt = annotation.deflt();
 
@@ -200,7 +200,7 @@ public class ADBuilder {
 
 	/**
 	 * Use the data type to construct reasonable values.
-	 * 
+	 *
 	 * @param type
 	 * @return an ADBuilder so calls can be chained
 	 * @throws Exception
@@ -289,7 +289,7 @@ public class ADBuilder {
 				Enum<?>[] enumConstants = (Enum<?>[]) clazz.getEnumConstants();
 				ad.basicType = AD.BasicType.string;
 				ad.viewer = "enum";
-				ad.options = new HashMap<String, String>();
+				ad.options = new HashMap<>();
 				for (Enum<?> e : enumConstants) {
 					ad.options.put(e.name(), e.toString());
 				}
@@ -297,7 +297,7 @@ public class ADBuilder {
 			}
 
 			if (struct.class.isAssignableFrom(clazz)) {
-				List<Field> fields = new ArrayList<Field>();
+				List<Field> fields = new ArrayList<>();
 				for (Field f : clazz.getFields()) {
 					if (Modifier.isStatic(f.getModifiers()))
 						continue;
@@ -345,7 +345,7 @@ public class ADBuilder {
 
 	/**
 	 * Turn a camelized method name into a readable name. Used as default.
-	 * 
+	 *
 	 * @param id
 	 *            the id of the attribute
 	 * @return a good looking name for readability

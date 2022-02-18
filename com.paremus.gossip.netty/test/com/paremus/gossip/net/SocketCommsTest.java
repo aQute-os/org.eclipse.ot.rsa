@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -72,15 +73,15 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 	private static final int UDP_PORT = 18245;
 
 	static final UUID ID = new UUID(1234, 5678);
-	
+
 	NettyComms socketComms;
-	
+
 	Map<String, Object> config = new HashMap<>();
-	
+
 	Semaphore sem = new Semaphore(0);
-	
+
 	ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
-	
+
 	@Mock
 	Gossip gossip;
 
@@ -94,19 +95,19 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 	public void setUp() throws Exception {
 		config.put("udp.port", UDP_PORT);
 		config.put("tcp.port", TCP_PORT);
-		
+
 		socketComms = new NettyComms("cluster", ID, standardConverter()
 				.convert(config).to(Config.class), tls, gossip);
-		
+
 		Mockito.doAnswer(this::count).when(gossip)
-			.handleMessage(Mockito.any(InetSocketAddress.class), Mockito.any(GossipMessage.class));
+			.handleMessage(ArgumentMatchers.any(InetSocketAddress.class), ArgumentMatchers.any(GossipMessage.class));
 	}
-	
+
 	private Object count(InvocationOnMock invocation) {
 		sem.release();
 		return null;
 	}
-	
+
 	@AfterEach
 	public void tearDown() throws Exception {
 		socketComms.destroy();
@@ -117,38 +118,38 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 		AbstractGossipMessage gm = getTestPacket();
 		try (DatagramSocket s = new DatagramSocket()) {
 			byte[] bytes = new byte[1024];
-			
+
 			ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
 			buffer.readerIndex(0);
 			buffer.writerIndex(0);
-			
+
 			buffer.writeByte(2);
 			buffer.writeByte(1);
 			buffer.writeByte(gm.getType().ordinal());
 			gm.writeOut(buffer);
-			
-			s.send(new DatagramPacket(bytes, buffer.readableBytes(), getLoopbackAddress(), 
+
+			s.send(new DatagramPacket(bytes, buffer.readableBytes(), getLoopbackAddress(),
 					UDP_PORT));
-			
+
 			assertTrue(sem.tryAcquire(1000, MILLISECONDS));
-			
+
 			ArgumentCaptor<GossipMessage> captor = ArgumentCaptor.forClass(GossipMessage.class);
-			Mockito.verify(gossip).handleMessage(Mockito.eq(new InetSocketAddress(getLoopbackAddress(), 
+			Mockito.verify(gossip).handleMessage(ArgumentMatchers.eq(new InetSocketAddress(getLoopbackAddress(),
 					s.getLocalPort())), captor.capture());
 			validateSnapshot(((AbstractGossipMessage)captor.getValue())
 					.getUpdate((InetSocketAddress)s.getRemoteSocketAddress()));
 		}
 	}
-	
+
 	@Test
 	public void testStopListening() throws Exception {
 		socketComms.destroy();
 		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {
 			//
 		}
-		
+
 		try (DatagramSocket s = new DatagramSocket()) {
-			s.send(new DatagramPacket(new byte[] {2, 1, 1, 0x7F}, 4, getLoopbackAddress(), 
+			s.send(new DatagramPacket(new byte[] {2, 1, 1, 0x7F}, 4, getLoopbackAddress(),
 					UDP_PORT));
 		}
 		//Should be no messages heard
@@ -160,7 +161,7 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {
 			fail("Should be prevented from binding");
 		} catch (BindException be) {}
-		
+
 		socketComms.destroy().forEach( f ->{
 			try {
 				f.sync();
@@ -168,9 +169,9 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 				Thread.currentThread().interrupt();
 			}
 		});
-		
+
 		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {}
-		
+
 	}
 
 	@Test
@@ -181,13 +182,13 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 			s.setSoTimeout(500);
 			DatagramPacket packet = new DatagramPacket(new byte[1024], 1024);
 			s.receive(packet);
-			
+
 			validatePacket(s, packet);
 		}
 	}
 
 	private AbstractGossipMessage getTestPacket() {
-		AbstractGossipMessage gm = new FirstContactRequest("FOO", 
+		AbstractGossipMessage gm = new FirstContactRequest("FOO",
 				new Snapshot(ID, 1234, (short) 0, PAYLOAD_UPDATE, singletonMap("FOO", new byte[] {1,2,3,4}), 1));
 		return gm;
 	}
@@ -196,13 +197,13 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 		assertEquals(2, packet.getData()[packet.getOffset()]);
 		assertEquals(1, packet.getData()[packet.getOffset() + 1]);
 		assertEquals(MessageType.FIRST_CONTACT_REQUEST.ordinal(), packet.getData()[packet.getOffset() + 2]);
-		
-		ByteBuf b = wrappedBuffer(packet.getData(), packet.getOffset() + 3, 
+
+		ByteBuf b = wrappedBuffer(packet.getData(), packet.getOffset() + 3,
 				packet.getLength() - 3);
-		
+
 		FirstContactRequest request = new FirstContactRequest(b);
 		Snapshot sent = request.getUpdate((InetSocketAddress) s.getLocalSocketAddress());
-		
+
 		validateSnapshot(sent);
 	}
 

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -28,7 +28,7 @@ import io.netty.buffer.ByteBufOutputStream;
 public class JavaSerializer implements Serializer {
 
 	private final Bundle classSpace;
-	
+
 	public JavaSerializer(Bundle classSpace) {
 		this.classSpace = classSpace;
 	}
@@ -37,7 +37,7 @@ public class JavaSerializer implements Serializer {
 	public void serializeArgs(ByteBuf buffer, Object[] o) throws IOException {
 		serializeReturn(buffer, o);
 	}
-	
+
 	@Override
 	public void serializeReturn(ByteBuf buffer, Object o) throws IOException {
 		serialzeWithJava(new ByteBufOutputStream(buffer), o);
@@ -53,7 +53,7 @@ public class JavaSerializer implements Serializer {
 	public Object[] deserializeArgs(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		return (Object[]) deserializeReturn(buffer);
 	}
-	
+
 	@Override
 	public Object deserializeReturn(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteBufInputStream(buffer)) {

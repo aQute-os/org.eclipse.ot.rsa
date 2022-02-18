@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -158,7 +158,7 @@ public abstract class AbstractMultiplexingDTLSTest extends AbstractDTLSTest {
     public void testClientInitiatedDisconnect() throws Exception {
 
         setupEC();
-        
+
         udpBootstrap.handler(new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
@@ -181,11 +181,11 @@ public abstract class AbstractMultiplexingDTLSTest extends AbstractDTLSTest {
         // Bob should have a complete and working handshake
         assertNotNull(bobHandler.handshakeFuture(alice.localAddress()));
         assertTrue(bobHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         // Carol should have a complete and working handshake
         assertNotNull(carolHandler.handshakeFuture(alice.localAddress()));
         assertTrue(carolHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         // Do some data sending
         BlockingQueue<String> aliceMessages = new LinkedBlockingQueue<>();
         BlockingQueue<String> bobMessages = new LinkedBlockingQueue<>();
@@ -197,16 +197,16 @@ public abstract class AbstractMultiplexingDTLSTest extends AbstractDTLSTest {
 
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeCharSequence("Hello from Alice", UTF_8);
-        
+
         assertTrue(alice.writeAndFlush(new DatagramPacket(buffer.retainedSlice(), (InetSocketAddress) bob.localAddress())).await(2000));
         assertTrue(alice.writeAndFlush(new DatagramPacket(buffer.retainedSlice(), (InetSocketAddress) carol.localAddress())).await(2000));
 
         assertEquals("Hello from Alice", bobMessages.poll(100, TimeUnit.MILLISECONDS));
         assertEquals("Hello from Alice", carolMessages.poll(100, TimeUnit.MILLISECONDS));
-      
+
         // Disconnect Alice from Bob
         aliceHandler.disconnect(bob.localAddress()).get(1, TimeUnit.SECONDS);
-        
+
         // We need to give some extra time to process the close messages that get sent
         Thread.sleep(100);
 
@@ -217,7 +217,7 @@ public abstract class AbstractMultiplexingDTLSTest extends AbstractDTLSTest {
         // Carol should still be connected
         assertTrue(aliceHandler.handshakeFuture(carol.localAddress()).isSuccess());
         assertTrue(carolHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         assertTrue(alice.close().await(1000));
         assertTrue(bob.close().await(1000));
         assertTrue(carol.close().await(1000));
@@ -226,72 +226,72 @@ public abstract class AbstractMultiplexingDTLSTest extends AbstractDTLSTest {
 
     @Test
     public void testSevertInitiatedDisconnect() throws Exception {
-        
+
         setupEC();
-        
+
         udpBootstrap.handler(new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
                 ch.pipeline().addFirst(getMultiplexingHandler(kmf, tmf, parameters));
             }
         });
-        
+
         Channel alice = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
         Channel bob = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
         Channel carol = udpBootstrap.bind(InetAddress.getLoopbackAddress(), 0).sync().channel();
-        
+
         MultiplexingDTLSHandler aliceHandler = alice.pipeline().get(MultiplexingDTLSHandler.class);
         MultiplexingDTLSHandler bobHandler = bob.pipeline().get(MultiplexingDTLSHandler.class);
         MultiplexingDTLSHandler carolHandler = carol.pipeline().get(MultiplexingDTLSHandler.class);
-        
+
         // Initiate the connection from Alice so that she will be the client
         assertNotNull(aliceHandler.handshake(bob.localAddress()).get(1, TimeUnit.SECONDS));
         assertNotNull(aliceHandler.handshake(carol.localAddress()).get(1, TimeUnit.SECONDS));
-        
+
         // Bob should have a complete and working handshake
         assertNotNull(bobHandler.handshakeFuture(alice.localAddress()));
         assertTrue(bobHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         // Carol should have a complete and working handshake
         assertNotNull(carolHandler.handshakeFuture(alice.localAddress()));
         assertTrue(carolHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         // Do some data sending
         BlockingQueue<String> aliceMessages = new LinkedBlockingQueue<>();
         BlockingQueue<String> bobMessages = new LinkedBlockingQueue<>();
         BlockingQueue<String> carolMessages = new LinkedBlockingQueue<>();
-        
+
         alice.pipeline().addLast(new CapturingHandler(aliceMessages));
         bob.pipeline().addLast(new CapturingHandler(bobMessages));
         carol.pipeline().addLast(new CapturingHandler(carolMessages));
-        
+
         ByteBuf buffer = Unpooled.buffer();
         buffer.writeCharSequence("Hello from Alice", UTF_8);
-        
+
         assertTrue(alice.writeAndFlush(new DatagramPacket(buffer.retainedSlice(), (InetSocketAddress) bob.localAddress())).await(2000));
         assertTrue(alice.writeAndFlush(new DatagramPacket(buffer.retainedSlice(), (InetSocketAddress) carol.localAddress())).await(2000));
-        
+
         assertEquals("Hello from Alice", bobMessages.poll(100, TimeUnit.MILLISECONDS));
         assertEquals("Hello from Alice", carolMessages.poll(100, TimeUnit.MILLISECONDS));
-        
+
         // Disconnect Bob from Alice
         bobHandler.disconnect(alice.localAddress()).get(1, TimeUnit.SECONDS);
-        
+
         // We need to give some extra time to process the close messages that get sent
         Thread.sleep(100);
-        
+
         // Bob and Alice should now be disconnected
         assertNull(aliceHandler.handshakeFuture(bob.localAddress()));
         assertNull(bobHandler.handshakeFuture(alice.localAddress()));
-        
+
         // Carol should still be connected
         assertTrue(aliceHandler.handshakeFuture(carol.localAddress()).isSuccess());
         assertTrue(carolHandler.handshakeFuture(alice.localAddress()).isSuccess());
-        
+
         assertTrue(alice.close().await(1000));
         assertTrue(bob.close().await(1000));
         assertTrue(carol.close().await(1000));
-        
+
     }
 
     protected abstract ChannelHandler getMultiplexingHandler(KeyManagerFactory kmf, TrustManagerFactory tmf,

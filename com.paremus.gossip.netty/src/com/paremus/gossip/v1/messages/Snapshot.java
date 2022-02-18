@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -32,23 +32,23 @@ import io.netty.buffer.ByteBufUtil;
 
 
 public class Snapshot {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(Snapshot.class);
-	
+
 	/**
 	 * The id of this node
 	 */
 	private final UUID id;
-	
-	/** 
+
+	/**
 	 * The address of this node
 	 */
-	private final InetSocketAddress address; 
+	private final InetSocketAddress address;
 
-	/** 
+	/**
 	 * The TCP port of this node
 	 */
-	private final int tcpPort; 
+	private final int tcpPort;
 
 	/**
 	 * The current state counter for the node represented by this snapshot
@@ -64,15 +64,15 @@ public class Snapshot {
 	 * What is the type of the message from this node?
 	 */
 	private final SnapshotType snapshotType;
-	
+
 	/**
 	 * What is the payload - a zero length array for a heartbeat message.
 	 */
 	private final Map<String, byte[]> data;
-	
+
 	private final int hopsToLive;
 
-	public Snapshot(UUID id, int tcpPort, short stateSequenceNumber, 
+	public Snapshot(UUID id, int tcpPort, short stateSequenceNumber,
 			SnapshotType type, Map<String, byte[]> data, int hopsToLive) {
 		this.id = id;
 		this.address = null;
@@ -94,7 +94,7 @@ public class Snapshot {
 		this.data = s.data;
 		this.hopsToLive = Math.max(0, Math.min(255, s.hopsToLive - 1));
 	}
-	
+
 	public Snapshot(Snapshot s) {
 		this(s, s.address);
 	}
@@ -127,14 +127,14 @@ public class Snapshot {
 				data = null;
 				hopsToLive = -1;
 			}
-			
+
 		} catch (IOException ioe) {
 			logger.error("Failed to read snapshot", ioe);
 			throw new RuntimeException("Failed to read snapshot", ioe);
 		}
 	}
-	
-	public Snapshot(UUID id, InetSocketAddress address, int tcpPort, short stateSequenceNumber, 
+
+	public Snapshot(UUID id, InetSocketAddress address, int tcpPort, short stateSequenceNumber,
 			int snapshotTime, SnapshotType type, Map<String, byte[]> data, int hopsToLive) {
 		this.id = id;
 		this.address = address;
@@ -145,24 +145,24 @@ public class Snapshot {
 		this.data = data == null ? Collections.emptyMap() : data;
 		this.hopsToLive = hopsToLive;
 	}
-	
+
 	public void writeOut(ByteBuf output) {
 		try {
 			output.writeLong(id.getMostSignificantBits());
 			output.writeLong(id.getLeastSignificantBits());
-			
+
 			output.writeByte(snapshotType.ordinal());
-	
+
 			output.writeShort(stateSequenceNumber);
-			
+
 			output.writeMedium(snapshotTimestamp >> 8);
-			
+
 			if(snapshotType != SnapshotType.HEADER) {
 				IP_TYPE type = IP_TYPE.fromInetSocketAddress(address);
 				type.writeOut(address, output);
-			
+
 				output.writeShort(tcpPort);
-			
+
 				if(snapshotType == SnapshotType.PAYLOAD_UPDATE) {
 					output.writeShort(data.size());
 					for(Entry<String, byte[]> e : data.entrySet()) {
@@ -194,7 +194,7 @@ public class Snapshot {
 	public InetSocketAddress getUdpAddress() {
 		return address;
 	}
-	
+
 	public int getUdpPort() {
 		return address == null ? -1 : address.getPort();
 	}
@@ -251,7 +251,7 @@ public class Snapshot {
 				+ stateSequenceNumber + ", snapshotTimestamp=" + snapshotTimestamp + ", snapshotType=" + snapshotType
 				+ ", data=" + data + ", hopsToLive=" + hopsToLive + "]";
 	}
-	
+
 	/**
 	 * UUID + sequence + type + timestamp
 	 */
@@ -260,7 +260,7 @@ public class Snapshot {
 	 * HEADER + assumed IPV6 + udp port + tcp port + hops
 	 */
 	private static final int FIXED_OVERHEAD_HEARTBEAT = FIXED_OVERHEAD_HEADER + 16 + 2 + 2 + 1;
-	
+
 	public int guessSize() {
 		switch (snapshotType) {
 		case HEADER:
@@ -274,7 +274,7 @@ public class Snapshot {
 					.mapToInt(e -> ByteBufUtil.utf8MaxBytes(e.getKey()) + 2 + e.getValue().length)
 					.sum();
 			}
-			
+
 			return FIXED_OVERHEAD_HEARTBEAT + extra;
 		}
 	}

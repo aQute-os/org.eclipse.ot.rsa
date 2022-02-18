@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -42,52 +42,52 @@ import org.osgi.service.remoteserviceadmin.EndpointEvent;
 public class EndpointListenerServiceTest {
 
 	public static final String FILTER = "FOO";
-	
+
 	@Mock
 	Bundle b;
-	
+
 	@Mock
 	EndpointDescription ed;
-	
+
 	EndpointListenerService listenerService;
-	
+
 	@BeforeEach
 	public void setUp() {
-		
+
 		listenerService = mock(EndpointListenerService.class, withSettings().useConstructor(b)
 				.defaultAnswer(Answers.CALLS_REAL_METHODS));
-		
+
 	}
-	
+
 	@Test
 	public void testEndpointAdded() {
 		listenerService.endpointAdded(ed, FILTER);
-		
+
 		verify(listenerService).handleEvent(same(b), argThat(isEventWith(ADDED, ed)), eq(FILTER));
 	}
 
 	@Test
 	public void testEndpointRemoved() {
 		listenerService.endpointRemoved(ed, FILTER);
-		
+
 		verify(listenerService).handleEvent(same(b), argThat(isEventWith(REMOVED, ed)), eq(FILTER));
 	}
 
 	@Test
 	public void testEndpointChanged() {
-		
+
 		EndpointEvent event = new EndpointEvent(ADDED, ed);
 		listenerService.endpointChanged(event, FILTER);
-		
+
 		verify(listenerService).handleEvent(same(b), same(event), eq(FILTER));
 	}
-	
+
 	@Test
 	public void testMultipleUseAsListener() {
-		
+
 		listenerService.endpointAdded(ed, FILTER);
 		listenerService.endpointRemoved(ed, FILTER);
-		
+
 		InOrder inOrder = Mockito.inOrder(listenerService);
 		inOrder.verify(listenerService).handleEvent(same(b), argThat(isEventWith(ADDED, ed)), eq(FILTER));
 		inOrder.verify(listenerService).handleEvent(same(b), argThat(isEventWith(REMOVED, ed)), eq(FILTER));
@@ -95,18 +95,18 @@ public class EndpointListenerServiceTest {
 
 	@Test
 	public void testMultipleUseAsEventListener() {
-		
+
 		listenerService.endpointChanged(new EndpointEvent(ADDED, ed), FILTER);
 		listenerService.endpointChanged(new EndpointEvent(REMOVED, ed), FILTER);
-		
+
 		InOrder inOrder = Mockito.inOrder(listenerService);
 		inOrder.verify(listenerService).handleEvent(same(b), argThat(isEventWith(ADDED, ed)), eq(FILTER));
 		inOrder.verify(listenerService).handleEvent(same(b), argThat(isEventWith(REMOVED, ed)), eq(FILTER));
 	}
-	
+
 	@Test
 	public void testMixedUseEventListener() {
-		
+
 		EndpointEvent event = new EndpointEvent(ADDED, ed);
 		listenerService.endpointChanged(event, FILTER);
 
@@ -114,24 +114,24 @@ public class EndpointListenerServiceTest {
 			listenerService.endpointRemoved(ed, FILTER);
 			fail("Should throw an Exception");
 		} catch (IllegalStateException e) {
-			
+
 		}
 	}
 
 	@Test
 	public void testMixedUseListenerEvent() {
-		
+
 		listenerService.endpointAdded(ed, FILTER);
-		
+
 		try {
 			listenerService.endpointChanged(new EndpointEvent(REMOVED, ed), FILTER);
 			fail("Should throw an Exception");
 		} catch (IllegalStateException e) {
-			
+
 		}
 	}
-	
-	
+
+
 	private ArgumentMatcher<EndpointEvent> isEventWith(int eventType, EndpointDescription ed) {
 		return new ArgumentMatcher<EndpointEvent>() {
 

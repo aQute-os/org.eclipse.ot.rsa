@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -22,9 +22,9 @@ import org.slf4j.LoggerFactory;
 public class EndpointListenerAdapter implements EndpointEventListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(EndpointListenerAdapter.class);
-	
+
 	private final EndpointListener listener;
-	
+
 	public EndpointListenerAdapter(EndpointListener listener) {
 		this.listener = listener;
 	}
@@ -42,14 +42,14 @@ public class EndpointListenerAdapter implements EndpointEventListener {
 				listener.endpointRemoved(event.getEndpoint(), filter);
 				break;
 			default :
-				logger.error("An unknown event type {} occurred for endpoint {}", 
+				logger.error("An unknown event type {} occurred for endpoint {}",
 						new Object[] {event.getType(), event.getEndpoint()});
 		}
 	}
 
 	@Override
 	public String toString() {
-		return "EventListener wrapping: " + listener.toString(); 
+		return "EventListener wrapping: " + listener.toString();
 	}
 
 	@Override
@@ -64,9 +64,7 @@ public class EndpointListenerAdapter implements EndpointEventListener {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
+		if ((obj == null) || (getClass() != obj.getClass()))
 			return false;
 		EndpointListenerAdapter other = (EndpointListenerAdapter) obj;
 		if (listener == null) {

@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -39,17 +39,17 @@ import io.netty.channel.group.ChannelGroup;
 class RemotingProviderImpl implements RemotingProvider {
 
 	private final boolean secure;
-	
+
 	private final String scheme;
-	
+
 	private final ServerRequestHandler handler;
-	
+
 	private final Channel channel;
 
 	private final ChannelGroup channelGroup;
-	
+
 	private final List<URI> endpoints;
-	
+
 	public RemotingProviderImpl(ProtocolScheme p, ServerRequestHandler handler, Channel channel,
 			ChannelGroup group) {
 		this.secure = p.getProtocol().isSecure();
@@ -57,7 +57,7 @@ class RemotingProviderImpl implements RemotingProvider {
 		this.handler = handler;
 		this.channel = channel;
 		this.channelGroup = group;
-		
+
 		Map<String, Integer> addressesToAdvertise = p.getAddressesToAdvertise();
 		if(addressesToAdvertise.isEmpty()) {
 			endpoints = calculateURIs(channel);
@@ -71,12 +71,12 @@ class RemotingProviderImpl implements RemotingProvider {
 
 	private List<URI> calculateURIs(Channel channel) {
 		InetSocketAddress address = (InetSocketAddress) channel.localAddress();
-		
+
 		if(address.getAddress().isAnyLocalAddress()) {
 			SortedSet<InetAddress> addresses = new TreeSet<>((a,b) -> {
 					int aScore = 0;
 					int bScore = 0;
-					
+
 					if(a.isLinkLocalAddress()) {
 						aScore = 5;
 					} else if (a.isSiteLocalAddress()) {
@@ -87,7 +87,7 @@ class RemotingProviderImpl implements RemotingProvider {
 					} else if (b.isSiteLocalAddress()) {
 						bScore = 3;
 					}
-					
+
 					if(bScore == aScore) {
 						byte[] aBytes = a.getAddress();
 						byte[] bBytes = b.getAddress();
@@ -133,7 +133,7 @@ class RemotingProviderImpl implements RemotingProvider {
 			return singletonList(toURI(address.getHostString(), address.getPort()));
 		}
 	}
-	
+
 	private URI toURI(String host, int port) {
 		try {
 			return new URI(scheme,  null,  host, port, null, null, null);

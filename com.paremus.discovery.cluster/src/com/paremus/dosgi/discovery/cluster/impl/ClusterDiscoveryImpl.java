@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -57,31 +57,31 @@ import io.netty.util.concurrent.PromiseCombiner;
 public class ClusterDiscoveryImpl implements ClusterDiscovery {
 
 	public static final String PAREMUS_DISCOVERY_DATA = "com.paremus.dosgi.discovery.cluster";
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ClusterDiscoveryImpl.class);
-	
+
 	private final UUID localId;
-	
+
 	private final ConcurrentMap<String, ClusterInformation> clusters = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, ClusterNetworkInformation> networkInfos = new ConcurrentHashMap<>();
 	private final ConcurrentMap<String, SocketComms> clusterComms = new ConcurrentHashMap<>();
-	
+
 	private final Lock clusterLock = new ReentrantLock();
-	
+
 	private final Config config;
-	
+
 	private final LocalDiscoveryListener localDiscoveryListener;
-	
+
 	private final RemoteDiscoveryNotifier remoteDiscoveryNotifier;
 
 	private final ParemusNettyTLS ssl;
-	
+
 	private final EndpointFilter filter;
 
 	private final Set<String> targetClusters;
 
 	private final EventExecutorGroup worker;
-	
+
 	private final NioEventLoopGroup io;
 
 	public ClusterDiscoveryImpl(BundleContext context, UUID id, LocalDiscoveryListener listener,
@@ -91,20 +91,20 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 		this.localDiscoveryListener = listener;
 		this.ssl = ssl;
 		this.worker = worker;
-		
+
 		this.io = new NioEventLoopGroup(1, r -> {
 			Thread t = new FastThreadLocalThread(r, "Paremus Cluster RSA Discovery IO Worker");
 			t.setDaemon(true);
 			return t;
 		});
-		
+
 		this.filter = new EndpointFilter(config.root_cluster(), config.base_scopes());
-		
+
 		remoteDiscoveryNotifier = new RemoteDiscoveryNotifier(filter, context, remoteEventDelivery);
-		
+
 		targetClusters = stream(config.target_clusters()).collect(toSet());
 	}
-	
+
 	void addClusterInformation(ClusterInformation info) {
 		clusterLock.lock();
 		try {
@@ -145,14 +145,14 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 			.stream()
 			.forEach((remoteDiscoveryNotifier::revokeAllFromFramework));
 	}
-	
+
 	void addNetworkInformation(ClusterNetworkInformation svc) {
 		try {
 			String clusterName = svc.getClusterName();
 			SocketComms comms;
 			synchronized (clusterComms) {
-				comms = clusterComms.computeIfAbsent(clusterName, 
-						f -> new SocketComms(localId, io, ssl, 
+				comms = clusterComms.computeIfAbsent(clusterName,
+						f -> new SocketComms(localId, io, ssl,
 								localDiscoveryListener, remoteDiscoveryNotifier, worker));
 				comms.bind(svc, config);
 			}
@@ -162,7 +162,7 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 			e.printStackTrace();
 		}
 	}
-	
+
 	void removeNetworkInformation(ClusterNetworkInformation svc) {
 		ofNullable(clusterComms.remove(svc.getClusterName())).ifPresent(SocketComms::destroy);
 	}
@@ -171,17 +171,17 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 		clusters.keySet().forEach(f -> ofNullable(clusterComms.get(f))
 				.ifPresent(c -> advertiseDiscoveryData(f, c.getUdpPort())));
 	}
-	
+
 	private void advertiseDiscoveryData(String clusterName, int udpPort) {
 		ClusterInformation ci = clusters.get(clusterName);
 		if(ci == null) {
-			logger.warn("The discovery for cluster {} has started, but the cluster information service for that cluster is not available. The discovery port cannot be advertised.", 
+			logger.warn("The discovery for cluster {} has started, but the cluster information service for that cluster is not available. The discovery port cannot be advertised.",
 					clusterName);
 			return;
 		}
-		
+
 		byte[] bytes = ci.getMemberAttribute(localId, PAREMUS_DISCOVERY_DATA);
-		
+
 		if(udpPort == -1) {
 			if(bytes != null) {
 				ci.updateAttribute(PAREMUS_DISCOVERY_DATA, null);
@@ -196,7 +196,7 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 		}
 	}
 
-	public void clusterEvent(ClusterInformation clusterInfo, Action action, UUID id, Set<String> addedKeys, 
+	public void clusterEvent(ClusterInformation clusterInfo, Action action, UUID id, Set<String> addedKeys,
 			Set<String> removedKeys, Set<String> updatedKeys) {
 		try {
 			switch(action) {
@@ -219,7 +219,7 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 			ci.updateAttribute(PAREMUS_DISCOVERY_DATA, null);
 		}
 		localDiscoveryListener.destroy();
-		
+
 		@SuppressWarnings("deprecation")
 		PromiseCombiner pc = new PromiseCombiner();
 		clusterComms.values().stream()
@@ -232,31 +232,31 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 	}
 
 	private void updateRemoteDiscovery(ClusterInformation clusterInfo, UUID id, Set<String> updated, Set<String> removed) {
-		
+
 		String clusterName = clusterInfo.getClusterName();
 		ClusterInformation ci = clusters.get(clusterName);
 		if(ci == null) {
-			logger.error("The node {} in gossip cluster {} is updated but the cluster information service for that cluster was not available", 
+			logger.error("The node {} in gossip cluster {} is updated but the cluster information service for that cluster was not available",
 					id, clusterName);
 			return;
 		} else if (!clusterInfo.equals(ci)) {
 			logger.error("The cluster callback for node {} in {} was using a different cluster information service. Ignoring it", id, clusterName);
 			return;
 		}
-		
+
 		SocketComms comms = createComms(clusterName, id, ci);
-		
+
 		if(this.localId.equals(id)) {
 			return;
 		}
-		
+
 		InetAddress host = ci.getAddressFor(id);
 		if(host == null) {
-			logger.error("The node {} in gossip cluster {} is updated but no network address is available for that node", 
+			logger.error("The node {} in gossip cluster {} is updated but no network address is available for that node",
 					id, clusterName);
 			return;
 		}
-		
+
 		if(removed.contains(PAREMUS_DISCOVERY_DATA)) {
 			if(logger.isInfoEnabled()) {
 				logger.info("The remote node {} in cluster {} is no longer running gossip based discovery.", id, clusterName);
@@ -265,17 +265,17 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 			remoteDiscoveryNotifier.revokeAllFromFramework(id);
 			return;
 		}
-		
+
 		byte[] data = ci.getMemberAttribute(id, PAREMUS_DISCOVERY_DATA);
 		if(data != null) {
 			try(DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data))) {
 				int portNumber = dis.readUnsignedShort();
 				EndpointFilter endpointFilter = EndpointFilter.createFilter(dis);
 				if(logger.isDebugEnabled()) {
-					logger.debug("The remote node {} in cluster {} is participating in gossip-based discovery with {} on port {}.", 
+					logger.debug("The remote node {} in cluster {} is participating in gossip-based discovery with {} on port {}.",
 							new Object[] {id, clusterName, localId, portNumber});
 				}
-				localDiscoveryListener.updateRemote(clusterName, id, portNumber, endpointFilter,  
+				localDiscoveryListener.updateRemote(clusterName, id, portNumber, endpointFilter,
 						() -> new RemoteDiscoveryEndpoint(id, clusterName, targetClusters, comms, host, portNumber, endpointFilter));
 			} catch (IOException e) {
 				//Impossible in a spec compliant VM
@@ -289,13 +289,13 @@ public class ClusterDiscoveryImpl implements ClusterDiscovery {
 
 	private SocketComms createComms(String clusterName, UUID id,
 			ClusterInformation ci) {
-		
+
 		SocketComms comms;
 		synchronized (clusterComms) {
 			comms = clusterComms.get(clusterName);
 			if(comms == null) {
-				comms = clusterComms.computeIfAbsent(clusterName, 
-					f -> new SocketComms(localId, io, ssl, 
+				comms = clusterComms.computeIfAbsent(clusterName,
+					f -> new SocketComms(localId, io, ssl,
 							localDiscoveryListener, remoteDiscoveryNotifier, worker));
 			}
 		}

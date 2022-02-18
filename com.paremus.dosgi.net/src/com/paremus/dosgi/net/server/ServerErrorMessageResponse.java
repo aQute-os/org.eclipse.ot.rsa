@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -24,7 +24,7 @@ import io.netty.channel.ChannelPromise;
 public class ServerErrorMessageResponse extends AbstractRSAMessage<ServerMessageType> {
 
 	private final String message;
-	
+
 	public ServerErrorMessageResponse(ServerMessageType type, UUID serviceId, int callId,
 			String message) {
 		super(check(type), serviceId, callId);
@@ -45,11 +45,11 @@ public class ServerErrorMessageResponse extends AbstractRSAMessage<ServerMessage
 	@Override
 	public void write(ByteBuf buffer, ChannelPromise promise) throws IOException {
 		writeHeader(buffer);
-		
+
 		// Create space for the length prefix
 		int messageLengthStart = buffer.writerIndex();
 		buffer.writerIndex(messageLengthStart + 2);
-		
+
 		// Write the string then set the length
 		int length = buffer.writeCharSequence(message, StandardCharsets.UTF_8);
 		buffer.setShort(messageLengthStart, length);

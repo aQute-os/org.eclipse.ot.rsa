@@ -30,7 +30,7 @@ import org.freshvanilla.utils.VanillaResource;
 
 public class CachedDataSocketFactory extends VanillaResource implements Factory<String, DataSocket> {
 
-    private final ConcurrentMap<String, DataSockets> _dataSocketsMap = new ConcurrentHashMap<String, DataSockets>();
+    private final ConcurrentMap<String, DataSockets> _dataSocketsMap = new ConcurrentHashMap<>();
     private final Factory<String, DataSocket> _dataSocketBuilder;
     private int _maximumConnections = 4;
 
@@ -58,7 +58,8 @@ public class CachedDataSocketFactory extends VanillaResource implements Factory<
         _maximumConnections = maximumConnections;
     }
 
-    public DataSocket acquire(String description) throws InterruptedException {
+    @Override
+	public DataSocket acquire(String description) throws InterruptedException {
         checkedClosed();
         DataSockets dataSockets = _dataSocketsMap.get(description);
         if (dataSockets == null) {
@@ -117,7 +118,8 @@ public class CachedDataSocketFactory extends VanillaResource implements Factory<
         }
     }
 
-    public void recycle(DataSocket dataSocket) {
+    @Override
+	public void recycle(DataSocket dataSocket) {
         if (dataSocket == null) {
             return;
         }
@@ -156,7 +158,8 @@ public class CachedDataSocketFactory extends VanillaResource implements Factory<
         }
     }
 
-    public void close() {
+    @Override
+	public void close() {
         super.close();
 
         for (DataSockets dataSockets : _dataSocketsMap.values()) {
@@ -179,8 +182,8 @@ public class CachedDataSocketFactory extends VanillaResource implements Factory<
         final Set<DataSocket> used;
 
         DataSockets(int maximumConnections) {
-            free = new ArrayBlockingQueue<DataSocket>(maximumConnections + 1);
-            used = new HashSet<DataSocket>(maximumConnections);
+            free = new ArrayBlockingQueue<>(maximumConnections + 1);
+            used = new HashSet<>(maximumConnections);
         }
     }
 }

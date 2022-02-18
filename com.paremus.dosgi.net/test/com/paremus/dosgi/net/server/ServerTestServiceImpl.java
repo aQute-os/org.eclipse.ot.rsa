@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -25,7 +25,7 @@ import org.osgi.util.pushstream.SimplePushEventSource;
 public class ServerTestServiceImpl implements ServerTestService {
 
 	private final CharSequence delegate;
-	
+
 	public ServerTestServiceImpl(CharSequence delegate) {
 		this.delegate = delegate;
 	}
@@ -47,11 +47,11 @@ public class ServerTestServiceImpl implements ServerTestService {
 
 	@Override
 	public Future<CharSequence> subSequence(Promise<Integer> p, CompletionStage<Integer> cs) {
-		CompletableFuture<Integer> cf = new CompletableFuture<Integer>();
-		
-		p.then(x -> {cf.complete(p.getValue()); return null;}, 
+		CompletableFuture<Integer> cf = new CompletableFuture<>();
+
+		p.then(x -> {cf.complete(p.getValue()); return null;},
 				x -> cf.completeExceptionally(p.getFailure()));
-		
+
 		return cf.thenCombine(cs, (start,end) -> subSequence(start, end));
 	}
 
@@ -59,7 +59,7 @@ public class ServerTestServiceImpl implements ServerTestService {
 	public PushStream<Character> streamOfCharacters(int failAfter) {
 		PushStreamProvider provider = new PushStreamProvider();
 		SimplePushEventSource<Character> source = provider.createSimpleEventSource(Character.class);
-		
+
 		source.connectPromise().onResolve(() ->
 				new Thread(() -> {
 					delegate.chars()
@@ -69,7 +69,7 @@ public class ServerTestServiceImpl implements ServerTestService {
 						.map(this::slow)
 						.forEach(source::publish);
 					slow(' ');
-					
+
 					if(delegate.length() > failAfter) {
 						source.error(new ArrayIndexOutOfBoundsException("Failed after " + failAfter));
 					} else {
@@ -78,10 +78,10 @@ public class ServerTestServiceImpl implements ServerTestService {
 					slow(' ');
 					source.close();
 				}).start());
-		
+
 		return provider.createStream(source);
 	}
-	
+
 	@Override
 	public PushEventSource<Character> reusableStreamOfCharacters(int failAfter) {
 		return aec -> {

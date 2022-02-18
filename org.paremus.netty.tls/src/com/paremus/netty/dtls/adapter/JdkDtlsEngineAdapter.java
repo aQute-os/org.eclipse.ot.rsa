@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -27,18 +27,18 @@ import io.netty.buffer.ByteBuf;
 public class JdkDtlsEngineAdapter implements DtlsEngine {
 
     private final SSLEngine engine;
-    
+
     public JdkDtlsEngineAdapter(SSLEngine engine) {
         this.engine = engine;
     }
 
     @Override
     public DtlsEngineResult generateDataToSend(ByteBuf input, ByteBuf output) throws SSLException {
-        SSLEngineResult result = 
+        SSLEngineResult result =
                 engine.wrap(input.nioBuffer(), output.nioBuffer(output.writerIndex(), output.writableBytes()));
-        
+
         updateBufferPositions(input, output, result);
-        
+
         return new JdkDtlsEngineResultAdapter(toOperationResult(result.getStatus()),
                 toOperationRequired(result.getHandshakeStatus()));
     }
@@ -48,7 +48,7 @@ public class JdkDtlsEngineAdapter implements DtlsEngine {
         if(bytesConsumed > 0) {
             input.skipBytes(bytesConsumed);
         }
-        
+
         int bytesProduced = result.bytesProduced();
         if(bytesProduced > 0) {
             output.writerIndex(output.writerIndex() + bytesProduced);
@@ -57,11 +57,11 @@ public class JdkDtlsEngineAdapter implements DtlsEngine {
 
     @Override
     public DtlsEngineResult handleReceivedData(ByteBuf input, ByteBuf output) throws SSLException {
-        SSLEngineResult result = 
+        SSLEngineResult result =
                 engine.unwrap(input.nioBuffer(), output.nioBuffer(output.writerIndex(), output.writableBytes()));
-        
+
         updateBufferPositions(input, output, result);
-        
+
         return new JdkDtlsEngineResultAdapter(toOperationResult(result.getStatus()),
                 toOperationRequired(result.getHandshakeStatus()));
     }
@@ -110,7 +110,7 @@ public class JdkDtlsEngineAdapter implements DtlsEngine {
     public void startHandshaking() throws SSLException {
         engine.beginHandshake();
     }
-    
+
     public OperationResult toOperationResult(Status status) {
         switch(status) {
             case BUFFER_OVERFLOW:
@@ -138,17 +138,17 @@ public class JdkDtlsEngineAdapter implements DtlsEngine {
             case NEED_WRAP:
                 return OperationRequired.DATA_TO_SEND;
             default:
-                // We do this so that the code remains Java 8 compatible 
+                // We do this so that the code remains Java 8 compatible
                 if("NEED_UNWRAP_AGAIN".equals(status.name())) {
                     return OperationRequired.PENDING_RECEIVED_DATA;
                 }
-                
+
                 throw new IllegalArgumentException("Unknown handshake status " + status);
         }
     }
 
     public static class JdkDtlsEngineResultAdapter implements DtlsEngineResult {
-        
+
         private final OperationResult operationResult;
         private final OperationRequired operationRequired;
 
@@ -156,17 +156,17 @@ public class JdkDtlsEngineAdapter implements DtlsEngine {
             this.operationResult = result;
             this.operationRequired = required;
         }
-        
+
         @Override
         public OperationResult getOperationResult() {
             return operationResult;
         }
-        
+
         @Override
         public OperationRequired getOperationRequired() {
             return operationRequired;
         }
-        
+
     }
 }
 

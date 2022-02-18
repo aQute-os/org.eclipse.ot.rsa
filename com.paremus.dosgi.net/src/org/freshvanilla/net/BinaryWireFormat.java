@@ -55,8 +55,8 @@ public class BinaryWireFormat implements WireFormat {
 
     private final byte[] _outBytesArray = new byte[BYTES_SIZE];
 
-    private final Map<Object, Integer> seenWritableObjects = new IdentityHashMap<Object, Integer>(64);
-    private final ArrayList<Object> seenReadableObjects = new ArrayList<Object>(64);
+    private final Map<Object, Integer> seenWritableObjects = new IdentityHashMap<>(64);
+    private final ArrayList<Object> seenReadableObjects = new ArrayList<>(64);
     private final MetaClasses _metaClasses;
     private final PojoSerializer _serializer;
 
@@ -66,11 +66,13 @@ public class BinaryWireFormat implements WireFormat {
         _serializer = serializer;
     }
 
-    public void flush(DataSocket ds, ByteBuf writeBuffer) throws IOException {
+    @Override
+	public void flush(DataSocket ds, ByteBuf writeBuffer) throws IOException {
         ds.flush();
     }
 
-    public boolean readBoolean(ByteBuf readBuffer) throws StreamCorruptedException {
+    @Override
+	public boolean readBoolean(ByteBuf readBuffer) throws StreamCorruptedException {
         byte b = readBuffer.readByte();
         SpecialTag tag = asSTag(b, "boolean");
         switch (tag) {
@@ -83,7 +85,8 @@ public class BinaryWireFormat implements WireFormat {
         }
     }
 
-    public void writeBoolean(ByteBuf writeBuffer, boolean flag) {
+    @Override
+	public void writeBoolean(ByteBuf writeBuffer, boolean flag) {
         writeSTag(writeBuffer, flag ? SpecialTag.TRUE : SpecialTag.FALSE);
     }
 
@@ -97,7 +100,8 @@ public class BinaryWireFormat implements WireFormat {
         return tags[b2];
     }
 
-    public long readNum(ByteBuf readBuffer) throws StreamCorruptedException {
+    @Override
+	public long readNum(ByteBuf readBuffer) throws StreamCorruptedException {
         byte b = readBuffer.readByte();
         if (b >= 0) {
             return b;
@@ -138,7 +142,8 @@ public class BinaryWireFormat implements WireFormat {
         return (int)len;
     }
 
-    public double readDouble(ByteBuf readBuffer) throws StreamCorruptedException {
+    @Override
+	public double readDouble(ByteBuf readBuffer) throws StreamCorruptedException {
         byte b = readBuffer.readByte();
         if (b >= 0) return b;
 
@@ -199,7 +204,7 @@ public class BinaryWireFormat implements WireFormat {
         }
 
         seenReadableObjects.add(objects);
-        
+
         for (int i = 0; i < len; i++) {
             objects[i] = readObject(readBuffer);
         }
@@ -207,7 +212,8 @@ public class BinaryWireFormat implements WireFormat {
         return objects;
     }
 
-    public Object readObject(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
+    @Override
+	public Object readObject(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         byte b = readBuffer.readByte();
         if (b >= 0) {
             return (int)b;
@@ -290,7 +296,7 @@ public class BinaryWireFormat implements WireFormat {
                 byte[] bytes = new byte[readLen(readBuffer)];
                 readBuffer.readBytes(bytes);
                 return bytes;
-                
+
             case BOOLEANS :
             	boolean[] bools = new boolean[readLen(readBuffer)];
             	for(int i=0; i < bools.length; i++) {
@@ -355,7 +361,7 @@ public class BinaryWireFormat implements WireFormat {
     private Map<Object, Object> readMap(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         int len = readLen(readBuffer);
         Map<Object, Object> map = len > 0
-                        ? new LinkedHashMap<Object, Object>(len * 3 / 2)
+                        ? new LinkedHashMap<>(len * 3 / 2)
                         : Collections.emptyMap();
         seenReadableObjects.add(map);
         for (int i = 0; i < len; i++) {
@@ -367,12 +373,12 @@ public class BinaryWireFormat implements WireFormat {
     private Entry<Object, Object> readEntry(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         final Object key = readObject(readBuffer);
         final Object value = readObject(readBuffer);
-        return new SimpleEntry<Object, Object>(key, value);
+        return new SimpleEntry<>(key, value);
     }
 
     private List<Object> readList(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         int len = readLen(readBuffer);
-        List<Object> list = len > 0 ? new ArrayList<Object>(len) : Collections.emptyList();
+        List<Object> list = len > 0 ? new ArrayList<>(len) : Collections.emptyList();
         seenReadableObjects.add(list);
         for (int i = 0; i < len; i++) {
             list.add(readObject(readBuffer));
@@ -382,7 +388,7 @@ public class BinaryWireFormat implements WireFormat {
 
     private Set<Object> readSet(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         int len = readLen(readBuffer);
-        Set<Object> set = len > 0 ? new LinkedHashSet<Object>(len * 3 / 2) : Collections.emptySet();
+        Set<Object> set = len > 0 ? new LinkedHashSet<>(len * 3 / 2) : Collections.emptySet();
         seenReadableObjects.add(set);
         for (int i = 0; i < len; i++) {
             set.add(readObject(readBuffer));
@@ -390,7 +396,8 @@ public class BinaryWireFormat implements WireFormat {
         return set;
     }
 
-    public String readString(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
+    @Override
+	public String readString(ByteBuf readBuffer) throws ClassNotFoundException, IOException {
         final Object o = readObject(readBuffer);
         if (o instanceof String) {
             return (String)o;
@@ -427,7 +434,8 @@ public class BinaryWireFormat implements WireFormat {
 		}
     }
 
-    public void writeObject(ByteBuf writeBuffer, Object object) throws IOException {
+    @Override
+	public void writeObject(ByteBuf writeBuffer, Object object) throws IOException {
         if (object == null) {
             writeSTag(writeBuffer, SpecialTag.NULL);
             return;
@@ -439,7 +447,7 @@ public class BinaryWireFormat implements WireFormat {
     		writeBuffer.writeInt(i);
     		return;
     	}
-        
+
         if (_serializer.canSerialize(object)) {
     		seenWritableObjects.put(object, seenWritableObjects.size());
             writeSTag(writeBuffer, SpecialTag.POJO);
@@ -539,7 +547,7 @@ public class BinaryWireFormat implements WireFormat {
             writeNum(writeBuffer, bytes.length);
             writeBuffer.writeBytes(bytes);
             return;
-        } 
+        }
         else if (object instanceof boolean[]) {
         	writeSTag(writeBuffer, SpecialTag.BOOLEANS);
         	boolean[] bools = (boolean[])object;
@@ -548,7 +556,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeBoolean(writeBuffer, b);
         	}
         	return;
-        } 
+        }
         else if (object instanceof short[]) {
         	writeSTag(writeBuffer, SpecialTag.SHORTS);
         	short[] shorts = (short[])object;
@@ -557,7 +565,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeNum(writeBuffer, s);
         	}
         	return;
-        } 
+        }
         else if (object instanceof char[]) {
         	writeSTag(writeBuffer, SpecialTag.CHARS);
         	char[] chars = (char[])object;
@@ -566,7 +574,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeNum(writeBuffer, c);
         	}
         	return;
-        } 
+        }
         else if (object instanceof int[]) {
         	writeSTag(writeBuffer, SpecialTag.INTS);
         	int[] ints = (int[])object;
@@ -575,7 +583,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeNum(writeBuffer, j);
         	}
         	return;
-        } 
+        }
         else if (object instanceof long[]) {
         	writeSTag(writeBuffer, SpecialTag.LONGS);
         	long[] longs = (long[])object;
@@ -584,7 +592,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeNum(writeBuffer, l);
         	}
         	return;
-        } 
+        }
         else if (object instanceof float[]) {
         	writeSTag(writeBuffer, SpecialTag.FLOATS);
         	float[] floats = (float[])object;
@@ -593,7 +601,7 @@ public class BinaryWireFormat implements WireFormat {
         		writeDouble(writeBuffer, f);
         	}
         	return;
-        } 
+        }
         else if (object instanceof double[]) {
         	writeSTag(writeBuffer, SpecialTag.DOUBLES);
         	double[] doubles = (double[])object;
@@ -672,7 +680,8 @@ public class BinaryWireFormat implements WireFormat {
         writeBuffer.writeByte((byte)~stag.ordinal());
     }
 
-    public void writeNum(ByteBuf writeBuffer, long value) {
+    @Override
+	public void writeNum(ByteBuf writeBuffer, long value) {
         if (value >= 0 && value <= Byte.MAX_VALUE) {
             writeBuffer.writeByte((byte)value);
         }
@@ -724,10 +733,11 @@ public class BinaryWireFormat implements WireFormat {
         }
     }
 
-    private final Map<String, Integer> outTagMap = new LinkedHashMap<String, Integer>();
-    private final List<String> inTagList = new ArrayList<String>();
+    private final Map<String, Integer> outTagMap = new LinkedHashMap<>();
+    private final List<String> inTagList = new ArrayList<>();
 
-    public void writeTag(ByteBuf writeBuffer, String tag) {
+    @Override
+	public void writeTag(ByteBuf writeBuffer, String tag) {
         writeSTag(writeBuffer, SpecialTag.TAG);
         final Integer num = outTagMap.get(tag);
         if (num == null) {
@@ -837,7 +847,8 @@ public class BinaryWireFormat implements WireFormat {
         return new String(chars, 0, len);
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+	@SuppressWarnings("unchecked")
     public <Pojo, T> void readField(ByteBuf rb, MetaField<Pojo, T> field, Pojo pojo)
         throws ClassNotFoundException, IOException {
         final Class<?> type = field.getType();
@@ -866,7 +877,8 @@ public class BinaryWireFormat implements WireFormat {
         }
     }
 
-    public <Pojo, T> void writeField(ByteBuf wb, MetaField<Pojo, T> field, Pojo pojo) throws IOException {
+    @Override
+	public <Pojo, T> void writeField(ByteBuf wb, MetaField<Pojo, T> field, Pojo pojo) throws IOException {
         final Class<?> type = field.getType();
 
         if (field.isPrimitive()) {
@@ -889,7 +901,7 @@ public class BinaryWireFormat implements WireFormat {
             writeObject(wb, object);
         }
     }
-    
+
     public void reset() {
     	inTagList.clear();
     	outTagMap.clear();
@@ -923,7 +935,8 @@ public class BinaryWireFormat implements WireFormat {
 			_serializer = serializer;
         }
 
-        protected void finalize() throws Throwable {
+        @Override
+		protected void finalize() throws Throwable {
             try {
                 close();
             }
@@ -932,7 +945,8 @@ public class BinaryWireFormat implements WireFormat {
             }
         }
 
-        public WireFormat create() {
+        @Override
+		public WireFormat create() {
             checkedClosed();
             return new BinaryWireFormat(_metaClasses, _serializer);
         }
@@ -947,15 +961,18 @@ public class BinaryWireFormat implements WireFormat {
             _value = value;
         }
 
-        public K getKey() {
+        @Override
+		public K getKey() {
             return _key;
         }
 
-        public V getValue() {
+        @Override
+		public V getValue() {
             return _value;
         }
 
-        public V setValue(V value) {
+        @Override
+		public V setValue(V value) {
             V prev = _value;
             _value = value;
             return prev;

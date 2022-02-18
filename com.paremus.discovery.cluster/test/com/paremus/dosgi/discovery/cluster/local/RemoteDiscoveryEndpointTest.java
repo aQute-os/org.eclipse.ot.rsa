@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,7 +51,7 @@ public class RemoteDiscoveryEndpointTest {
 
 	public static final String CLUSTER_A = "clusterA";
 	public static final String CLUSTER_B = "clusterB";
-	
+
 	@Mock
 	SocketComms comms;
 
@@ -59,187 +60,187 @@ public class RemoteDiscoveryEndpointTest {
 
 	@Test
 	public void testOpen() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
 				getLoopbackAddress(), 1234, filter);
 		Mockito.verify(comms, Mockito.never())
 			.newDiscoveryEndpoint(REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
-	
+
 		rde.open();
-		
-		Mockito.verify(comms).newDiscoveryEndpoint(REMOTE_UUID_1, 
+
+		Mockito.verify(comms).newDiscoveryEndpoint(REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
 	}
 
 	@Test
 	public void testStopCalling() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
 				getLoopbackAddress(), 1234, filter);
-		
+
 		rde.stopCalling();
-		
-		Mockito.verify(comms).stopCalling(REMOTE_UUID_1, 
+
+		Mockito.verify(comms).stopCalling(REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
 	}
-	
+
 	@Test
 	public void testOnlyPublishedIfAccepted() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
-		Mockito.verify(comms, Mockito.never()).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 
+
+		Mockito.verify(comms, Mockito.never()).publishEndpoint(getTestEndpointDescription(ENDPOINT_1),
 				1, REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
-		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 
+
+		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1),
 				1, REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 	}
 
 	@Test
 	public void testIgnoreRepeatPublicationsUnlessForced() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
-		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 
+
+		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1),
 				1, REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
-		
+
 		rde.publishEndpoint(2, getTestEndpointDescription(ENDPOINT_1), false);
 		rde.publishEndpoint(2, getTestEndpointDescription(ENDPOINT_1), false);
-		
-		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 
+
+		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1),
 				2, REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 
 		rde.publishEndpoint(2, getTestEndpointDescription(ENDPOINT_1), true);
-		
-		Mockito.verify(comms, Mockito.times(2)).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 
+
+		Mockito.verify(comms, Mockito.times(2)).publishEndpoint(getTestEndpointDescription(ENDPOINT_1),
 				2, REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 
 	}
 
 	@Test
 	public void testRevokeEndpoint() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
+
 		rde.revokeEndpoint(2, getTestEndpointDescription(ENDPOINT_1));
-		
-		Mockito.verify(comms).revokeEndpoint(ENDPOINT_1, 2, REMOTE_UUID_1, 
+
+		Mockito.verify(comms).revokeEndpoint(ENDPOINT_1, 2, REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
-		
+
 	}
 
 	@Test
 	public void testRevokeNotAcceptedEndpoint() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(false);
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
+
 		rde.revokeEndpoint(2, getTestEndpointDescription(ENDPOINT_1));
-		
-		Mockito.verify(comms, Mockito.never()).revokeEndpoint(ENDPOINT_1, 2, REMOTE_UUID_1, 
+
+		Mockito.verify(comms, Mockito.never()).revokeEndpoint(ENDPOINT_1, 2, REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
-		
+
 	}
-	
+
 	@Test
 	public void testFilterChangeDoesNotRevokeEndpoint() {
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
+
 		Mockito.when(filter.accept(eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(false);
-		
+
 		rde.update(1234, filter);
-		
-		Mockito.verify(comms, Mockito.never()).revokeEndpoint(Mockito.eq(ENDPOINT_1), 
-				Mockito.anyInt(), Mockito.any(UUID.class), Mockito.any(InetSocketAddress.class));
+
+		Mockito.verify(comms, Mockito.never()).revokeEndpoint(ArgumentMatchers.eq(ENDPOINT_1),
+				ArgumentMatchers.anyInt(), ArgumentMatchers.any(UUID.class), ArgumentMatchers.any(InetSocketAddress.class));
 	}
 
 	@Test
 	public void testPortChangeResetsComms() {
-		Mockito.when(filter.accept(Mockito.any(EndpointDescription.class), anySet())).thenReturn(true);
-		
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 
-		
+		Mockito.when(filter.accept(ArgumentMatchers.any(EndpointDescription.class), anySet())).thenReturn(true);
+
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		rde.open();
 		rde.update(1234, filter);
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
-		Mockito.verify(comms, Mockito.never()).stopCalling(REMOTE_UUID_1, 
+
+		Mockito.verify(comms, Mockito.never()).stopCalling(REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
 		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_1), 1,
 				REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 
 		rde.update(2345, filter);
-		
-		Mockito.verify(comms).stopCalling(REMOTE_UUID_1, 
+
+		Mockito.verify(comms).stopCalling(REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
-		Mockito.verify(comms).newDiscoveryEndpoint(REMOTE_UUID_1, 
+		Mockito.verify(comms).newDiscoveryEndpoint(REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 2345));
-		
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_2), false);
-		
+
 		Mockito.verify(comms).publishEndpoint(getTestEndpointDescription(ENDPOINT_2), 1,
 				REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 2345));
-		
+
 	}
-	
+
 	@Test
 	public void testSendEmptyReminders() throws Exception{
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
 		rde.sendReminder();
-		
-		Mockito.verify(comms, Mockito.never()).sendReminder(Mockito.anyCollection(), 
-				Mockito.anyInt(), Mockito.any(UUID.class), Mockito.any(InetSocketAddress.class));
+
+		Mockito.verify(comms, Mockito.never()).sendReminder(ArgumentMatchers.anyCollection(),
+				ArgumentMatchers.anyInt(), ArgumentMatchers.any(UUID.class), ArgumentMatchers.any(InetSocketAddress.class));
 	}
-	
+
 	@Test
 	public void testSendReminders() throws Exception{
-		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms, 
-				getLoopbackAddress(), 1234, filter); 	
-		
-		Mockito.when(filter.accept(Mockito.eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
-		Mockito.when(filter.accept(Mockito.eq(getTestEndpointDescription(ENDPOINT_2)), anySet())).thenReturn(true);
-		
+		RemoteDiscoveryEndpoint rde = new RemoteDiscoveryEndpoint(REMOTE_UUID_1, CLUSTER_A, emptySet(), comms,
+				getLoopbackAddress(), 1234, filter);
+
+		Mockito.when(filter.accept(ArgumentMatchers.eq(getTestEndpointDescription(ENDPOINT_1)), anySet())).thenReturn(true);
+		Mockito.when(filter.accept(ArgumentMatchers.eq(getTestEndpointDescription(ENDPOINT_2)), anySet())).thenReturn(true);
+
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_1), false);
-		
+
 		rde.sendReminder();
-		
-		Mockito.verify(comms).sendReminder(Collections.singleton(ENDPOINT_1), 1, REMOTE_UUID_1, 
+
+		Mockito.verify(comms).sendReminder(Collections.singleton(ENDPOINT_1), 1, REMOTE_UUID_1,
 				new InetSocketAddress(getLoopbackAddress(), 1234));
 
 		rde.publishEndpoint(1, getTestEndpointDescription(ENDPOINT_2), false);
-		
+
 		rde.sendReminder();
-		
-		Mockito.verify(comms).sendReminder(new HashSet<>(asList(ENDPOINT_1, ENDPOINT_2)), 2, 
+
+		Mockito.verify(comms).sendReminder(new HashSet<>(asList(ENDPOINT_1, ENDPOINT_2)), 2,
 				REMOTE_UUID_1, new InetSocketAddress(getLoopbackAddress(), 1234));
 	}
 
 	private EndpointDescription getTestEndpointDescription(String endpointId) {
-		Map<String, Object> m = new LinkedHashMap<String, Object>();
+		Map<String, Object> m = new LinkedHashMap<>();
 
         // required
         m.put(OBJECTCLASS, new String[]{"com.acme.HelloService", "some.other.Service"});

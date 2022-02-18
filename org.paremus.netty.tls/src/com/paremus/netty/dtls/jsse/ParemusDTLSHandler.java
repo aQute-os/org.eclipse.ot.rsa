@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -165,7 +165,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
 
                 connection.handler.handshakeFuture().addListener(f -> onConnect(ctx, pending, f));
                 connection.handler.closeFuture().addListener(f -> removeOnClose(recipient, pending));
-                
+
                 connection.handler.channelActive(ctx);
             }
 
@@ -227,7 +227,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                     dp.release();
                     return;
                 }
-                
+
                 if(shouldDiscard(ctx, sender, buf)) {
                     ReferenceCountUtil.safeRelease(dp);
                     return;
@@ -266,7 +266,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                 ReferenceCountUtil.safeRelease(msg);
             }
         } else {
-            LOG.warn("The Multiplexing DTLS handler can only process DatagramPacket messages, not {}", 
+            LOG.warn("The Multiplexing DTLS handler can only process DatagramPacket messages, not {}",
                     msg == null ? null : msg.getClass());
             ReferenceCountUtil.safeRelease(msg);
         }
@@ -289,7 +289,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                     if(length == 2) {
                         level = buf.getUnsignedByte(index + DTLS_RECORD_HEADER_LENGTH);
                         desc =  buf.getUnsignedByte(index + DTLS_RECORD_HEADER_LENGTH + 1);
-                        LOG.debug("Received a {} level alert with message {} from {} when there was no DTLS connection", 
+                        LOG.debug("Received a {} level alert with message {} from {} when there was no DTLS connection",
                                 AlertLevel.getText(level), AlertDescription.getText(desc), sender);
                     } else {
                         LOG.debug("Received an encrypted alert message from {} but there was no DTLS connection. Treating it as an internal warning alert",
@@ -297,8 +297,8 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                         level = AlertLevel.warning;
                         desc = AlertDescription.internal_error;
                     }
-                    
-                    
+
+
                     // If it's a warning that's not a close notify then we send a close notify to
                     // make them go away
                     if(level == AlertLevel.warning && desc != AlertDescription.close_notify) {
@@ -313,7 +313,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                             .writeShort(2)
                             .writeByte(AlertLevel.warning)
                             .writeByte(AlertDescription.close_notify);
-                        
+
                         ctx.writeAndFlush(new DatagramPacket(response, sender), ctx.voidPromise());
                     }
                 } else {
@@ -327,7 +327,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                     return false;
                 }
                 // Fall through
-            default: 
+            default:
                 ByteBuf response = Unpooled.buffer(30);
                 response.writeByte(ContentType.alert)
                     // DTLS version
@@ -349,7 +349,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
                     .writeShort(2)
                     .writeByte(AlertLevel.warning)
                     .writeByte(AlertDescription.close_notify);
-                
+
                 ctx.writeAndFlush(new DatagramPacket(response, sender), ctx.voidPromise());
                 return true;
         }
@@ -491,7 +491,7 @@ public class ParemusDTLSHandler extends ChannelDuplexHandler implements Multiple
         final ConnectionDetails finalDetails = details;
         details.handler.handshakeFuture().addListener(f -> onConnect(ctx, finalDetails, f));
         details.handler.closeFuture().addListener(f -> removeOnClose(socketAddress, finalDetails));
-        
+
         try {
             details.handler.channelActive(ctx);
         } catch (Exception e) {

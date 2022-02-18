@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -83,7 +83,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 	/**
 	 * Default constructor for a new service import.
-	 * 
+	 *
 	 * @param endpoint
 	 *                                  the description for the endpoint being
 	 *                                  imported
@@ -228,7 +228,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 	/**
 	 * Create a failed endpoint
-	 * 
+	 *
 	 * @param endpoint
 	 *                            The Endpoint Description
 	 * @param targetFramework
@@ -357,7 +357,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 	/**
 	 * Like {@link #getException()} except it continues to return the exception
 	 * after close has been called
-	 * 
+	 *
 	 * @return
 	 */
 	Throwable internalGetException() {
@@ -403,7 +403,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 			try {
 				// TODO check the handler is still valid
 
-				Dictionary<String, Object> serviceProps = new Hashtable<String, Object>(endpoint.getProperties());
+				Dictionary<String, Object> serviceProps = new Hashtable<>(endpoint.getProperties());
 				serviceProps.remove(RemoteConstants.SERVICE_EXPORTED_INTERFACES);
 				serviceProps.put(RemoteConstants.SERVICE_IMPORTED, Boolean.TRUE);
 				_serviceRegistration.setProperties(serviceProps);

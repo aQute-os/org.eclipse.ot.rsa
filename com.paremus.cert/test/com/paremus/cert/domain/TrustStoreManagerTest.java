@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -126,7 +126,7 @@ public class TrustStoreManagerTest {
         assertArrayEquals(keyPair.getPublic().getEncoded(), list.get(0).publicKey);
 
         // Add a new cert
-        
+
         StringWriter writer = new StringWriter();
         try (JcaPEMWriter pemWriter = new JcaPEMWriter(writer)) {
             pemWriter.writeObject(certificate2);
@@ -156,12 +156,12 @@ public class TrustStoreManagerTest {
         assertEquals("TEST_CERT2", list.get(1).subject);
         assertEquals(keyPair2.getPublic().getAlgorithm(), list.get(1).algorithm);
         assertArrayEquals(keyPair2.getPublic().getEncoded(), list.get(1).publicKey);
-        
-        
+
+
         // Remove the original cert
-        
+
         tsm.removeTrustedCertificate("TEST_STORE", "TEST_CERT");
-        
+
         stores = tsm.listTrustStores();
         assertEquals(1, stores.size());
 

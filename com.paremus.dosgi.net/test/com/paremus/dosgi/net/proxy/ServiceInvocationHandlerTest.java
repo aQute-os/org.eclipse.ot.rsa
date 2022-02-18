@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -81,29 +81,29 @@ public class ServiceInvocationHandlerTest {
     Serializer _serializer;
     @Mock
     Bundle _callingContext;
-    
-    
+
+
 	private EndpointDescription _endpointDescription;
-	
+
 	private Class<?> _proxyClass;
 	private List<Class<?>> _proxyClassInterfaces;
 	private Class<?> _proxyClassWithDifferentAsyncDelegate;
 	private List<Class<?>> _proxyClassWithDifferentAsyncDelegateInterfaces;
 	private Class<?> _differentPromise;
-    
+
     private EventExecutor executor;
 
     private Timer timer;
-    
+
     @BeforeEach
 	public void setUp() throws Exception {
 
         executor = new DefaultEventExecutor();
         timer = new HashedWheelTimer();
-        
+
         Mockito.when(_ch.newPromise()).then(x -> new DefaultChannelPromise(_ch, executor));
-        
-        Map<String, Object> map = new HashMap<String, Object>();
+
+        Map<String, Object> map = new HashMap<>();
         map.put(RemoteConstants.ENDPOINT_ID, "my.endpoint.id");
         map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
         map.put(Constants.OBJECTCLASS, new String[] {CharSequence.class.getName()});
@@ -112,31 +112,31 @@ public class ServiceInvocationHandlerTest {
 
         _proxyClass = Proxy.getProxyClass(new ClassLoader(){}, CharSequence.class, AsyncDelegate.class);
         _proxyClassInterfaces = asList(CharSequence.class, AsyncDelegate.class);
-        
+
         ClassLoader differentClassLoader = getSeparateClassLoader();
-        
-        _proxyClassWithDifferentAsyncDelegate = Proxy.getProxyClass(differentClassLoader, 
+
+        _proxyClassWithDifferentAsyncDelegate = Proxy.getProxyClass(differentClassLoader,
         		CharSequence.class, differentClassLoader.loadClass(AsyncDelegate.class.getName()));
-        _proxyClassWithDifferentAsyncDelegateInterfaces = asList(CharSequence.class, 
+        _proxyClassWithDifferentAsyncDelegateInterfaces = asList(CharSequence.class,
         		differentClassLoader.loadClass(AsyncDelegate.class.getName()));
         _differentPromise = differentClassLoader.loadClass(Promise.class.getName());
-        
+
         Map<Integer, String> methods = new HashMap<>();
         methods.put(1, "length[]");
         methods.put(2, "subSequence[int,int]");
         when(_importRegistration.getMethodMappings()).thenReturn(methods);
     }
-    
+
     @AfterEach
     public void teardown() throws InterruptedException {
     	timer.stop();
     	executor.shutdownGracefully(500, 1000, MILLISECONDS).await(1, SECONDS);
     }
-    
+
 	private ClassLoader getSeparateClassLoader() {
 		return new ClassLoader() {
-			private final Map<String, Class<?>> cache = new HashMap<String, Class<?>>();
-			
+			private final Map<String, Class<?>> cache = new HashMap<>();
+
     		@Override
 			public Class<?> loadClass(String name) throws ClassNotFoundException {
     			if(name.startsWith("java")) {
@@ -144,16 +144,16 @@ public class ServiceInvocationHandlerTest {
     			}
     			Class<?> c = cache.get(name);
     			if(c != null) return c;
-    			
+
     			String resourceName = name.replace('.', '/') + ".class";
-    			
+
 				InputStream resourceAsStream = ServiceInvocationHandlerTest.this.getClass()
 						.getClassLoader().getResourceAsStream(resourceName);
 				if(resourceAsStream == null) throw new ClassNotFoundException(name);
 				try(InputStream is = resourceAsStream) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					byte[] b = new byte[4096];
-					
+
 					int i = 0;
 					while((i = is.read(b)) > -1) {
 						baos.write(b, 0, i);
@@ -173,12 +173,12 @@ public class ServiceInvocationHandlerTest {
 			return (CharSequence) proxyClass.getConstructor(InvocationHandler.class).newInstance(handler);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
-		} 
+		}
 	}
-	
+
     ArgumentMatcher<Object[]> isArrayOf(Object... o) {
 		return new ArgumentMatcher<Object[]>() {
-	
+
 			@Override
 			public boolean matches(Object[] item) {
 				return (o.length == 0 && item == null) || deepEquals(o, item);
@@ -188,44 +188,44 @@ public class ServiceInvocationHandlerTest {
 
     @Test
 	public void testSuccessfulInvocation() throws Exception {
-    	
+
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
         		CharSequence.class.getMethod("length").toString(), new Object[0])), any()))
 	        .then(i -> {
 				i.<ClientInvocation>getArgument(0).getResult()
 	    			.setSuccess(30);
 				return null;
 			});
-        
+
         assertEquals(30, proxy.length());
     }
-	
+
     @Test
 	public void testSuccessfulAsyncInvocation() throws Exception {
-    	
+
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
-        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(), 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
+        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(),
         		new Object[] {5,10})), any()))
 	        .then(i -> {
 				i.<ClientInvocation>getArgument(0).getResult()
 	    			.setSuccess("Hello");
 				return null;
 			});
-        
+
         assertEquals("Hello", ((AsyncDelegate)proxy).async(
         		CharSequence.class.getMethod("subSequence", int.class, int.class), new Object[] {5, 10})
         		.getValue());
@@ -233,18 +233,18 @@ public class ServiceInvocationHandlerTest {
 
     @Test
 	public void testSuccessfulFireAndForget() throws Exception {
-		
+
 		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-				_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+				_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
-		
+
 		CharSequence proxy = createProxy(_proxyClass, sih);
-		
+
 		assertTrue(((AsyncDelegate)proxy).execute(
 				CharSequence.class.getMethod("subSequence", int.class, int.class), new Object[] {5, 10}));
-		
-		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET, 
+
+		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET,
 				CharSequence.class.getMethod("subSequence", int.class, int.class).toString(),
 				new Object[] {5, 10})), any());
 	}
@@ -252,20 +252,20 @@ public class ServiceInvocationHandlerTest {
     @Test
 	public void testInvocationFailureWithUndeclaredThrowable() throws Exception {
     	ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
         		CharSequence.class.getMethod("length").toString(), new Object[0])), any()))
 	        .then(i -> {
 				i.<ClientInvocation>getArgument(0).getResult()
 	    			.setFailure(new ClassNotFoundException("missing.class"));
 				return null;
 			});
-        
+
         try {
         	proxy.length();
         	fail();
@@ -283,12 +283,12 @@ public class ServiceInvocationHandlerTest {
     @Test
     public void testInvocationFailureWithForwardedException() {
     	ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
+
         when(_ch.writeAndFlush(any(), any()))
         .then(i -> {
 			i.<ClientInvocation>getArgument(0).getResult()
@@ -309,13 +309,13 @@ public class ServiceInvocationHandlerTest {
     @Test
 	public void testMethodsInObjectClassAreNotPropagated() throws Exception {
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
         		CharSequence.class.getMethod("length").toString(), new Object[0])), any()))
 	        .then(i -> {
 				i.<ClientInvocation>getArgument(0).getResult()
@@ -325,7 +325,7 @@ public class ServiceInvocationHandlerTest {
 
         // length() is allowed to be forwarded
         assertEquals(30, proxy.length());
-        
+
         // toString() generates a proxy instance description containing the list of
         // proxied interfaces
         String toString = proxy.toString();
@@ -344,75 +344,75 @@ public class ServiceInvocationHandlerTest {
         // make sure no more methods were triggered
         Mockito.verify(_ch, Mockito.times(1)).writeAndFlush(any(), any());
     }
-    
+
     @Test
 	public void testSuccessfulAsyncInvocationDifferentAsync() throws Exception {
-    	
+
         ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClassWithDifferentAsyncDelegate, 
-        		_proxyClassWithDifferentAsyncDelegateInterfaces, _differentPromise, true, null, null, _ch, 
+        		_callingContext, _proxyClassWithDifferentAsyncDelegate,
+        		_proxyClassWithDifferentAsyncDelegateInterfaces, _differentPromise, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClassWithDifferentAsyncDelegate, sih);
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
-        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(), 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
+        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(),
         		new Object[] {5,10})), any()))
 	        .then(i -> {
 				i.<ClientInvocation>getArgument(0).getResult()
 	    			.setSuccess("Hello");
 				return null;
 			});
-        
+
         Method m = _proxyClassWithDifferentAsyncDelegate.getMethod("async", Method.class, Object[].class);
-        
+
         Object returnedPromise = m.invoke(proxy, new Object[] {
         		CharSequence.class.getMethod("subSequence", int.class, int.class), new Object[] {5, 10}});
-		
+
         assertEquals("Hello", _differentPromise.getMethod("getValue").invoke(returnedPromise));
     }
 
     @Test
 	public void testSuccessfulFireAndForgetDifferentAsync() throws Exception {
-		
+
 		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClassWithDifferentAsyncDelegate, 
-        		_proxyClassWithDifferentAsyncDelegateInterfaces, _differentPromise, true, null, null, _ch, 
+        		_callingContext, _proxyClassWithDifferentAsyncDelegate,
+        		_proxyClassWithDifferentAsyncDelegateInterfaces, _differentPromise, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClassWithDifferentAsyncDelegate, sih);
-		
+
         Method m = _proxyClassWithDifferentAsyncDelegate.getMethod("execute", Method.class, Object[].class);
-        
+
 		assertTrue((Boolean) m.invoke(proxy, new Object[] {
 				CharSequence.class.getMethod("subSequence", int.class, int.class), new Object[] {5, 10}}));
-		
-		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET, 
-        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(), 
+
+		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET,
+        		CharSequence.class.getMethod("subSequence", int.class, int.class).toString(),
         		new Object[] {5, 10})), any());
 	}
 
     @Test
     public void testSendFailure() throws Exception {
-    	
+
     	ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch, 
+        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, true, null, null, _ch,
         		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
 
         CharSequence proxy = createProxy(_proxyClass, sih);
-        
+
         Exception e = new RuntimeException("BANG!");
-        
-        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN, 
+
+        when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
         		CharSequence.class.getMethod("length").toString(), new Object[0])), any()))
 	        .then(i -> {
 				i.<ChannelPromise>getArgument(1).tryFailure(e);
 				return null;
 			});
-        
+
         try {
         	proxy.length();
         	fail("Should explode");
@@ -422,10 +422,10 @@ public class ServiceInvocationHandlerTest {
         }
     }
 
-	private ArgumentMatcher<ClientInvocation> isInvocationWith(ClientMessageType callType, 
+	private ArgumentMatcher<ClientInvocation> isInvocationWith(ClientMessageType callType,
 			String method, Object[] args) {
 		return new ArgumentMatcher<ClientInvocation>() {
-	
+
 				@Override
 				public boolean matches(ClientInvocation clientInvocation) {
 					return clientInvocation.getType() == callType &&

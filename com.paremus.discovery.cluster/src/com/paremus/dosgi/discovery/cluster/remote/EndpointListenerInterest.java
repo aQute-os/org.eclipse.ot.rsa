@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
- * All rights reserved. 
- * 
- * This program and the accompanying materials are made available under the terms of the 
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
  * Eclipse Public License v2.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v20.html
- * 
+ *
  * Contributors:
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
@@ -21,11 +21,11 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("deprecation")
 class EndpointListenerInterest extends AbstractListenerInterest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(EndpointListenerInterest.class);
-	
+
 	public final EndpointListener listener;
-	
+
 	public EndpointListenerInterest(EndpointListener listener,
 			ServiceReference<?> ref) {
 		super(ref);
@@ -37,8 +37,8 @@ class EndpointListenerInterest extends AbstractListenerInterest {
 		EndpointDescription endpoint = ee.getEndpoint();
 		switch(ee.getType()) {
 			case EndpointEvent.MODIFIED :
-				if(logger.isDebugEnabled()) { 
-					logger.debug("EndpointListener services are unable to handle modification, removing and re-adding the endpoint {}", endpoint.getId()); 
+				if(logger.isDebugEnabled()) {
+					logger.debug("EndpointListener services are unable to handle modification, removing and re-adding the endpoint {}", endpoint.getId());
 				}
 				listener.endpointRemoved(endpoint, filter);
 			case EndpointEvent.ADDED :
