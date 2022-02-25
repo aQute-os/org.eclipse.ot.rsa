@@ -1,0 +1,17 @@
+-sub *.bnd
+-buildpath: \
+	org.osgi.annotation.versioning,\
+	org.osgi.annotation.bundle,\
+	org.osgi.service.component.annotations,\
+	org.apache.felix.gogo.runtime,\
+	slf4j.api,\
+	org.osgi.service.cm,\
+	org.osgi.service.component,\
+	org.apache.felix.framework
+-testpath: \
+	biz.aQute.launchpad,\
+	slf4j.simple,\
+	org.eclipse.ot.rsa.api.all,\
+	org.osgi.util.promise,\
+	org.osgi.util.function,\
+	org.awaitility

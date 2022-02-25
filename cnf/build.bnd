@@ -11,11 +11,11 @@ Bundle-SCM:                     url=https://github.com/geckoprojects-org/org.gec
     developerConnection=scm:git:git@github.com:geckoprojects-org/org.geckoprojects.rsa.git
     
 
-src                             src,resources
-bin                             bin
-testsrc                         test
-testbin                         bin_test
-target-dir:                     generated
+src                             src/main/java,src/main/resources
+bin                             target/classes
+testsrc                         src/test/java
+testbin                         target/test-classes
+target-dir:                     target
 
 javac.target                    1.8
 javac.source                    1.8
@@ -44,9 +44,14 @@ javac.source                    1.8
     net.bytebuddy.byte-buddy-agent;version=latest,\
     org.objenesis;version=latest
 
+netty = \
+    io.netty.buffer;version=latest,\
+    io.netty.codec;version=latest,\
+    io.netty.common;version=latest,\
+    io.netty.handler;version=latest,\
+    io.netty.resolver;version=latest,\
+    io.netty.transport;version=latest
     
-
-
 -groupid                        org.geckoprojects.rsa
 -pom                            version=${base.version}-SNAPSHOT
 

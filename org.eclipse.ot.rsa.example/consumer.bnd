@@ -1,0 +1,6 @@
+-runkeep=false
+Require-Capability: osgi.extender;filter:='(osgi.extender=osgi.configurator)'
+
+-includepackage             org.eclipse.ot.rsa.example.consumer
+-includeresource            OSGI-INF=src/main/resources/OSGI-INF
+

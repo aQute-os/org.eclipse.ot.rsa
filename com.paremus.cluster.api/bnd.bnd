@@ -1,3 +1,0 @@
-Bundle-Description      API bundle for the Paremus cluster manager. This allows access to the current clusters \
-    available on the current framework. Cluster Listeners are updated when new memebrs are detected, are updated, \
-    or are leaving. 

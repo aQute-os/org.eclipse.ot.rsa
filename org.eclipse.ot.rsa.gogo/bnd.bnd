@@ -1,0 +1,5 @@
+-buildpath: \
+	org.apache.felix.gogo.runtime,\
+	org.osgi.service.remoteserviceadmin,\
+	org.eclipse.ot.rsa.api.all,\
+	org.osgi.framework

@@ -1,0 +1,13 @@
+-buildpath: \
+	org.osgi.framework,\
+    org.osgi.namespace.implementation,\
+    org.osgi.namespace.service,\
+	org.osgi.resource,\
+    org.osgi.service.cm,\
+    org.osgi.util.function,\
+    ${netty}, \
+	org.eclipse.ot.rsa.tls.netty.provider,\
+    org.eclipse.ot.rsa.api.all
+-testpath: \
+	org.osgi.util.converter,\
+	org.osgi.util.promise

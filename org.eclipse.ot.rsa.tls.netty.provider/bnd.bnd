@@ -1,0 +1,6 @@
+-buildpath: \
+	io.netty.buffer,\
+	bcprov,\
+	bctls, \
+	${netty}
+	

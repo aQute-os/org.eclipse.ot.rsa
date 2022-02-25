@@ -1,0 +1,8 @@
+-testpath: \
+	biz.aQute.launchpad;packages='*',\
+	org.apache.felix.framework,\
+	org.osgi.service.cm,\
+	org.eclipse.ot.rsa.api.all,\
+	slf4j.simple,\
+	org.awaitility,\
+	org.osgi.service.remoteserviceadmin

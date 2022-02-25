@@ -1,5 +1,0 @@
-Bundle-Description                  API/library bundle for topology manager
-
--buildpath: \
-	org.osgi.framework,\
-	org.osgi.service.remoteserviceadmin
