@@ -7,6 +7,7 @@
 	aQute.libg,\
 	org.eclipse.ot.rsa.util,\
 	org.osgi.dto
+
 -testpath: \
 	biz.aQute.launchpad,\
 	org.awaitility,\

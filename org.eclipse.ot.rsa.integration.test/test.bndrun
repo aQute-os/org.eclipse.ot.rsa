@@ -14,7 +14,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.cluster.gossip.provider)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.base.provider)'
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.distribution.provider)'
 	
 -runbundles.extra \
     biz.aQute.gogo.commands.provider, \
@@ -39,7 +39,7 @@
 	org.apache.felix.converter;version='[1.0.14,1.0.15)',\
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.base.provider;version=snapshot,\
 	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
-	org.osgi.util.promise;version='[1.1.1,1.1.2)'
+	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
+	org.eclipse.ot.rsa.distribution.provider;version=snapshot

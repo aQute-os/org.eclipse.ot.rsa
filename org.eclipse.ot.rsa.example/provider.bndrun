@@ -7,23 +7,13 @@
 	
 
 -runrequires: \
-	bnd.identity;id='biz.aQute.rsa.test.provider',\
-	osgi.identity;filter:='(osgi.identity=biz.aQute.rsa.test.consumer)'
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.consumer)',\
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.provider)'
 	
 -runbundles: \
 	bcprov;version='[1.64.0,1.64.1)',\
 	bctls;version='[1.64.0,1.64.1)',\
 	biz.aQute.gogo.commands.provider;version='[1.8.0,1.8.1)',\
-	biz.aQute.rsa.test.api;version=snapshot,\
-	biz.aQute.rsa.test.provider;version=snapshot,\
-	biz.aQute.rsagogo;version=snapshot,\
-	com.paremus.cluster.api;version=snapshot,\
-	com.paremus.discovery.cluster;version=snapshot,\
-	com.paremus.dosgi.api;version=snapshot,\
-	com.paremus.dosgi.net;version=snapshot,\
-	com.paremus.dosgi.topology.common;version=snapshot,\
-	com.paremus.dosgi.topology.simple;version=snapshot,\
-	com.paremus.gossip.netty;version=snapshot,\
 	io.netty.buffer;version='[4.1.72,4.1.73)',\
 	io.netty.codec;version='[4.1.72,4.1.73)',\
 	io.netty.common;version='[4.1.72,4.1.73)',\
@@ -38,10 +28,22 @@
 	org.apache.felix.gogo.runtime;version='[1.1.4,1.1.5)',\
 	org.apache.felix.gogo.shell;version='[1.1.4,1.1.5)',\
 	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
-	org.paremus.netty.tls;version=snapshot,\
-	biz.aQute.rsa.test.consumer;version=snapshot,\
 	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
 	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\
 	org.apache.felix.log;version='[1.2.4,1.2.5)',\
 	org.apache.sling.commons.johnzon;version='[1.2.14,1.2.15)',\
-	org.apache.felix.scr;version='[2.1.30,2.1.31)'
+	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
+	org.eclipse.ot.rsa.api.all;version=snapshot,\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
+	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
+	org.eclipse.ot.rsa.example.api;version=snapshot,\
+	org.eclipse.ot.rsa.example.consumer;version=snapshot,\
+	org.eclipse.ot.rsa.example.provider;version=snapshot,\
+	org.eclipse.ot.rsa.gogo;version=snapshot,\
+	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
+	org.osgi.service.remoteserviceadmin;version='[1.1.0,1.1.1)',\
+	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
+	aQute.libg;version='[6.0.0,6.0.1)',\
+	org.eclipse.ot.rsa.topology.cluster.provider;version=snapshot,\
+	org.eclipse.ot.rsa.util;version=snapshot

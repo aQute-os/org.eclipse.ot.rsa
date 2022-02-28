@@ -1,4 +1,4 @@
-# RSA Test with Gecko/Paremus implementation
+# RSA Test
 
 This is a small test of the distributed OSGi implementation. It contains a number of components working together
 to show how to create the smallest possible cluster.
@@ -23,17 +23,16 @@ shared.bndrun.
 
 A short explanation of some of the used bundles:
 
+* org.eclipse.ot.rsa.api  – The API bundle for the HelloWorld service
+* org.eclipse.ot.rsa.example.provider – The implementation of the HelloWorld service
+* org.eclipse.ot.rsa.example.consumer – A gogo bundle that configures the cluster can call the hello world service
+* org.eclipse.ot.rsa.example.api – API
+* org.eclipse.ot.rsa.gogo – A number of commands to query the Remote Service Admin `members` and cluster info. Especially `rexports` and `rimports` are cool.
+* org.eclipse.ot.rsa.api – Provides the cluster & distributed APIs
+* org.eclipse.ot.rsa.cluster.gossip.provider – Provides a cluster discovery
+* org.eclipse.ot.rsa.distribution.provider – The implementation of the distribution provider
+* org.eclipse.ot.rsa.topology.promiscuous.provider – API to the topology manager
+* org.eclipse.ot.rsa.topology.cluster.provider – A topology manager based on the cluster API
+* org.eclipse.ot.rsa.tls.netty.provider – Communication provider for DOSGI and the gossup discovery. This allows central handling of certificates
 * biz.aQute.gogo.commands.provider – Provides useful gogo commands, especially srv! 
-* biz.aQute.rsa.test.api  – The API bundle for the HelloWorld service
-* biz.aQute.rsa.test.provider – The implementation of the HelloWorld service
-* biz.aQute.rsa.test.consumer – A gogo bundle that configures the cluster can call the hello world service
-* biz.aQute.rsagogo – A number of commands to query the Remote Service Admin `members` and cluster info. Especially `rexports` and `rimports` are cool.
-* com.paremus.cluster.api – Provides the cluster APIs
-* com.paremus.discovery.cluster – This contains a cluster manager. Not sure how it really works
-* com.paremus.dosgi.api – Proprietary API for the distribution provider
-* com.paremus.dosgi.net – The implementation of the distribution provider
-* com.paremus.dosgi.topology.common – API to the topology manager
-* com.paremus.dosgi.topology.simple – A promiscuous topology manager
-* com.paremus.gossip.netty – A cluster discovery model based on initial peers and a gossiping between the peers to discover the complete cluster.
-* org.paremus.netty.tls – Communication provider for DOSGI and the gossup discovery. This allows central handling of certificates
 

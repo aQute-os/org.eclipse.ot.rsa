@@ -1,16 +1,11 @@
 {
   ":configurator:resource-version": 1,
   
-	"com.paremus.dosgi.discovery.cluster~DIM": 
-  	{
-		"root.cluster": "DIMC",
-		"infra": "false"
-	},
-	"com.paremus.netty.tls": 
+	"org.eclipse.ot.rsa.tls.netty": 
   	{
   		"insecure":true
 	},
-	"com.paremus.dosgi.net":
+	"org.eclipse.ot.rsa.distribution":
 	{
 		"server.bind.address": "127.0.0.1",
 		"allow.insecure.transports": true,

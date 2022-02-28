@@ -1,7 +1,0 @@
--buildpath: \
-	org.osgi.framework,\
-	org.osgi.resource,\
-	org.osgi.service.remoteserviceadmin,\
-	org.osgi.util.converter,\
-	org.osgi.util.tracker,\
-	org.eclipse.ot.rsa.api.all

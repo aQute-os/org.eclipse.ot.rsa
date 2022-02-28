@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 import org.eclipse.ot.rsa.logger.util.HLogger;
 
-import aQute.bnd.exceptions.Exceptions;
+import aQute.lib.exceptions.Exceptions;
 import aQute.lib.io.IO;
 
 /**
