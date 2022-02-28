@@ -16,3 +16,9 @@
 	org.osgi.util.promise,\
 	org.osgi.util.function,\
 	org.awaitility
+	
+	
+-dependson \
+    org.eclipse.ot.rsa.distribution.provider, \
+    org.eclipse.ot.rsa.cluster.gossip.provider, \
+    org.eclipse.ot.rsa.topology.cluster.provider

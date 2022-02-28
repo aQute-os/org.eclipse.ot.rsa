@@ -6,3 +6,9 @@
 	slf4j.simple,\
 	org.awaitility,\
 	org.osgi.service.remoteserviceadmin
+	
+	
+-dependson \
+    org.eclipse.ot.rsa.distribution.provider, \
+    org.eclipse.ot.rsa.cluster.gossip.provider, \
+    org.eclipse.ot.rsa.topology.cluster.provider
