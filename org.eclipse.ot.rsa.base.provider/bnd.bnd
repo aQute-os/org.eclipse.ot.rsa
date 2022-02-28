@@ -12,6 +12,7 @@
     ${netty}, \
   	org.eclipse.ot.rsa.api.all,\
 	org.eclipse.ot.rsa.tls.netty.provider,\
+    org.osgi.util.pushstream;version=latest
 
 -testpath: aQute.libg,\
 	org.osgi.service.async

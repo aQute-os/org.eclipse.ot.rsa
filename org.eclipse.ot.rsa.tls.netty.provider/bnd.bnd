@@ -1,6 +1,7 @@
 -buildpath: \
 	io.netty.buffer,\
 	bcprov,\
-	bctls, \
-	${netty}
+	bctls,\
+	${netty},\
+	org.eclipse.ot.rsa.api.all
 	

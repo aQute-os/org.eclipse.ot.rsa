@@ -1,0 +1,13 @@
+-buildpath: \
+	org.apache.felix.gogo.runtime,\
+	org.osgi.service.remoteserviceadmin,\
+	org.eclipse.ot.rsa.api.all,\
+	org.osgi.framework,\
+	org.osgi.util.tracker,\
+	aQute.libg,\
+	org.eclipse.ot.rsa.util,\
+	org.osgi.dto
+-testpath: \
+	biz.aQute.launchpad,\
+	org.awaitility,\
+	org.osgi.service.cm

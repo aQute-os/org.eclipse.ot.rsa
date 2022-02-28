@@ -1,6 +1,3 @@
-#
-# Build file for the Paremus (now geckoprojects) Distributed OSGi implementation
-#
 
 base.version                    1.0.0
 

@@ -28,14 +28,14 @@ public interface Constants {
 	 *
 	 * The default value is {@link #PAREMUS_SCOPE_GLOBAL}
 	 */
-	public static final String PAREMUS_SCOPES_ATTRIBUTE = "com.paremus.dosgi.scope";
+	public static final String PAREMUS_SCOPES_ATTRIBUTE = "org.eclipse.ot.rsa.scope";
 
 	/**
 	 * This key is used to define the target scopes for a
 	 * {@link #PAREMUS_SCOPE_TARGETTED} service. Usually set automatically
 	 * by the topology manager.
 	 **/
-	public static final String PAREMUS_TARGETTED_ATTRIBUTE = "com.paremus.dosgi.target.scopes";
+	public static final String PAREMUS_TARGETTED_ATTRIBUTE = "org.eclipse.ot.rsa.target.scopes";
 
 	/**
 	 * This key is used to define additional target scopes for a
@@ -43,7 +43,7 @@ public interface Constants {
 	 * augment the default target scopes specified by
 	 * {@link #PAREMUS_TARGETTED_ATTRIBUTE}
 	 **/
-	public static final String PAREMUS_TARGETTED_EXTRA_ATTRIBUTE = "com.paremus.dosgi.target.scopes.extra";
+	public static final String PAREMUS_TARGETTED_EXTRA_ATTRIBUTE = "org.eclipse.ot.rsa.target.scopes.extra";
 
 	/**
 	 * Used to expose a service to all possible connected nodes
@@ -66,5 +66,5 @@ public interface Constants {
 	 * when exporting a service that has a secondary id (e.g. it is being exposed
 	 * via OSGi, or is coming from another framework).
 	 */
-	public static final String PAREMUS_ORIGIN_ROOT = "com.paremus.dosgi.origin.id";
+	public static final String PAREMUS_ORIGIN_ROOT = "org.eclipse.ot.rsa.origin.id";
 }

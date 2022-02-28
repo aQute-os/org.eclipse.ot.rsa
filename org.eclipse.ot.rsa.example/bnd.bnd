@@ -7,7 +7,8 @@
 	slf4j.api,\
 	org.osgi.service.cm,\
 	org.osgi.service.component,\
-	org.apache.felix.framework
+	org.apache.felix.framework,\
+	org.eclipse.ot.rsa.api.all
 -testpath: \
 	biz.aQute.launchpad,\
 	slf4j.simple,\

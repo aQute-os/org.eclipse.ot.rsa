@@ -1,0 +1,38 @@
+/**
+ * Copyright (c) 2012 - 2021 Paremus Ltd., Data In Motion and others.
+ * All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the terms of the
+ * Eclipse Public License v2.0 which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v20.html
+ *
+ * Contributors:
+ * 		Paremus Ltd. - initial API and implementation
+ *      Data In Motion
+ */
+package org.eclipse.ot.rsa.cluster.gossip;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.List;
+
+import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
+import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
+
+import io.netty.util.concurrent.Future;
+
+public interface GossipComms {
+
+	public void publish(GossipMessage message,
+			Collection<InetSocketAddress> participants);
+
+	public Future<Void> replicate(MemberInfo member,
+			Collection<Snapshot> snapshots);
+
+	public List<Future<?>> destroy();
+
+	public InetAddress getBindAddress();
+
+	public boolean preventIndirectDiscovery();
+}

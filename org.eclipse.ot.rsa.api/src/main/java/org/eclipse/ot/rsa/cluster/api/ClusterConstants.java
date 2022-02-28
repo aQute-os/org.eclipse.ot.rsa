@@ -13,7 +13,7 @@
 package org.eclipse.ot.rsa.cluster.api;
 
 public interface ClusterConstants {
-	String	CLUSTERS_ATTRIBUTE			= "com.paremus.dosgi.target.clusters";
-	String	CLUSTERS_EXTRA_ATTRIBUTE	= "com.paremus.dosgi.target.clusters.extra";
-	String	IMPLEMENTATION_NAMESPACE	= "com.paremus.cluster";
+	String	CLUSTERS_ATTRIBUTE			= "org.eclipse.ot.rsa.target.clusters";
+	String	CLUSTERS_EXTRA_ATTRIBUTE	= "org.eclipse.ot.rsa.target.clusters.extra";
+	String	IMPLEMENTATION_NAMESPACE	= "org.eclipse.ot.rsa.cluster";
 }

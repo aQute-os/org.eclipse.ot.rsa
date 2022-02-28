@@ -18,6 +18,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.felix.service.command.annotations.GogoCommand;
+import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.eclipse.ot.rsa.example.api.HelloWorld;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.Configuration;
@@ -69,7 +70,7 @@ public class ConsumerImpl {
 		properties.put("bind.address", "127.0.0.1");
 		properties.put("udp.port", Integer.parseInt(context.getProperty("udp.port")));
 		properties.put("tcp.port", Integer.parseInt(context.getProperty("tcp.port")));
-		Configuration configuration = cm.getConfiguration("com.paremus.gossip.netty", "?");
+		Configuration configuration = cm.getConfiguration(RSAConstants.CLUSTER_GOSSIP_PID, "?");
 		configuration.update(properties);
 	}
 

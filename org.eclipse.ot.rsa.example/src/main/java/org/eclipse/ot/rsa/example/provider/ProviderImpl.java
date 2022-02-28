@@ -20,11 +20,12 @@ import org.osgi.service.component.propertytypes.ExportedService;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is a component that is exported. By using all defaults, we export to all clusters. Additional
- * properties that can be set:
+ * This class is a component that is exported. By using all defaults, we export
+ * to all clusters. Additional properties that can be set:
+ *
  * <pre>
- * service_exported_configs = "com.paremus.dosgi.net"
- * property = { "com.paremus.dosgi.scope=global", "com.paremus.dosgi.target.clusters=DIMC" }
+ * service_exported_configs = RSAConstants#DISTRIBUTION_CONFIGURATION_TYPE
+ * property = { "org.eclipse.ot.rsa.scope=global", "org.eclipse.ot.rsa.target.clusters=DIMC" }
  * </pre>
  */
 
