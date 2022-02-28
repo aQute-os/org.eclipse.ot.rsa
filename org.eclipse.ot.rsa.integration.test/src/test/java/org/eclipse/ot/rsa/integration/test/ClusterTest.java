@@ -230,13 +230,13 @@ public class ClusterTest {
 	}
 
 	private boolean waitForClusterInformation(Launchpad lp, int size) {
-		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 5000);
+		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 30_000);
 		assertThat(ci).isPresent();
 		ClusterInformation cinfo = ci.get();
 		System.out.println(cinfo.getClusterName());
 		System.out.println(cinfo.getKnownMembers());
 		Awaitility.await()
-				.timeout(30, TimeUnit.SECONDS)
+				.timeout(60, TimeUnit.SECONDS)
 				.until(() -> cinfo.getKnownMembers()
 						.size() == size);
 		return true;

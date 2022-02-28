@@ -31,6 +31,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -61,6 +62,7 @@ import org.mockito.quality.Strictness;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.util.concurrent.Future;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -109,7 +111,15 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 
 	@AfterEach
 	public void tearDown() throws Exception {
-		socketComms.destroy();
+		socketComms.destroy()
+			.forEach(f -> {
+				try {
+					f.await();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			});
 	}
 
 	@Test
@@ -142,7 +152,15 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 
 	@Test
 	public void testStopListening() throws Exception {
-		socketComms.destroy();
+		List<Future<?>> destroy = socketComms.destroy();
+		destroy.forEach(f -> {
+			try {
+				f.await();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
 		try (DatagramSocket d = new DatagramSocket(UDP_PORT)) {
 			//
 		}
