@@ -13,8 +13,6 @@ import java.util.function.Function;
 
 import org.eclipse.ot.rsa.logger.util.HLogger;
 
-import aQute.lib.exceptions.Exceptions;
-import aQute.lib.io.IO;
 
 /**
  * The purpose of this class is to execute all calls, in sequence, in a single
@@ -70,11 +68,21 @@ public class SingleThread implements AutoCloseable, InvocationHandler {
 
 		executor.shutdownNow();
 		if (impl instanceof AutoCloseable) {
-			IO.close((AutoCloseable) impl);
+			close((AutoCloseable) impl);
 		}
 		boolean ok = executor.awaitTermination(10_000, TimeUnit.MILLISECONDS);
 		if (!ok) {
 			log.error("did not terminate single thread execution in 10secs, last call %s", lastCall);
+		}
+	}
+
+	private void close(AutoCloseable x) {
+		if (x == null)
+			return;
+		try {
+			x.close();
+		} catch (Exception e) {
+
 		}
 	}
 
@@ -87,7 +95,7 @@ public class SingleThread implements AutoCloseable, InvocationHandler {
 			return method.invoke(impl, args);
 
 		if (method.getDeclaringClass() == AutoCloseable.class) {
-			IO.close(this);
+			close(this);
 			return null;
 		}
 
@@ -97,7 +105,7 @@ public class SingleThread implements AutoCloseable, InvocationHandler {
 				method.invoke(impl, args);
 
 			} catch (Throwable t) {
-				log.unexpected(Exceptions.unrollCause(t));
+				log.unexpected(t);
 			} finally {
 				lastCall = null;
 			}

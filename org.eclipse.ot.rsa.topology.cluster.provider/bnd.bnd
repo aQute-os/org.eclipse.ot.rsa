@@ -12,3 +12,5 @@
 	biz.aQute.launchpad,\
 	org.awaitility,\
 	org.osgi.service.cm
+
+-conditionalpackage aQute.lib*
