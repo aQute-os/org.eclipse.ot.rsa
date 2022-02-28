@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os: [ ubuntu-latest ]
-        java: [ 11, 16 ]
+        java: [ 8, 17 ]
         runner: [ 'xvfb-run --auto-servernum {0}' ]
     name: JDK${{ matrix.java }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
