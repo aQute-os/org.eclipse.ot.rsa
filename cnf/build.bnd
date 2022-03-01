@@ -1,5 +1,5 @@
 
-base.version                    1.0.0
+base.version                    0.0.0
 
 Bundle-Version                  ${base.version}
 Bundle-DocURL                   https://github.com/geckoprojects-org/org.geckoprojects.rsa
@@ -16,6 +16,10 @@ target-dir:                     target
 
 javac.target                    1.8
 javac.source                    1.8
+
+-maven-dependencies             ""
+-groupid:                       biz.aQute
+-pom:                           version=${base.version}
 
 -buildpath.base: \
     org.osgi.annotation.versioning,\
@@ -49,10 +53,8 @@ netty = \
     io.netty.resolver;version=latest,\
     io.netty.transport;version=latest
     
--groupid                        org.geckoprojects.rsa
--pom                            version=${base.version}-SNAPSHOT
-
 -require-bnd                    "(version>=6.0.0)"
+-releaserepo:                   Release
 
 -plugin: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
@@ -60,6 +62,13 @@ netty = \
         releaseUrl=https://repo.maven.apache.org/maven2/; \
         index=${.}/central.mvn; \
         readOnly=true; \
-        name="Central"
+        name="Central", \
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl=https://oss.sonatype.org/content/repositories/snapshots/; \
+        releaseUrl= 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'; \
+        noupdateOnRelease = true; \
+        poll.time=-1; \
+        name="Release"
+        
         
 -remoteworkspace: true
