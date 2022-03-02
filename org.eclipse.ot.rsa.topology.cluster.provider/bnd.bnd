@@ -1,16 +1,21 @@
 -buildpath: \
-	org.apache.felix.gogo.runtime,\
-	org.osgi.service.remoteserviceadmin,\
+	org.osgi.service.cm,\
+	osgi.core,\
 	org.eclipse.ot.rsa.api.all,\
-	org.osgi.framework,\
-	org.osgi.util.tracker,\
-	aQute.libg,\
 	org.eclipse.ot.rsa.util,\
-	org.osgi.dto
-
--testpath: \
-	biz.aQute.launchpad,\
-	org.awaitility,\
-	org.osgi.service.cm
+	org.osgi.service.remoteserviceadmin,\
+	biz.aQute.bnd.util,\
+	org.apache.felix.gogo.runtime,\
+	aQute.libg
 
 -conditionalpackage aQute.lib*
+-testpath: \
+    biz.aQute.launchpad;packages='*',\
+    org.apache.felix.framework,\
+    slf4j.simple,\
+    org.awaitility
+    
+    
+-dependson \
+    org.eclipse.ot.rsa.distribution.provider, \
+    org.eclipse.ot.rsa.cluster.gossip.provider

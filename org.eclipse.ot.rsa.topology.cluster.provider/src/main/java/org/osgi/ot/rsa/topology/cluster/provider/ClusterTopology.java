@@ -29,7 +29,7 @@ import org.osgi.service.remoteserviceadmin.RemoteServiceAdminEvent;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdminListener;
 import org.osgi.util.tracker.ServiceTracker;
 
-import aQute.lib.exceptions.Exceptions;
+import aQute.bnd.exceptions.Exceptions;
 import aQute.lib.io.IO;
 
 /**
@@ -108,7 +108,6 @@ public class ClusterTopology extends Thread
 
 	@Deactivate
 	void deactivate() throws InterruptedException {
-		System.out.println("Deactivating topology manager");
 		IO.close(state);
 		IO.close(ds);
 		join(10_000);

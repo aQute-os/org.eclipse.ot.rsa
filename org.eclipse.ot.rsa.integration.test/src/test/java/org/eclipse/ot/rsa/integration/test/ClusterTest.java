@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -14,11 +16,13 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.awaitility.Awaitility;
 import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
 import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
@@ -146,7 +150,7 @@ public class ClusterTest {
 
 					configure(a, 0, false);
 					configure(b, 0, false);
-					
+
 					RemoteServiceAdmin arsa = a.waitForService(RemoteServiceAdmin.class, 4000).get();
 					RemoteServiceAdmin brsa = b.waitForService(RemoteServiceAdmin.class, 4000).get();
 
@@ -166,6 +170,88 @@ public class ClusterTest {
 		}
 	}
 
+	static interface Node {
+		void send(int launchpad);
+	}
+
+	//@Ignore
+	@Disabled
+	@Test
+	public void longrunnning() throws Throwable {
+
+		Launchpad[] launchpads = cluster(2);
+		try {
+			Thread[] threads = new Thread[launchpads.length];
+
+			AtomicReference<Throwable> throwable = new AtomicReference<>();
+
+			for (int i = 0; i < launchpads.length; i++) {
+				Launchpad lp = launchpads[i];
+				if (i == 0) {
+					configure(lp, 1800, true);
+				} else {
+					configure(lp, 1800 + i, true, "127.0.0.1:1800");
+				}
+			}
+			for (int i = 0; i < launchpads.length; i++) {
+				Launchpad lp = launchpads[i];
+				waitForClusterInformation(lp, launchpads.length);
+
+				int n = i;
+				threads[i] = new Thread(() -> {
+					play(lp, n, throwable);
+				}, "player " + i);
+				threads[i].start();
+			}
+
+			while (throwable.get() == null) {
+				Thread.sleep(100);
+			}
+			throw throwable.get();
+		} finally {
+			close(launchpads);
+		}
+	}
+
+	void play(Launchpad lp, int n, AtomicReference<Throwable> throwable) {
+		try {
+			while (true) {
+				if ((n & 1) == 0) {
+					receive(lp);
+					send(lp, n);
+				} else {
+					send(lp, n);
+					receive(lp);
+				}
+
+				Thread.sleep(10 + n);
+			}
+		} catch (Throwable t) {
+			System.out.println("Leaving lp " + n + " due to " + t);
+			throwable.set(t);
+		}
+	}
+
+	private void send(Launchpad lp, int n) {
+		Optional<Node> service = lp.waitForService(Node.class, 10_000_000);
+		assertThat(service).isPresent();
+		Node c = service.get();
+		System.out.println("sending " + n);
+		c.send(n);
+	}
+
+	private void receive(Launchpad lp) throws InterruptedException {
+		CountDownLatch cl = new CountDownLatch(1);
+		List<Integer> l = new ArrayList<>();
+		ServiceRegistration<Node> register = lp.register(Node.class, (i) -> {
+			l.add(i);
+			cl.countDown();
+		}, Constants.SERVICE_EXPORTED_INTERFACES, "*");
+		cl.await();
+		System.out.println("received from " + l);
+		register.unregister();
+	}
+
 	@Test
 	public void manyTest() throws Exception {
 		Launchpad[] launchpads = cluster(10);
@@ -178,6 +264,31 @@ public class ClusterTest {
 				configure(lp, 1800 + i, true, "127.0.0.1:1800");
 			}
 		}
+		for (int i = 0; i < launchpads.length; i++) {
+			Launchpad lp = launchpads[i];
+			waitForClusterInformation(lp, launchpads.length);
+		}
+
+		close(launchpads);
+	}
+
+	@Test
+	public void longRunning() throws Exception {
+		Launchpad[] launchpads = cluster(10);
+
+		for (int i = 0; i < launchpads.length; i++) {
+			Launchpad lp = launchpads[i];
+			if (i == 0) {
+				configure(lp, 1800, true);
+			} else {
+				configure(lp, 1800 + i, true, "127.0.0.1:1800");
+			}
+		}
+		for (int i = 0; i < launchpads.length; i++) {
+			Launchpad lp = launchpads[i];
+			waitForClusterInformation(lp, launchpads.length);
+		}
+
 		for (int i = 0; i < launchpads.length; i++) {
 			Launchpad lp = launchpads[i];
 			waitForClusterInformation(lp, launchpads.length);

@@ -287,7 +287,6 @@ class TopologyStateImpl implements TopologyState {
 				}
 				Filter filter = fl.get(0);
 				if (filter.matches(description.getProperties())) {
-					System.out.println("yes " + filter);
 					return true;
 				}
 			}

@@ -25,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
@@ -53,7 +52,17 @@ public class RemoteServiceAdminEventPublisher {
 
 	public enum RemoteServiceAdminEventType {
 
-		UNKNOWN_EVENT, IMPORT_REGISTRATION, EXPORT_REGISTRATION, EXPORT_UNREGISTRATION, IMPORT_UNREGISTRATION, IMPORT_ERROR, EXPORT_ERROR, EXPORT_WARNING, IMPORT_WARNING, IMPORT_UPDATE, EXPORT_UPDATE;
+		UNKNOWN_EVENT,
+		IMPORT_REGISTRATION,
+		EXPORT_REGISTRATION,
+		EXPORT_UNREGISTRATION,
+		IMPORT_UNREGISTRATION,
+		IMPORT_ERROR,
+		EXPORT_ERROR,
+		EXPORT_WARNING,
+		IMPORT_WARNING,
+		IMPORT_UPDATE,
+		EXPORT_UPDATE;
 
 		private final String _topic;
 
@@ -71,11 +80,9 @@ public class RemoteServiceAdminEventPublisher {
 	}
 
 	private static final Logger																LOG			= LoggerFactory
-			.getLogger(RemoteServiceAdminEventPublisher.class);
+		.getLogger(RemoteServiceAdminEventPublisher.class);
 
 	private final BundleContext																_bundleContext;
-	private final Bundle																	_rsaBundle	= FrameworkUtil
-			.getBundle(getClass());
 	private final ServiceTracker<RemoteServiceAdminListener, RemoteServiceAdminListener>	_rsaListenerTracker;
 	private final ServiceTracker<EventAdmin, EventAdmin>									_eventAdminTracker;
 
@@ -87,13 +94,11 @@ public class RemoteServiceAdminEventPublisher {
 
 		@Override
 		public T addingService(ServiceReference<T> reference) {
-			System.out.println("Adding " + reference);
 			return super.addingService(reference);
 		}
 
 		@Override
 		public void removedService(ServiceReference<T> reference, T service) {
-			System.out.println("Removed " + reference);
 			super.removedService(reference, service);
 		}
 	}
@@ -115,6 +120,8 @@ public class RemoteServiceAdminEventPublisher {
 		try {
 			_rsaListenerTracker.close();
 			_eventAdminTracker.close();
+		} catch (Exception e) {
+			// ignore
 		} finally {
 			LOG.debug("stopped: {}", this);
 		}
@@ -122,8 +129,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyExport(ServiceReference<?> service, EndpointDescription endpoint) {
 		ExportReference ref = new AnonymousExportReference(service, endpoint);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.EXPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_REGISTRATION,
+			_bundleContext.getBundle(), ref, null);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -131,8 +138,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyImport(ServiceReference<?> service, EndpointDescription endpoint) {
 		ImportReference ref = new AnonymousImportReference(service, endpoint);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.IMPORT_REGISTRATION, _bundleContext.getBundle(), ref, null);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_REGISTRATION,
+			_bundleContext.getBundle(), ref, null);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -141,7 +148,7 @@ public class RemoteServiceAdminEventPublisher {
 	public void notifyExportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ExportReference ref = new AnonymousExportReference(service, endpoint);
 		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_WARNING,
-				_bundleContext.getBundle(), ref, t);
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -150,7 +157,7 @@ public class RemoteServiceAdminEventPublisher {
 	public void notifyImportWarning(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ImportReference ref = new AnonymousImportReference(service, endpoint);
 		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_WARNING,
-				_bundleContext.getBundle(), ref, t);
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -159,7 +166,7 @@ public class RemoteServiceAdminEventPublisher {
 	public void notifyExportError(ServiceReference<?> service, Throwable t) {
 		ExportReference ref = new AnonymousExportReference(service, null);
 		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_ERROR,
-				_bundleContext.getBundle(), ref, t);
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -168,7 +175,7 @@ public class RemoteServiceAdminEventPublisher {
 	public void notifyImportError(EndpointDescription endpoint, Throwable t) {
 		ImportReference ref = new AnonymousImportReference(null, endpoint);
 		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_ERROR,
-				_bundleContext.getBundle(), ref, t);
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -176,8 +183,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyExportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ExportReference ref = new AnonymousExportReference(service, null);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.EXPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_UNREGISTRATION,
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -185,8 +192,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyImportRemoved(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ImportReference ref = new AnonymousImportReference(service, null);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.IMPORT_UNREGISTRATION, _bundleContext.getBundle(), ref, t);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_UNREGISTRATION,
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -194,8 +201,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyExportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ExportReference ref = new AnonymousExportReference(service, endpoint);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.EXPORT_UPDATE, _bundleContext.getBundle(), ref, t);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.EXPORT_UPDATE,
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -203,8 +210,8 @@ public class RemoteServiceAdminEventPublisher {
 
 	public void notifyImportUpdate(ServiceReference<?> service, EndpointDescription endpoint, Throwable t) {
 		ImportReference ref = new AnonymousImportReference(service, endpoint);
-		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(
-				RemoteServiceAdminEvent.IMPORT_UPDATE, _bundleContext.getBundle(), ref, t);
+		RemoteServiceAdminEvent rsae = new RemoteServiceAdminEvent(RemoteServiceAdminEvent.IMPORT_UPDATE,
+			_bundleContext.getBundle(), ref, t);
 
 		notifyListeners(rsae);
 		notifyEventAdmin(rsae);
@@ -212,7 +219,7 @@ public class RemoteServiceAdminEventPublisher {
 
 	private void notifyListeners(RemoteServiceAdminEvent rsae) {
 		for (RemoteServiceAdminListener rsaListener : _rsaListenerTracker
-				.getServices(new RemoteServiceAdminListener[0])) {
+			.getServices(new RemoteServiceAdminListener[0])) {
 			rsaListener.remoteAdminEvent(rsae);
 		}
 	}
@@ -239,14 +246,17 @@ public class RemoteServiceAdminEventPublisher {
 
 		// figure out whether this is an export- or import-related event
 		if (rsaEvent.getImportReference() != null) {
-			endpoint = rsaEvent.getImportReference().getImportedEndpoint();
+			endpoint = rsaEvent.getImportReference()
+				.getImportedEndpoint();
 		} else if (rsaEvent.getExportReference() != null) {
-			endpoint = rsaEvent.getExportReference().getExportedEndpoint();
+			endpoint = rsaEvent.getExportReference()
+				.getExportedEndpoint();
 		}
 
 		// in case of errors the endpoint description may be null
 		if (endpoint != null) {
-			String[] objClass = endpoint.getInterfaces().toArray(new String[0]);
+			String[] objClass = endpoint.getInterfaces()
+				.toArray(new String[0]);
 			setIfNotNull(props, Constants.OBJECTCLASS, objClass);
 			setIfNotNull(props, RemoteConstants.ENDPOINT_SERVICE_ID, endpoint.getServiceId());
 			setIfNotNull(props, RemoteConstants.ENDPOINT_FRAMEWORK_UUID, endpoint.getFrameworkUUID());
@@ -256,8 +266,8 @@ public class RemoteServiceAdminEventPublisher {
 
 		props.put(EventConstants.TIMESTAMP, Long.valueOf(System.currentTimeMillis()));
 		props.put(EventConstants.EVENT, rsaEvent);
-
-		props.put(EventConstants.BUNDLE, _rsaBundle);
+		Bundle _rsaBundle = _bundleContext.getBundle();
+		props.put(EventConstants.BUNDLE, _bundleContext.getBundle());
 		props.put(EventConstants.BUNDLE_ID, _rsaBundle.getBundleId());
 		// The RSA spec uses the wrong case for the symbolic name
 		props.put(EventConstants.BUNDLE_SYMBOLICNAME.toLowerCase(), _rsaBundle.getSymbolicName());
@@ -265,7 +275,8 @@ public class RemoteServiceAdminEventPublisher {
 		props.put(EventConstants.BUNDLE_VERSION, _rsaBundle.getVersion());
 		props.put(EventConstants.BUNDLE_SIGNER, getSigners(_rsaBundle));
 
-		String topic = RemoteServiceAdminEventType.valueOf(rsaEvent.getType()).topicName();
+		String topic = RemoteServiceAdminEventType.valueOf(rsaEvent.getType())
+			.topicName();
 		Event event = new Event(topic, props);
 
 		AccessController.doPrivileged((PrivilegedAction<Void>) () -> {
@@ -297,7 +308,9 @@ public class RemoteServiceAdminEventPublisher {
 		int i = 0;
 
 		for (Map.Entry<X509Certificate, List<?>> cert : certs) {
-			signers[i++] = cert.getKey().getIssuerX500Principal().getName();
+			signers[i++] = cert.getKey()
+				.getIssuerX500Principal()
+				.getName();
 		}
 
 		return signers;
