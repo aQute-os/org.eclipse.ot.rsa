@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
 import org.eclipse.ot.rsa.logger.util.HLogger;
 import org.eclipse.ot.rsa.singlethread.util.SingleThread;
 import org.osgi.dto.DTO;
@@ -239,6 +240,8 @@ class TopologyStateImpl implements TopologyState {
 			checkInterests();
 		}
 
+		EndpointDescription last = null;
+
 		public void checkInterests() {
 			if (ed == null)
 				return;
@@ -254,23 +257,57 @@ class TopologyStateImpl implements TopologyState {
 			}
 			switch (s) {
 				case 0 :
+					last = null;
 					break;
 				case 1 :
-					log.info("new import %s", ed);
-					importService = cluster.rsa.importService(ed);
+					report("new", () -> {
+						log.info("new import %s", ed);
+						importService = cluster.rsa.importService(ed);
+						last = ed;
+					});
 					break;
 				case 2 :
-					log.info("close import %s", ed);
-					importService.close();
-					importService = null;
+					report("close", () -> {
+						log.info("close import %s", ed);
+						importService.close();
+						importService = null;
+						last = null;
+					});
 					break;
 				case 3 :
-					log.info("update import %s", ed);
-					importService.update(ed);
+					if (!Objects.equals(last, ed)) {
+						report("update", () -> {
+							log.info("update import %s", ed);
+							importService.update(ed);
+							last = ed;
+						});
+					}
 					break;
 				default :
 					assert false : "Unknown service import case";
 			}
+		}
+
+		private void report(String s, Runnable run) {
+			long before = Runtime.getRuntime()
+				.freeMemory();
+			try {
+				run.run();
+			} finally {
+				long after = Runtime.getRuntime()
+					.freeMemory();
+				log.info("used memory %s %s %s", s, united(before - after), united(after));
+			}
+		}
+
+		private String united(long after) {
+			if (after > 1_000_000_000L)
+				return (after / 1_000_000_000D) + " Gb";
+			if (after > 1_000_000)
+				return (after / 1_000_000D) + " Mb";
+			if (after > 1_000)
+				return (after / 1_000D) + " Kb";
+			return after + " bytes";
 		}
 
 		boolean isActive() {
@@ -426,8 +463,9 @@ class TopologyStateImpl implements TopologyState {
 	@Override
 	public void discover() throws Exception {
 		Set<ServiceId> all = new HashSet<>(importWrappers.keySet());
+		ClusterInformation info = cluster.cluster;
 
-		for (UUID member : cluster.cluster.getKnownMembers()) {
+		for (UUID member : info.getKnownMembers()) {
 
 			if (member.equals(cluster.cluster.getLocalUUID()))
 				continue;

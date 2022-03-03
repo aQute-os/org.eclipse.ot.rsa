@@ -105,7 +105,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 		this.initialPeers = initialPeers;
 
 		this.comms = commsCreator.apply(this);
-
+		assert this.comms != null;
 		EventExecutorGroup gossipWorker = manager.getEventExecutorGroup();
 
 		doGossip = gossipWorker.scheduleAtFixedRate(this::gossip, config.gossip_interval(), config.gossip_interval(), MILLISECONDS);

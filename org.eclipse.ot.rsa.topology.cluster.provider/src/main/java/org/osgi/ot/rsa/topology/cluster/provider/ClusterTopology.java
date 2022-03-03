@@ -94,7 +94,8 @@ public class ClusterTopology extends Thread
 			}
 
 		};
-		log = root.child(() -> ":" + port + " ");
+		String lpname = context.getProperty("launchpad.name");
+		log = root.child(() -> (lpname == null ? "" : "fw=" + lpname) + ":" + port + " ");
 		log.register(RemoteServiceAdminEvent.class, this::toString);
 		this.host = cluster.getAddressFor(cluster.getLocalUUID());
 		this.state = SingleThread.create(TopologyState.class, (SingleThread st) -> new TopologyStateImpl(this, st),

@@ -17,13 +17,10 @@
     osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.topology.cluster.provider)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.distribution.provider)'
 	
--runbundles.extra \
-    biz.aQute.gogo.commands.provider, \
-    org.apache.felix.gogo.runtime
-    
 -runbundles: \
 	bcprov;version='[1.64.0,1.64.1)',\
 	bctls;version='[1.64.0,1.64.1)',\
+	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
 	io.netty.buffer;version='[4.1.72,4.1.73)',\
 	io.netty.codec;version='[4.1.72,4.1.73)',\
 	io.netty.common;version='[4.1.72,4.1.73)',\
@@ -31,19 +28,18 @@
 	io.netty.resolver;version='[4.1.72,4.1.73)',\
 	io.netty.tcnative-classes;version='[2.0.46,2.0.47)',\
 	io.netty.transport;version='[4.1.72,4.1.73)',\
-	org.apache.felix.eventadmin;version='[1.6.2,1.6.3)',\
-	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
-	org.apache.felix.log;version='[1.2.4,1.2.5)',\
-	org.osgi.service.remoteserviceadmin;version='[1.1.0,1.1.1)',\
-	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
 	org.apache.felix.converter;version='[1.0.14,1.0.15)',\
+	org.apache.felix.eventadmin;version='[1.6.2,1.6.3)',\
+	org.apache.felix.log;version='[1.2.4,1.2.5)',\
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
-	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
 	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
+	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
 	org.eclipse.ot.rsa.topology.cluster.provider;version=snapshot,\
 	org.eclipse.ot.rsa.util;version=snapshot,\
-	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
-	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot
+	org.osgi.service.remoteserviceadmin;version='[1.1.0,1.1.1)',\
+	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
+	org.osgi.util.pushstream;version='[1.0.1,1.0.2)'

@@ -65,7 +65,7 @@ import io.netty.util.concurrent.EventExecutorGroup;
 @Capability(namespace = IMPLEMENTATION_NAMESPACE, name = ClusterConstants.IMPLEMENTATION_NAMESPACE, version = "1.0.0")
 @Component(name = RSAConstants.CLUSTER_GOSSIP_PID, configurationPolicy = REQUIRE, immediate = true)
 public class NettyGossip implements ClusterInformation {
-	static final HLogger			root	= HLogger.root(NettyGossip.class);
+	static final HLogger			root			= HLogger.root(NettyGossip.class);
 	final static Pattern			INETSOCKET_P	= Pattern.compile("(?<ip>[^:]+)(:(?<port>\\d+))");
 
 	final HLogger					log;
@@ -81,27 +81,35 @@ public class NettyGossip implements ClusterInformation {
 	@Activate
 	public NettyGossip(ClusterGossipConfig config, BundleContext context, @Reference(name = "ssl")
 	ParemusNettyTLS tls) throws Exception {
+
 		this.host = config.bind_address();
 		this.cluster = config.cluster_name();
 		this.udp = config.udp_port();
 		this.tcp = config.tcp_port();
 		this.log = root.child(this::status);
-		this.framework = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
-		this.peers = Arrays.stream(config.initial_peers())
-			.distinct()
-			.map(s -> {
-				try {
-					return toInetSocketAddress(s, udp);
-				} catch (ConfigurationException e) {
-					throw Exceptions.duck(e);
-				}
-			})
-			.collect(toList());
-		this.address = calculateAddress(this.host, peers);
-		welcome();
-		this.manager = new ClusterManagerImpl(context, framework, config, udp, tcp, address,
-			cm -> new GossipImpl(context, cm, g -> new NettyComms(cluster, framework, config, tls, g), config, peers),
-			log);
+
+		try {
+			this.framework = UUID.fromString(context.getProperty(Constants.FRAMEWORK_UUID));
+			this.peers = Arrays.stream(config.initial_peers())
+				.distinct()
+				.map(s -> {
+					try {
+						return toInetSocketAddress(s, udp);
+					} catch (ConfigurationException e) {
+						throw Exceptions.duck(e);
+					}
+				})
+				.collect(toList());
+			this.address = calculateAddress(this.host, peers);
+			welcome();
+			this.manager = new ClusterManagerImpl(context, framework, config, udp, tcp, address,
+				cm -> new GossipImpl(context, cm, g -> new NettyComms(cluster, framework, config, tls, g), config,
+					peers),
+				log);
+		} catch (Exception e) {
+			log.error("Failed to initialize", e);
+			throw e;
+		}
 	}
 
 	@Deactivate

@@ -51,9 +51,9 @@ public class ClusterTest {
 						.create("c")) {
 
 					System.out.println("configure the 3 frameworks, do not fully connect the peers");
-					configure(a, 1800, true);
-					configure(b, 1810, true, "127.0.0.1:1800");
-					configure(c, 1820, true, "127.0.0.1:1810", "127.0.0.1:1830");
+					configure(a, 1900, true);
+					configure(b, 1910, true, "127.0.0.1:1900");
+					configure(c, 1920, true, "127.0.0.1:1910", "127.0.0.1:1930");
 
 					System.out.println("synchronize until all frameworks see their 3 peers");
 					waitForClusterInformation(a, 3);
@@ -112,7 +112,7 @@ public class ClusterTest {
 					try (Launchpad cc = builder
 							.create("cc")) {
 						System.out.println("Configure cc");
-						configure(cc, 1840, true, "127.0.0.1:1800");
+						configure(cc, 1940, true, "127.0.0.1:1900");
 						System.out.println("wait until it has its peers");
 						waitForClusterInformation(cc, 3);
 						ClusterInformation ccci = cc.getService(ClusterInformation.class).get();
@@ -185,9 +185,9 @@ public class ClusterTest {
 			for (int i = 0; i < launchpads.length; i++) {
 				Launchpad lp = launchpads[i];
 				if (i == 0) {
-					configure(lp, 1800, true);
+					configure(lp, 1900, true);
 				} else {
-					configure(lp, 1800 + i, true, "127.0.0.1:1800");
+					configure(lp, 1900 + i, true, "127.0.0.1:1900");
 				}
 			}
 			for (int i = 0; i < launchpads.length; i++) {
@@ -250,9 +250,9 @@ public class ClusterTest {
 		for (int i = 0; i < launchpads.length; i++) {
 			Launchpad lp = launchpads[i];
 			if (i == 0) {
-				configure(lp, 1800, true);
+				configure(lp, 1900, true);
 			} else {
-				configure(lp, 1800 + i, true, "127.0.0.1:1800");
+				configure(lp, 1900 + i, true, "127.0.0.1:1900");
 			}
 		}
 		for (int i = 0; i < launchpads.length; i++) {

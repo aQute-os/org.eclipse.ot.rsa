@@ -128,7 +128,7 @@ public class TopologyTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void manyTest() throws Exception {
-		Launchpad[] launchpads = cluster(10);
+		Launchpad[] launchpads = cluster(30);
 		ClusterTopology[] cts = new ClusterTopology[launchpads.length];
 
 		for (int i = 0; i < launchpads.length; i++) {
@@ -203,9 +203,7 @@ public class TopologyTest {
 				Thread.currentThread()
 					.setName("launchpad create " + n);
 				try {
-					Launchpad lp = n == 1 ? builder.gogo()
-						.create(name) : builder.create(name);
-					System.out.println("build " + lp.getBundleContext());
+					Launchpad lp = builder.create(name);
 					lps[n] = lp;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -265,6 +263,7 @@ public class TopologyTest {
 			.get();
 
 		update(ca, RSAConstants.TRANSPORT_TLS_PID, "insecure", true);
+		update(ca, RSAConstants.DISTRIBUTION_TRANSPORT_PID);
 		update(ca, RSAConstants.DISTRIBUTION_PROVIDER_PID, //
 			"server.bind.address", "127.0.0.1", //
 			"allow.insecure.transports", true, //
