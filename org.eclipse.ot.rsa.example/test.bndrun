@@ -14,7 +14,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.base.provider)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.cluster.gossip.provider)',\
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.cluster.gossip.api.provider)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.gogo)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.consumer)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.provider)',\
@@ -40,7 +40,7 @@
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
 	org.eclipse.ot.rsa.base.provider;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
+	org.eclipse.ot.rsa.cluster.gossip.api.provider;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
 	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
 	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\

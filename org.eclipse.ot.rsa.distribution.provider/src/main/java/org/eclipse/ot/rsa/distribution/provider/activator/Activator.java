@@ -117,11 +117,6 @@ public class Activator implements BundleActivator {
 
 		configUpdate(rawConfig);
 
-		registerManagedService(context);
-	}
-
-	private void registerManagedService(BundleContext context)
-			throws ConfigurationException {
 		ManagedService service = this::configUpdate;
 
 		Hashtable<String, Object> table = new Hashtable<>();

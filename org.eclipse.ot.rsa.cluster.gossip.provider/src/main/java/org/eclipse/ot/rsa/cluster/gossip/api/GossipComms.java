@@ -10,25 +10,29 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.eclipse.ot.rsa.cluster.gossip;
+package org.eclipse.ot.rsa.cluster.gossip.api;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.UUID;
+import java.util.List;
 
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
 
-public interface Gossip {
+import io.netty.util.concurrent.Future;
 
-	public abstract void handleMessage(InetSocketAddress sender, GossipMessage content);
+public interface GossipComms {
 
-	public abstract void merge(Snapshot snapshot);
+	public void publish(GossipMessage message,
+			Collection<InetSocketAddress> participants);
 
-	public abstract Collection<Snapshot> getAllSnapshots();
+	public Future<Void> replicate(MemberInfo member,
+			Collection<Snapshot> snapshots);
 
-	public abstract MemberInfo getInfoFor(UUID id);
+	public List<Future<?>> destroy();
 
-	public abstract void ping(InetSocketAddress udpAddress);
+	public InetAddress getBindAddress();
 
+	public boolean preventIndirectDiscovery();
 }

@@ -35,11 +35,11 @@ import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.ot.rsa.cluster.gossip.ClusterManager;
-import org.eclipse.ot.rsa.cluster.gossip.GossipComms;
-import org.eclipse.ot.rsa.cluster.gossip.GossipMessage;
-import org.eclipse.ot.rsa.cluster.gossip.InternalClusterListener;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.ClusterManager;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipComms;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
+import org.eclipse.ot.rsa.cluster.gossip.api.InternalClusterListener;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.provider.GossipImpl;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.DisconnectionMessage;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.FirstContactRequest;
@@ -136,9 +136,9 @@ public class GossipImplTest {
 	}
 
 	private GossipImpl getGossipImpl() throws Exception {
-		Config config;
+		ClusterGossipConfig config;
 		try {
-			config = standardConverter().convert(singletonMap("cluster.name", CLUSTER)).to(Config.class);
+			config = standardConverter().convert(singletonMap("cluster.name", CLUSTER)).to(ClusterGossipConfig.class);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

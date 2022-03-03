@@ -56,8 +56,7 @@ public class ProxyHostBundleFactory {
      * @param target the framework into which the proxy bundle should be installed
      * @return the new virtual bundle
      */
-    public Bundle getProxyBundle(Framework target) {
-
+	public synchronized Bundle getProxyBundle(Framework target) {
     	Bundle dosgiBundle = FrameworkUtil.getBundle(ProxyHostBundleFactory.class);
 		boolean peer = dosgiBundle.getBundleContext().getBundle(0).equals(target);
 

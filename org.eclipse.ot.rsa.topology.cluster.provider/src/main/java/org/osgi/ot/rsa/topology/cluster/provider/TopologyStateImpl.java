@@ -280,7 +280,6 @@ class TopologyStateImpl implements TopologyState {
 
 		// TODO:: if this is a bottleneck we need to optimize this one.
 		boolean shouldBeRegistered(EndpointDescription description) {
-			System.out.println("checking " + description + " against " + interests.keySet());
 			for (List<Filter> fl : interests.values()) {
 				if (fl.isEmpty()) {
 					continue;

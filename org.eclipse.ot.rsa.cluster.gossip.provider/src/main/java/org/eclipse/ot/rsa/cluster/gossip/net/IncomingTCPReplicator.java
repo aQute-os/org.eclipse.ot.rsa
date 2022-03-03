@@ -15,7 +15,7 @@ package org.eclipse.ot.rsa.cluster.gossip.net;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

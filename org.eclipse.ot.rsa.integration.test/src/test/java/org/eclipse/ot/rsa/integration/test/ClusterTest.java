@@ -5,9 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +20,6 @@ import org.awaitility.Awaitility;
 import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
 import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
@@ -143,7 +140,9 @@ public class ClusterTest {
 	@Test
 	public void importExportTest() throws Exception {
 
+		System.out.println("start a");
 		try (Launchpad a = builder.create("a")) {
+			System.out.println("start b");
 			try (Launchpad b = builder.create("b")) {
 				try (Launchpad c = builder // .gogo()
 						.create("c")) {
@@ -174,9 +173,7 @@ public class ClusterTest {
 		void send(int launchpad);
 	}
 
-	//@Ignore
-	@Disabled
-	@Test
+	//@Test
 	public void longrunnning() throws Throwable {
 
 		Launchpad[] launchpads = cluster(2);
@@ -196,7 +193,9 @@ public class ClusterTest {
 			for (int i = 0; i < launchpads.length; i++) {
 				Launchpad lp = launchpads[i];
 				waitForClusterInformation(lp, launchpads.length);
-
+			}
+			for (int i = 0; i < launchpads.length; i++) {
+				Launchpad lp = launchpads[i];
 				int n = i;
 				threads[i] = new Thread(() -> {
 					play(lp, n, throwable);
@@ -215,41 +214,33 @@ public class ClusterTest {
 
 	void play(Launchpad lp, int n, AtomicReference<Throwable> throwable) {
 		try {
-			while (true) {
 				if ((n & 1) == 0) {
-					receive(lp);
-					send(lp, n);
+					while (true) {
+						System.out.println("Waiting for a node in  "+n);
+						Optional<Node> service = lp.waitForService(Node.class, 10_000_000);
+						System.out.println("Got service  "+service);
+						assertThat(service).isPresent();
+						Node c = service.get();
+						System.out.println("tx " + n);
+						c.send(n);
+						Thread.sleep(1000+n);
+					}
 				} else {
-					send(lp, n);
-					receive(lp);
+					System.out.println("Registering node " + n);
+					ServiceRegistration<Node> register = lp.register(Node.class, (i) -> {
+						System.out.println("rx " + i);
+					}, Constants.SERVICE_EXPORTED_INTERFACES, "*");
+					while (true) {
+						Thread.sleep(1000+n);
+						Hashtable<String,Object> ht = new Hashtable<>();
+						ht.put("x", System.nanoTime());
+						register.setProperties(ht);
+					}
 				}
-
-				Thread.sleep(10 + n);
-			}
 		} catch (Throwable t) {
 			System.out.println("Leaving lp " + n + " due to " + t);
 			throwable.set(t);
 		}
-	}
-
-	private void send(Launchpad lp, int n) {
-		Optional<Node> service = lp.waitForService(Node.class, 10_000_000);
-		assertThat(service).isPresent();
-		Node c = service.get();
-		System.out.println("sending " + n);
-		c.send(n);
-	}
-
-	private void receive(Launchpad lp) throws InterruptedException {
-		CountDownLatch cl = new CountDownLatch(1);
-		List<Integer> l = new ArrayList<>();
-		ServiceRegistration<Node> register = lp.register(Node.class, (i) -> {
-			l.add(i);
-			cl.countDown();
-		}, Constants.SERVICE_EXPORTED_INTERFACES, "*");
-		cl.await();
-		System.out.println("received from " + l);
-		register.unregister();
 	}
 
 	@Test
@@ -272,30 +263,6 @@ public class ClusterTest {
 		close(launchpads);
 	}
 
-	@Test
-	public void longRunning() throws Exception {
-		Launchpad[] launchpads = cluster(10);
-
-		for (int i = 0; i < launchpads.length; i++) {
-			Launchpad lp = launchpads[i];
-			if (i == 0) {
-				configure(lp, 1800, true);
-			} else {
-				configure(lp, 1800 + i, true, "127.0.0.1:1800");
-			}
-		}
-		for (int i = 0; i < launchpads.length; i++) {
-			Launchpad lp = launchpads[i];
-			waitForClusterInformation(lp, launchpads.length);
-		}
-
-		for (int i = 0; i < launchpads.length; i++) {
-			Launchpad lp = launchpads[i];
-			waitForClusterInformation(lp, launchpads.length);
-		}
-
-		close(launchpads);
-	}
 
 	private void close(Launchpad[] launchpads) throws InterruptedException {
 		CountDownLatch l = new CountDownLatch(launchpads.length);
@@ -358,6 +325,7 @@ public class ClusterTest {
 				.get();
 
 		update(ca, RSAConstants.TRANSPORT_TLS_PID, "insecure", true);
+		update(ca, RSAConstants.DISTRIBUTION_TRANSPORT_PID);
 		update(ca, RSAConstants.DISTRIBUTION_PROVIDER_PID, //
 				"server.bind.address", "127.0.0.1", //
 				"allow.insecure.transports", true, //

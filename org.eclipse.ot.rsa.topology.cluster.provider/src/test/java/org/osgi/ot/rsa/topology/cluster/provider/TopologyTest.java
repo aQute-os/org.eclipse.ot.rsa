@@ -92,7 +92,7 @@ public class TopologyTest {
 					cb.deactivate();
 
 					System.out.println("check if b has unimported this service");
-					until(() -> bx.getServiceReference(Supplier.class));
+					untilNot(() -> bx.getServiceReference(Supplier.class));
 
 					System.out.println("check c is unaffected");
 					until(() -> cx.getServiceReference(Supplier.class));
@@ -198,11 +198,22 @@ public class TopologyTest {
 			String name = "" + i;
 			int n = i;
 			es.execute(() -> {
-				Launchpad lp = n == 1 ? builder.gogo()
-					.create(name) : builder.create(name);
-				System.out.println("build " + lp.getBundleContext());
-				lps[n] = lp;
-				l.countDown();
+				String old = Thread.currentThread()
+					.getName();
+				Thread.currentThread()
+					.setName("launchpad create " + n);
+				try {
+					Launchpad lp = n == 1 ? builder.gogo()
+						.create(name) : builder.create(name);
+					System.out.println("build " + lp.getBundleContext());
+					lps[n] = lp;
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					l.countDown();
+					Thread.currentThread()
+						.setName(old);
+				}
 			});
 		}
 		l.await();
@@ -317,6 +328,7 @@ public class TopologyTest {
 		Awaitility.await()
 			.until(() -> !isTrue(bs.call()));
 	}
+
 	private boolean isTrue(Object call) {
 		return call != null || Boolean.TRUE.equals(call) || (call instanceof String && !"".equals(call));
 	}

@@ -5,7 +5,6 @@
 	org.eclipse.ot.rsa.util,\
 	org.osgi.service.remoteserviceadmin,\
 	biz.aQute.bnd.util,\
-	org.apache.felix.gogo.runtime,\
 	aQute.libg
 
 -conditionalpackage aQute.lib*

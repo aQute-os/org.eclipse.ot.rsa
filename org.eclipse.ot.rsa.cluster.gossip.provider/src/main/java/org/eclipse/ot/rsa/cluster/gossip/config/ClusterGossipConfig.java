@@ -10,17 +10,18 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.eclipse.ot.rsa.cluster.gossip.netty;
+package org.eclipse.ot.rsa.cluster.gossip.config;
 
 import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 @ObjectClassDefinition(factoryPid = RSAConstants.CLUSTER_GOSSIP_PID)
-public @interface Config {
+public @interface ClusterGossipConfig {
 
 	int udp_port() default 9033;
-	int tcp_port() default 9034;
+
+	int tcp_port() default 9033;
 
 	String bind_address() default "0.0.0.0";
 
@@ -43,8 +44,6 @@ public @interface Config {
 	String cluster_name();
 
 	String tls_target() default "";
-
-	boolean infra() default false;
 
 	@AttributeDefinition(min="0")
 	int silent_node_probe_timeout() default 12000;

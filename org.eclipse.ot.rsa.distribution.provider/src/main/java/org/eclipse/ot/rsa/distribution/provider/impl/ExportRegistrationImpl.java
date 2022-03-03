@@ -85,7 +85,9 @@ public class ExportRegistrationImpl implements ExportRegistration {
 			public void removedService(ServiceReference<Object> sr, ServiceReference<?> s) {
             	synchronized (ExportRegistrationImpl.this) {
             		if(_state != CLOSED) {
-            			LOG.info("The exported service {} has been unregistered and so the export will be automatically closed.", sr);
+						LOG.debug(
+							"The exported service {} has been unregistered and so the export will be automatically closed.",
+							sr);
             			close();
             		}
             	}
@@ -132,7 +134,8 @@ public class ExportRegistrationImpl implements ExportRegistration {
 		}
 
         if(postInitState == OPEN && _serviceTracker.getService() == null) {
-        	LOG.info("The exported service {} has been unregistered and so the export will be automatically closed.", _serviceReference);
+			LOG.debug("The exported service {} has been unregistered and so the export will be automatically closed.",
+				_serviceReference);
 			close();
         }
 

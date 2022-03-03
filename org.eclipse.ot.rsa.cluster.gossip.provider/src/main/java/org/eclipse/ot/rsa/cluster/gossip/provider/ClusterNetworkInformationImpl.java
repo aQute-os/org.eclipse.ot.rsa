@@ -18,7 +18,7 @@ import java.net.SocketException;
 import java.util.UUID;
 
 import org.eclipse.ot.rsa.cluster.api.ClusterNetworkInformation;
-import org.eclipse.ot.rsa.cluster.gossip.GossipComms;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipComms;
 
 public class ClusterNetworkInformationImpl implements ClusterNetworkInformation {
 

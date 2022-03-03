@@ -87,7 +87,7 @@ public class ServerConnectionManager {
 
 		b.group(serverIo)
 			.option(ChannelOption.ALLOCATOR, allocator)
-			.option(ChannelOption.SO_SNDBUF, p.getSendBufferSize())
+			// .option(ChannelOption.SO_SNDBUF, p.getSendBufferSize())
 			.option(ChannelOption.SO_RCVBUF, p.getReceiveBufferSize());
 
 		Consumer<Channel> c = ch -> {};

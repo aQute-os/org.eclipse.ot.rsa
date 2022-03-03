@@ -37,12 +37,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.ot.rsa.cluster.api.ClusterNetworkInformation;
-import org.eclipse.ot.rsa.cluster.gossip.ClusterManager;
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
-import org.eclipse.ot.rsa.cluster.gossip.GossipComms;
-import org.eclipse.ot.rsa.cluster.gossip.GossipMessage;
-import org.eclipse.ot.rsa.cluster.gossip.InternalClusterListener;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.ClusterManager;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipComms;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
+import org.eclipse.ot.rsa.cluster.gossip.api.InternalClusterListener;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.AbstractGossipMessage;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.DisconnectionMessage;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.FirstContactRequest;
@@ -80,7 +80,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 
 	private final String cluster;
 
-	private final Config config;
+	private final ClusterGossipConfig config;
 
 	private final List<InetSocketAddress> initialPeers;
 
@@ -96,7 +96,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 
 	private final ScheduledFuture<?> doSync;
 
-	public GossipImpl(BundleContext context, ClusterManager manager, Function<Gossip,GossipComms> commsCreator, Config config,
+	public GossipImpl(BundleContext context, ClusterManager manager, Function<Gossip,GossipComms> commsCreator, ClusterGossipConfig config,
 			List<InetSocketAddress> initialPeers) throws Exception {
 		this.context = context;
 		this.manager = manager;
@@ -120,7 +120,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.gossip.provider.Gossip#handleMessage(java.net.InetAddress, java.io.DataInput)
+	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.provider.Gossip#handleMessage(java.net.InetAddress, java.io.DataInput)
 	 */
 	@Override
 	public void handleMessage(InetSocketAddress sender, GossipMessage message) {
@@ -157,7 +157,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 			if(cluster.equals(gossip.getClusterName())) {
 				action.run();
 			} else {
-				logger.warn("Receieved a message with the wrong cluster name at the node {}. The clusters {} and {} run on the same hosts and have overlapping port ranges",
+				logger.warn("Receieved a message with the wrong cluster host at the node {}. The clusters {} and {} run on the same hosts and have overlapping port ranges",
 						new Object[] {manager.getLocalUUID(), gossip.getClusterName(), cluster});
 			}
 
@@ -288,7 +288,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.gossip.provider.Gossip#merge(java.util.Collection)
+	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.provider.Gossip#merge(java.util.Collection)
 	 */
 	@Override
 	public void merge(Snapshot snapshot) {

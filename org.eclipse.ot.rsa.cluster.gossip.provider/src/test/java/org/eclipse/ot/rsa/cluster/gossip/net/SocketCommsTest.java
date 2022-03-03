@@ -38,9 +38,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
-import org.eclipse.ot.rsa.cluster.gossip.GossipMessage;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.AbstractGossipMessage;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.FirstContactRequest;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType;
@@ -98,7 +98,7 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 		config.put("tcp.port", TCP_PORT);
 
 		socketComms = new NettyComms("cluster", ID, standardConverter()
-				.convert(config).to(Config.class), tls, gossip);
+				.convert(config).to(ClusterGossipConfig.class), tls, gossip);
 
 		Mockito.doAnswer(this::count).when(gossip)
 			.handleMessage(ArgumentMatchers.any(InetSocketAddress.class), ArgumentMatchers.any(GossipMessage.class));

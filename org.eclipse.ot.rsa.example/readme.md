@@ -29,7 +29,7 @@ A short explanation of some of the used bundles:
 * org.eclipse.ot.rsa.example.api – API
 * org.eclipse.ot.rsa.gogo – A number of commands to query the Remote Service Admin `members` and cluster info. Especially `rexports` and `rimports` are cool.
 * org.eclipse.ot.rsa.api – Provides the cluster & distributed APIs
-* org.eclipse.ot.rsa.cluster.gossip.provider – Provides a cluster discovery
+* org.eclipse.ot.rsa.cluster.gossip.api.provider – Provides a cluster discovery
 * org.eclipse.ot.rsa.distribution.provider – The implementation of the distribution provider
 * org.eclipse.ot.rsa.topology.promiscuous.provider – API to the topology manager
 * org.eclipse.ot.rsa.topology.cluster.provider – A topology manager based on the cluster API

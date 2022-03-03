@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
-import org.eclipse.ot.rsa.cluster.gossip.GossipComms;
-import org.eclipse.ot.rsa.cluster.gossip.GossipMessage;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipComms;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
@@ -86,7 +86,7 @@ public class NettyComms implements GossipComms {
 	private final int networkMTU;
 
 
-	public NettyComms(String cluster, UUID id, Config config, ParemusNettyTLS ssl, Gossip gossip)
+	public NettyComms(String cluster, UUID id, ClusterGossipConfig config, ParemusNettyTLS ssl, Gossip gossip)
 			throws IOException, ConfigurationException, InterruptedException {
 		this.id = id;
 		this.ssl = ssl;
@@ -110,7 +110,6 @@ public class NettyComms implements GossipComms {
 		}
 
 		networkMTU = discoveredMTU <= 0 ? 1500 : discoveredMTU;
-		logger.info("The discovered MTU for the gossip cluster {} is {}. If gossip messages regularly exceed this size then packet loss may become an issue.", cluster, networkMTU);
 
 		this.eventLoop = new NioEventLoopGroup(1, r -> {
 			Thread t = new FastThreadLocalThread(r, "Gossip IO Worker - " + cluster);
@@ -180,7 +179,7 @@ public class NettyComms implements GossipComms {
 	private Instant lastReportedLargeMessage;
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.gossip.net.GossipComms#publish(byte[], java.util.Collection)
+	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#publish(byte[], java.util.Collection)
 	 */
 	@Override
 	public void publish(GossipMessage message, Collection<InetSocketAddress> participants) {
@@ -240,7 +239,7 @@ public class NettyComms implements GossipComms {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.gossip.net.GossipComms#replicate(org.eclipse.ot.rsa.cluster.gossip.manager.provider.MemberInfo, java.util.Collection)
+	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#replicate(org.eclipse.ot.rsa.cluster.gossip.api.manager.provider.MemberInfo, java.util.Collection)
 	 */
 	@Override
 	public Future<Void> replicate(MemberInfo member,

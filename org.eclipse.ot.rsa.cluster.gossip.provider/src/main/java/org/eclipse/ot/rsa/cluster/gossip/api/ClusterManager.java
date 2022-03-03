@@ -10,7 +10,7 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.eclipse.ot.rsa.cluster.gossip;
+package org.eclipse.ot.rsa.cluster.gossip.api;
 
 import java.util.Collection;
 import java.util.UUID;

@@ -33,8 +33,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.SnapshotType;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
@@ -129,7 +129,7 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 				getLoopbackAddress(), 3456));
 
 		config.put("cluster.name", "test");
-		Config cfg = standardConverter().convert(config).to(Config.class);
+		ClusterGossipConfig cfg = standardConverter().convert(config).to(ClusterGossipConfig.class);
 
 		memberA = new MemberInfo(cfg, snapA, clusterInfo, Collections.emptyList());
 		memberA.update(snapA);
@@ -165,7 +165,7 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 				new InetSocketAddress(getLoopbackAddress(), 1));
 
 		MemberInfo memberC = new MemberInfo(standardConverter().convert(
-				config).to(Config.class), snapC, clusterInfo, Collections.emptyList());
+				config).to(ClusterGossipConfig.class), snapC, clusterInfo, Collections.emptyList());
 		memberC.update(snapC);
 
 		UUID snapDId = new UUID(3456, 7890);
@@ -180,10 +180,10 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 				new InetSocketAddress(getLoopbackAddress(), 1));
 
 		MemberInfo memberDA = new MemberInfo(standardConverter().convert(
-				config).to(Config.class), snapDA, clusterInfo, Collections.emptyList());
+				config).to(ClusterGossipConfig.class), snapDA, clusterInfo, Collections.emptyList());
 		memberDA.update(snapDA);
 		MemberInfo memberDB = new MemberInfo(standardConverter().convert(
-				config).to(Config.class), snapDB, clusterInfo, Collections.emptyList());
+				config).to(ClusterGossipConfig.class), snapDB, clusterInfo, Collections.emptyList());
 		memberDB.update(snapDB);
 
 		Mockito.when(gossipA.getInfoFor(snapCId)).thenReturn(memberC);

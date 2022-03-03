@@ -67,10 +67,6 @@ public class ClusterTopology extends Thread
 	public ClusterTopology(@Reference
 	RemoteServiceAdmin rsa, @Reference
 	ClusterInformation cluster, BundleContext context) throws Exception {
-		System.out
-			.println("RemoteServiceAdminListener classloader is " + RemoteServiceAdminListener.class.getClassLoader());
-
-		System.out.println("Activating topology manager");
 		this.rsa = rsa;
 		this.cluster = cluster;
 		this.context = context;
@@ -98,16 +94,18 @@ public class ClusterTopology extends Thread
 			}
 
 		};
-		this.log = root.child(() -> ":" + port + " ");
-		this.log.register(RemoteServiceAdminEvent.class, this::toString);
+		log = root.child(() -> ":" + port + " ");
+		log.register(RemoteServiceAdminEvent.class, this::toString);
 		this.host = cluster.getAddressFor(cluster.getLocalUUID());
 		this.state = SingleThread.create(TopologyState.class, (SingleThread st) -> new TopologyStateImpl(this, st),
 			log);
+		log.info("started %s", cluster.getLocalUUID());
 		this.start();
 	}
 
 	@Deactivate
 	void deactivate() throws InterruptedException {
+		System.out.println("Deactivating topology manager");
 		IO.close(state);
 		IO.close(ds);
 		join(10_000);
@@ -184,7 +182,6 @@ public class ClusterTopology extends Thread
 	 */
 	@Override
 	public void run() {
-		System.out.println("starting UDP info provider");
 		log.info("starting UDP info provider");
 		tracker.open();
 		ServiceRegistration<RemoteServiceAdminListener> registration = context

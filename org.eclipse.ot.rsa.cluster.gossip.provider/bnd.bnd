@@ -1,13 +1,15 @@
 -buildpath: \
 	org.osgi.framework,\
-    org.osgi.namespace.implementation,\
-    org.osgi.namespace.service,\
+	org.osgi.namespace.implementation,\
+	org.osgi.namespace.service,\
 	org.osgi.resource,\
-    org.osgi.service.cm,\
-    org.osgi.util.function,\
-    ${netty}, \
+	org.osgi.service.cm,\
+	org.osgi.util.function,\
+	${netty},\
 	org.eclipse.ot.rsa.tls.netty.provider,\
-    org.eclipse.ot.rsa.api.all
+	org.eclipse.ot.rsa.api.all,\
+	org.eclipse.ot.rsa.util,\
+	biz.aQute.bnd.util
 -testpath: \
 	org.osgi.util.converter,\
 	org.osgi.util.promise

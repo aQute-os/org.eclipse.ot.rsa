@@ -15,7 +15,7 @@ package org.eclipse.ot.rsa.cluster.gossip.net;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

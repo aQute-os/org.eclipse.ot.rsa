@@ -40,12 +40,10 @@
 	org.apache.felix.converter;version='[1.0.14,1.0.15)',\
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
-	org.apache.felix.gogo.command;version='[1.1.2,1.1.3)',\
-	org.apache.felix.gogo.runtime;version='[1.1.4,1.1.5)',\
-	org.apache.felix.gogo.shell;version='[1.1.4,1.1.5)',\
 	org.eclipse.ot.rsa.topology.cluster.provider;version=snapshot,\
-	org.eclipse.ot.rsa.util;version=snapshot
+	org.eclipse.ot.rsa.util;version=snapshot,\
+	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot

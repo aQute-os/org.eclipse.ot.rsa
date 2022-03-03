@@ -21,9 +21,13 @@ public @interface TransportConfig {
 	String PID = RSAConstants.DISTRIBUTION_TRANSPORT_PID;
 	boolean allow_insecure_transports() default true;
 
-	String[] client_protocols() default {"TCP;nodelay=true", "TCP_CLIENT_AUTH;nodelay=true;connect.timeout=3000"};
+	String[] client_protocols() default {
+		"TCP;nodelay=true"
+	};
 
-	String[] server_protocols() default {"TCP;nodelay=true", "TCP_CLIENT_AUTH;nodelay=true"};
+	String[] server_protocols() default {
+		"TCP;nodelay=true"
+	};
 
 	String server_bind_address() default "0.0.0.0";
 

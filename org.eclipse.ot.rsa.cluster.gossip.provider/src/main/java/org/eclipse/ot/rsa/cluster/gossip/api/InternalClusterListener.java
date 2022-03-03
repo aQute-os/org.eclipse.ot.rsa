@@ -10,10 +10,8 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.eclipse.ot.rsa.cluster.gossip;
+package org.eclipse.ot.rsa.cluster.gossip.api;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,17 +20,8 @@ import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
 
 import io.netty.util.concurrent.Future;
 
-public interface GossipComms {
-
-	public void publish(GossipMessage message,
-			Collection<InetSocketAddress> participants);
-
-	public Future<Void> replicate(MemberInfo member,
-			Collection<Snapshot> snapshots);
-
-	public List<Future<?>> destroy();
-
-	public InetAddress getBindAddress();
-
-	public boolean preventIndirectDiscovery();
+public interface InternalClusterListener {
+	void localUpdate(Snapshot s);
+	List<Future<?>> destroy();
+	void darkNodes(Collection<MemberInfo> darkNodes);
 }

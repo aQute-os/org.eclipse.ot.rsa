@@ -21,7 +21,7 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.eventadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
 	bnd.identity;id='org.eclipse.ot.rsa.topology.cluster.provider',\
-	bnd.identity;id='org.eclipse.ot.rsa.cluster.gossip.provider',\
+	bnd.identity;id='org.eclipse.ot.rsa.cluster.gossip.api.provider',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.gogo)',\
 	osgi.identity;filter:='(osgi.identity=biz.aQute.gogo.commands.provider)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
@@ -51,7 +51,7 @@
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.apache.sling.commons.johnzon;version='[1.2.14,1.2.15)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
+	org.eclipse.ot.rsa.cluster.gossip.api.provider;version=snapshot,\
 	org.eclipse.ot.rsa.gogo;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
 	org.eclipse.ot.rsa.topology.promiscuous.provider;version=snapshot,\

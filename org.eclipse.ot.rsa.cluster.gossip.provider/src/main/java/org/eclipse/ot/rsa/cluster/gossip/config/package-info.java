@@ -10,18 +10,11 @@
  * 		Paremus Ltd. - initial API and implementation
  *      Data In Motion
  */
-package org.eclipse.ot.rsa.cluster.gossip;
+/**
+ * The Paremus Cluster ListenerAPI - this package provides change notifications
+ * for a live set of clustered nodes.
+ */
+@org.osgi.annotation.bundle.Export
+@org.osgi.annotation.versioning.Version("1.0.0")
+package org.eclipse.ot.rsa.cluster.gossip.config;
 
-import org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType;
-
-import io.netty.buffer.ByteBuf;
-
-public interface GossipMessage {
-
-	public void writeOut(ByteBuf output);
-
-	public abstract MessageType getType();
-
-	public int estimateSize();
-
-}

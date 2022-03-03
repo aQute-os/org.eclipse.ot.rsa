@@ -16,7 +16,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 
-import org.eclipse.ot.rsa.cluster.gossip.GossipMessage;
+import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;

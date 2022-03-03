@@ -40,7 +40,7 @@ import java.util.UUID;
 
 import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
 import org.eclipse.ot.rsa.cluster.api.ClusterListener;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.SnapshotType;
 import org.slf4j.Logger;
@@ -73,7 +73,7 @@ public class MemberInfo {
 
 	private Collection<ClusterListener> listeners = new HashSet<>();
 
-	public MemberInfo(Config config, Snapshot s, ClusterInformation ci, Collection<? extends ClusterListener> listeners) {
+	public MemberInfo(ClusterGossipConfig config, Snapshot s, ClusterInformation ci, Collection<? extends ClusterListener> listeners) {
 		this.ci = ci;
 		this.id = s.getId();
 		this.cluster = config.cluster_name();

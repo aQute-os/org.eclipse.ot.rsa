@@ -140,7 +140,7 @@ public class ServiceInvoker {
 			toNettyFutureAdapter = PromiseFactory.toNettyFutureAdapter(promise);
 			fromNettyFutureAdapter = PromiseFactory.fromNettyFutureAdapter(promise, serverWorkers);
 		} catch (NoClassDefFoundError | Exception e) {
-			LOG.info("Unable to integrate with promises for the remote service {}",
+			LOG.debug("Unable to integrate with promises for the remote service {}",
 				serviceId);
 		}
 
@@ -154,7 +154,7 @@ public class ServiceInvoker {
 			Class<?> pushStream = serviceClassLoader.loadClass("org.osgi.util.pushstream.PushStream");
 			pushStreamConnector = PushStreamFactory.pushStreamConnector(pushStream, timer);
 		} catch (NoClassDefFoundError | Exception e) {
-			LOG.info(
+			LOG.debug(
 				"Unable to integrate with push streams for the remote service {}. See the debug log for more details",
 				serviceId);
 		}
@@ -167,7 +167,7 @@ public class ServiceInvoker {
 			Class<?> pushEventSource = serviceClassLoader.loadClass("org.osgi.util.pushstream.PushEventSource");
 			pushEventSourceConnector = PushStreamFactory.pushEventSourceConnector(pushEventSource, timer);
 		} catch (Exception e) {
-			LOG.info("Unable to integrate with push event sources for the remote service {}", serviceId);
+			LOG.debug("Unable to integrate with push event sources for the remote service {}", serviceId);
 		}
 
 		this.pushEventSourceConnector = pushEventSourceConnector;

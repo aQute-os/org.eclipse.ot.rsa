@@ -50,12 +50,13 @@ import java.util.function.Function;
 import org.eclipse.ot.rsa.cluster.api.Action;
 import org.eclipse.ot.rsa.cluster.api.ClusterInformation;
 import org.eclipse.ot.rsa.cluster.api.ClusterListener;
-import org.eclipse.ot.rsa.cluster.gossip.InternalClusterListener;
-import org.eclipse.ot.rsa.cluster.gossip.netty.Config;
+import org.eclipse.ot.rsa.cluster.gossip.api.InternalClusterListener;
+import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.SnapshotType;
 import org.eclipse.ot.rsa.cluster.manager.provider.ClusterManagerImpl;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
+import org.eclipse.ot.rsa.logger.util.HLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -136,10 +137,11 @@ public class ClusterManagerImplTest {
 	@BeforeEach
 	public void setUp() throws Exception {
 		Mockito.when(listener.destroy()).thenReturn(Arrays.asList(GlobalEventExecutor.INSTANCE.newSucceededFuture(null)));
-
+		HLogger log = HLogger.root(ClusterManagerImplTest.class);
 		impl = new ClusterManagerImpl(context, ID,
 				standardConverter().convert(singletonMap("cluster.name", CLUSTER))
-				.to(Config.class), UDP, TCP, null, x -> listener);
+				.to(ClusterGossipConfig.class),
+			UDP, TCP, null, x -> listener, log);
 	}
 
 	@Test

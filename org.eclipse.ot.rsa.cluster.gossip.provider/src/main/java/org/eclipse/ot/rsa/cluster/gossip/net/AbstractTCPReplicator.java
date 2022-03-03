@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.eclipse.ot.rsa.cluster.gossip.Gossip;
+import org.eclipse.ot.rsa.cluster.gossip.api.Gossip;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
 import org.slf4j.Logger;
