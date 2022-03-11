@@ -7,7 +7,7 @@
 
 -resolve.effective: active;skip:=osgi.service
 
--runrequires: osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.consumer)'
+-runrequires.consumer: osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.consumer)'
 -runbundles: \
 	bcprov;version='[1.64.0,1.64.1)',\
 	bctls;version='[1.64.0,1.64.1)',\
@@ -32,7 +32,6 @@
 	org.apache.sling.commons.johnzon;version='[1.2.14,1.2.15)',\
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.api.provider;version=snapshot,\
 	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
 	org.eclipse.ot.rsa.example.api;version=snapshot,\
 	org.eclipse.ot.rsa.example.consumer;version=snapshot,\
@@ -41,6 +40,8 @@
 	org.osgi.service.remoteserviceadmin;version='[1.1.0,1.1.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
-	aQute.libg;version='[6.0.0,6.0.1)',\
 	org.eclipse.ot.rsa.topology.cluster.provider;version=snapshot,\
-	org.eclipse.ot.rsa.util;version=snapshot
+	org.eclipse.ot.rsa.util;version=snapshot,\
+	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot
+-runfw: org.apache.felix.framework;version='[6.0.5,6.0.5]'

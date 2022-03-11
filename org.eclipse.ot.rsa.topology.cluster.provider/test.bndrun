@@ -1,5 +1,5 @@
 -resolve.effective: active;skip:=osgi.service
--runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runfw: org.apache.felix.framework;version='[6.0.5,6.0.5]'
 -runprovidedcapabilities: ${native_capability}
 
 -runpath: slf4j.simple, slf4j.api

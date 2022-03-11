@@ -1,4 +1,4 @@
--runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runfw: org.apache.felix.framework;version='[6.0.5,6.0.5]'
 -runprovidedcapabilities: ${native_capability}
 
 -resolve.effective: active
@@ -15,18 +15,18 @@
     peer.3 = 127.0.0.1:9082, \
     bind.address=127.0.0.1
 
--runrequires.base: \
+-runrequires: \
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.shell)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.gogo.command)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.eventadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
 	bnd.identity;id='org.eclipse.ot.rsa.topology.cluster.provider',\
-	bnd.identity;id='org.eclipse.ot.rsa.cluster.gossip.api.provider',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.gogo)',\
+	bnd.identity;id='org.eclipse.ot.rsa.cluster.gossip.provider',\
 	osgi.identity;filter:='(osgi.identity=biz.aQute.gogo.commands.provider)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configurator)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.distribution.provider)'
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.distribution.provider)',\
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.gogo)'
 
 -runbundles: \
 	bcprov;version='[1.64.0,1.64.1)',\
@@ -51,12 +51,14 @@
 	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
 	org.apache.sling.commons.johnzon;version='[1.2.14,1.2.15)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.api.provider;version=snapshot,\
-	org.eclipse.ot.rsa.gogo;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
-	org.eclipse.ot.rsa.topology.promiscuous.provider;version=snapshot,\
 	org.osgi.service.remoteserviceadmin;version='[1.1.0,1.1.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
-	org.eclipse.ot.rsa.distribution.provider;version=snapshot
+	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
+	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
+	org.eclipse.ot.rsa.topology.cluster.provider;version=snapshot,\
+	org.eclipse.ot.rsa.util;version=snapshot,\
+	org.eclipse.ot.rsa.gogo;version=snapshot

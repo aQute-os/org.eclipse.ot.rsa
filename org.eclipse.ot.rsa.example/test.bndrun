@@ -1,5 +1,5 @@
 -resolve.effective: active;skip:=osgi.service
--runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runfw: org.apache.felix.framework;version='[6.0.5,6.0.5]'
 -runprovidedcapabilities: ${native_capability}
 
 -runpath: slf4j.simple, slf4j.api
@@ -13,8 +13,8 @@
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.eventadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.configadmin)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.log)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.base.provider)',\
-	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.cluster.gossip.api.provider)',\
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.distribution.provider)',\
+	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.cluster.gossip.provider)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.gogo)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.consumer)',\
 	osgi.identity;filter:='(osgi.identity=org.eclipse.ot.rsa.example.provider)',\
@@ -39,8 +39,6 @@
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.eclipse.ot.rsa.api.all;version=snapshot,\
-	org.eclipse.ot.rsa.base.provider;version=snapshot,\
-	org.eclipse.ot.rsa.cluster.gossip.api.provider;version=snapshot,\
 	org.eclipse.ot.rsa.tls.netty.provider;version=snapshot,\
 	org.apache.felix.cm.json;version='[1.0.6,1.0.7)',\
 	org.apache.felix.configurator;version='[1.0.14,1.0.15)',\
@@ -52,4 +50,8 @@
 	org.eclipse.ot.rsa.example.consumer;version=snapshot,\
 	org.eclipse.ot.rsa.example.provider;version=snapshot,\
 	org.eclipse.ot.rsa.gogo;version=snapshot,\
-	biz.aQute.gogo.commands.provider;version='[1.8.0,1.8.1)'
+	biz.aQute.gogo.commands.provider;version='[1.8.0,1.8.1)',\
+	biz.aQute.bnd.util;version='[6.2.0,6.2.1)',\
+	org.eclipse.ot.rsa.cluster.gossip.provider;version=snapshot,\
+	org.eclipse.ot.rsa.distribution.provider;version=snapshot,\
+	org.eclipse.ot.rsa.util;version=snapshot
