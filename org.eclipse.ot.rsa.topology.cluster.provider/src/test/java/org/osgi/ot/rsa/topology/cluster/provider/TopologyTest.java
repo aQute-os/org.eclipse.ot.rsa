@@ -259,7 +259,7 @@ public class TopologyTest {
 	}
 
 	private void configure(Launchpad lp, int port, String... peers) throws Exception {
-		ConfigurationAdmin ca = lp.waitForService(ConfigurationAdmin.class, 1000)
+		ConfigurationAdmin ca = lp.waitForService(ConfigurationAdmin.class, 60_000)
 			.get();
 
 		update(ca, RSAConstants.TRANSPORT_TLS_PID, "insecure", true);
