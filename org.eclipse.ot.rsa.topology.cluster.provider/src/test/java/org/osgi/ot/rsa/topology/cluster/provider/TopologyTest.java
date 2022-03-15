@@ -128,7 +128,7 @@ public class TopologyTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void manyTest() throws Exception {
-		Launchpad[] launchpads = cluster(10);
+		Launchpad[] launchpads = cluster(5);
 		ClusterTopology[] cts = new ClusterTopology[launchpads.length];
 
 		for (int i = 0; i < launchpads.length; i++) {
