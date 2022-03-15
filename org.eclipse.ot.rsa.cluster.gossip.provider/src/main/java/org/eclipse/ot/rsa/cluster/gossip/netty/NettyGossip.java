@@ -107,7 +107,7 @@ public class NettyGossip implements ClusterInformation {
 					peers),
 				log);
 		} catch (Exception e) {
-			log.error("Failed to initialize", e);
+			log.error("Failed to initialize {}", e);
 			throw e;
 		}
 	}

@@ -128,7 +128,7 @@ public class TopologyTest {
 	@SuppressWarnings("rawtypes")
 	@Test
 	public void manyTest() throws Exception {
-		Launchpad[] launchpads = cluster(30);
+		Launchpad[] launchpads = cluster(10);
 		ClusterTopology[] cts = new ClusterTopology[launchpads.length];
 
 		for (int i = 0; i < launchpads.length; i++) {
@@ -246,7 +246,7 @@ public class TopologyTest {
 	}
 
 	private boolean testBasis(Launchpad lp, int size) {
-		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 5000);
+		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 50_000);
 		assertThat(ci).isPresent();
 		ClusterInformation cinfo = ci.get();
 		System.out.println(cinfo.getClusterName());
