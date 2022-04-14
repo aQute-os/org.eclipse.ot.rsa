@@ -131,7 +131,8 @@ public class NettyGossip implements ClusterInformation {
 	}
 
 	void status(Formatter f) {
-		f.format("%s:%s/%s ", address.getHostAddress(), udp, cluster);
+		String hostAddress = address == null ? null : address.getHostAddress();
+		f.format("%s:%s/%s ", hostAddress, udp, cluster);
 	}
 
 	private InetSocketAddress toInetSocketAddress(String name, int udp) throws ConfigurationException {
