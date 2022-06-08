@@ -139,17 +139,17 @@ public class TopologyTest {
 				configure(lp, 1800 + i, "127.0.0.1:1800");
 			}
 		}
+		CountDownLatch cl = new CountDownLatch(launchpads.length);
+		ServiceRegistration<Consumer> fooreg = launchpads[0].register(Consumer.class, (x) -> {
+			System.out.println("received from " + x);
+			cl.countDown();
+		}, "service.exported.interfaces", Consumer.class.getName());
 		for (int i = 0; i < launchpads.length; i++) {
 			Launchpad lp = launchpads[i];
 			testBasis(lp, launchpads.length);
 			cts[i] = setup(lp);
 		}
 
-		CountDownLatch cl = new CountDownLatch(launchpads.length);
-		ServiceRegistration<Consumer> fooreg = launchpads[0].register(Consumer.class, (x) -> {
-			System.out.println("received from " + x);
-			cl.countDown();
-		}, "service.exported.interfaces", Consumer.class.getName());
 
 		List<Throwable> errors = new ArrayList<>();
 		for (int i = 0; i < launchpads.length; i++) {
@@ -246,13 +246,13 @@ public class TopologyTest {
 	}
 
 	private boolean testBasis(Launchpad lp, int size) {
-		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 50_000);
+		Optional<ClusterInformation> ci = lp.waitForService(ClusterInformation.class, 60_000);
 		assertThat(ci).isPresent();
 		ClusterInformation cinfo = ci.get();
-		System.out.println(cinfo.getClusterName());
-		System.out.println(cinfo.getKnownMembers());
+		System.out.println("Cluster name " + cinfo.getClusterName());
+		System.out.println("Cluster get known members " + cinfo.getKnownMembers());
 		Awaitility.await()
-			.timeout(30, TimeUnit.SECONDS)
+			.timeout(2, TimeUnit.MINUTES)
 			.until(() -> cinfo.getKnownMembers()
 				.size() == size);
 		return true;
