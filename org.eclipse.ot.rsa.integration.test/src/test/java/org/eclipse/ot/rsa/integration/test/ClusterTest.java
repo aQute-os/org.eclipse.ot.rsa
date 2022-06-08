@@ -43,6 +43,41 @@ public class ClusterTest {
 	}
 
 	@Test
+	public void starTopologyTest() throws Exception {
+
+		try (Launchpad a = builder.create("a")) {
+			try (Launchpad b = builder.create("b")) {
+				try (Launchpad c = builder
+						.create("c")) {
+
+					System.out.println("configure the 3 frameworks, do not fully connect the peers");
+					configure(a, 1900, true, "127.0.0.1:1910", "127.0.0.1:1920", "127.0.0.1:1930", "127.0.0.1:1940");
+					configure(b, 1910, true);
+					configure(c, 1920, true);
+
+					System.out.println("synchronize until all frameworks see their 3 peers");
+					waitForClusterInformation(a, 3);
+					waitForClusterInformation(b, 3);
+					waitForClusterInformation(c, 3);
+
+					System.out.println("Start a framework cc");
+					try (Launchpad cc = builder
+							.create("cc")) {
+						System.out.println("Configure cc");
+						configure(cc, 1940, true);
+						System.out.println("wait until it has its peers");
+						waitForClusterInformation(cc, 4);
+						System.out.println("close cc");
+					}
+					System.out.println("close c (already done)");
+				}
+				System.out.println("close b");
+			}
+			System.out.println("close a");
+		}
+	}
+
+	@Test
 	public void clusterTest() throws Exception {
 
 		try (Launchpad a = builder.create("a")) {

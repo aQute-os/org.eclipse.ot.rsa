@@ -26,27 +26,29 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public interface ClusterManager {
 
-	public void leavingCluster(Snapshot update);
+	void leavingCluster(Snapshot update);
 
-	public String getClusterName();
+	String getClusterName();
 
-	public Update mergeSnapshot(Snapshot snapshot);
+	Update mergeSnapshot(Snapshot snapshot);
 
-	public Snapshot getSnapshot(SnapshotType type, int hops);
+	Snapshot getSnapshot(SnapshotType type, int hops);
 
-	public Collection<MemberInfo> selectRandomPartners(int max);
+	Collection<MemberInfo> selectRandomPartners(int max);
 
-	public MemberInfo getMemberInfo(UUID id);
+	MemberInfo getMemberInfo(UUID id);
 
-	public Collection<Snapshot> getMemberSnapshots(SnapshotType type);
+	Collection<Snapshot> getMemberSnapshots(SnapshotType type);
 
-	public void markUnreachable(MemberInfo member);
+	void markUnreachable(MemberInfo member);
 
-	public void destroy();
+	void destroy();
 
-	public UUID getLocalUUID();
+	UUID getLocalUUID();
 
-	public void listenerChange(ServiceReference<ClusterListener> ref, int state);
+	void listenerChange(ServiceReference<ClusterListener> ref, int state);
 
-	public EventExecutorGroup getEventExecutorGroup();
+	EventExecutorGroup getEventExecutorGroup();
+
+	Collection<MemberInfo> getMembers();
 }

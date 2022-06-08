@@ -348,4 +348,9 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 	public EventExecutorGroup getEventExecutorGroup() {
 		return gossipWorker;
 	}
+
+	@Override
+	public Collection<MemberInfo> getMembers() {
+		return members.values();
+	}
 }
