@@ -405,7 +405,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 				if (peers.isEmpty()) {
 					return;
 				}
-				logger.info("first contact request {}", peers);
+				logger.debug("first contact request {}", peers);
 				s = manager.getSnapshot(PAYLOAD_UPDATE, 0);
 				action = () -> comms.publish(new FirstContactRequest(cluster, s), peers);
 			} else {
