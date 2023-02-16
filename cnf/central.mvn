@@ -129,10 +129,10 @@ org.osgi:org.osgi.service.serviceloader:1.0.0
 org.osgi:org.osgi.service.url:1.0.1
 org.osgi:org.osgi.service.useradmin:1.1.0
 org.osgi:org.osgi.util.converter:1.0.1
-org.osgi:org.osgi.util.function:1.1.0
+org.osgi:org.osgi.util.function:1.2.0
 org.osgi:org.osgi.util.measurement:1.0.2
 org.osgi:org.osgi.util.position:1.0.1
-org.osgi:org.osgi.util.promise:1.1.1
+org.osgi:org.osgi.util.promise:1.2.0
 org.osgi:org.osgi.util.pushstream:1.0.1
 org.osgi:org.osgi.util.tracker:1.5.3
 org.osgi:org.osgi.util.xml:1.0.1
