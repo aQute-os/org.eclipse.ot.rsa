@@ -29,7 +29,7 @@ javac.source                    1.8
 
 -maven-dependencies             ""
 -groupid:                       biz.aQute
--pom:                           version=${base.version}-SNAPSHOT
+-pom:                           version=${base.version}
 -connection-settings:           ${if;${pwd};server;-dummy};id=https://oss.sonatype.org;username=${usr};password=${pwd}, -bnd
 pwd                             ${env;REPOSITORY_PASSWORD;}
 usr                             ${env;REPOSITORY_USERNAME;}
