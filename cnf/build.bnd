@@ -1,11 +1,21 @@
 
-base.version                    0.0.0
+base.version                    1.0.0
 
 Bundle-Version                  ${base.version}
 Bundle-DocURL                   https://github.com/geckoprojects-org/org.geckoprojects.rsa
-Bundle-SCM:                     url=https://github.com/geckoprojects-org/org.geckoprojects.rsa, \
-    connection=scm:git:https://github.com/geckoprojects-org/org.geckoprojects.rsa.git, \
-    developerConnection=scm:git:git@github.com:geckoprojects-org/org.geckoprojects.rsa.git
+Bundle-SCM:                     url=https://github.com/aQute-os/org.eclipse.ot.rsa.git, \
+    connection=scm:git:https://github.com/aQute-os/org.eclipse.ot.rsa.git, \
+    developerConnection=scm:git:git@github.com:aQute-os/org.eclipse.ot.rsa.git
+Bundle-Copyright:       aQute SARL All Rights Reserved
+Bundle-Vendor:          aQute SARL
+Bundle-License:             http://opensource.org/licenses/apache2.0.php; \
+                            link="http://www.apache.org/licenses/LICENSE-2.0"; \
+                            description="Apache License, Version 2.0"
+Bundle-Developers:      aQute; \
+                            email=info@aQute.biz; \
+                            name="Peter Kriens"; \
+                            organization="aQute SARL"
+Bundle-DocURL:          https://aQute.biz
     
 
 src                             src/main/java,src/main/resources
