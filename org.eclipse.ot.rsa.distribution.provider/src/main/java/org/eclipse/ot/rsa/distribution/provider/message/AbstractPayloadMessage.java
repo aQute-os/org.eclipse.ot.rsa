@@ -20,8 +20,7 @@ public abstract class AbstractPayloadMessage<M extends MessageType> extends Abst
 
 	private final Serializer serializer;
 
-	public AbstractPayloadMessage(M type, UUID serviceId, int callId,
-			Serializer serializer) {
+	public AbstractPayloadMessage(M type, UUID serviceId, int callId, Serializer serializer) {
 		super(type, serviceId, callId);
 		this.serializer = serializer;
 	}

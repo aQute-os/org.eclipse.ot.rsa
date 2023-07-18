@@ -55,35 +55,35 @@ import io.netty.util.concurrent.MultithreadEventExecutorGroup;
 @Header(name = BUNDLE_ACTIVATOR, value = "${@class}")
 public class Activator implements BundleActivator {
 
-	private static final Logger LOG = LoggerFactory.getLogger(Activator.class);
+	private static final Logger							LOG			= LoggerFactory.getLogger(Activator.class);
 
-	private static final ByteBufAllocator allocator = new PooledByteBufAllocator(true);
+	private static final ByteBufAllocator				allocator	= new PooledByteBufAllocator(true);
 
-	private Timer timer;
+	private Timer										timer;
 
-	private BundleContext context;
+	private BundleContext								context;
 
-	private boolean active;
+	private boolean										active;
 
-	private Map<String, Object> config;
+	private Map<String, Object>							config;
 
-	private MultithreadEventLoopGroup serverIo;
+	private MultithreadEventLoopGroup					serverIo;
 
-	private MultithreadEventLoopGroup clientIo;
+	private MultithreadEventLoopGroup					clientIo;
 
-	private MultithreadEventExecutorGroup serverWorkers;
+	private MultithreadEventExecutorGroup				serverWorkers;
 
-	private int serverWorkQueueMaxLength;
+	private int											serverWorkQueueMaxLength;
 
-	private MultithreadEventExecutorGroup clientWorkers;
+	private MultithreadEventExecutorGroup				clientWorkers;
 
-	private int clientWorkQueueMaxLength;
+	private int											clientWorkQueueMaxLength;
 
-	private ManagedServiceFactoryImpl msf;
+	private ManagedServiceFactoryImpl					msf;
 
-	private ServiceRegistration<ManagedServiceFactory> msfReg;
+	private ServiceRegistration<ManagedServiceFactory>	msfReg;
 
-	private final Lock stateLock = new ReentrantLock();
+	private final Lock									stateLock	= new ReentrantLock();
 
 	@Override
 	public void start(BundleContext context) throws Exception {
@@ -98,8 +98,7 @@ public class Activator implements BundleActivator {
 		}
 
 		timer = new HashedWheelTimer(r -> {
-			Thread thread = new FastThreadLocalThread(r,
-					"Paremus RSA Timeout worker");
+			Thread thread = new FastThreadLocalThread(r, "Paremus RSA Timeout worker");
 			thread.setDaemon(true);
 			return thread;
 		}, 100, MILLISECONDS, 16384);
@@ -107,9 +106,9 @@ public class Activator implements BundleActivator {
 		Dictionary<String, Object> rawConfig = null;
 
 		ServiceReference<ConfigurationAdmin> ref = context.getServiceReference(ConfigurationAdmin.class);
-		if(ref != null) {
+		if (ref != null) {
 			ConfigurationAdmin cm = context.getService(ref);
-			if(cm != null) {
+			if (cm != null) {
 				rawConfig = cm.getConfiguration(DistributionConfig.PID)
 					.getProperties();
 			}
@@ -137,26 +136,28 @@ public class Activator implements BundleActivator {
 
 		stateLock.lock();
 		try {
-			if(!active) {
+			if (!active) {
 				return;
 			}
 
 			Map<String, Object> rawConfig;
-			if(props == null) {
+			if (props == null) {
 				rawConfig = new HashMap<>();
 			} else {
 				rawConfig = ManagedServiceFactoryImpl.toMap(props);
 			}
 
-			if(rawConfig.equals(config)) {
+			if (rawConfig.equals(config)) {
 				return;
 			}
 
 			config = rawConfig;
 
-			DistributionConfig cfg = Converters.standardConverter().convert(rawConfig).to(DistributionConfig.class);
+			DistributionConfig cfg = Converters.standardConverter()
+				.convert(rawConfig)
+				.to(DistributionConfig.class);
 
-			if(serverIo == null || serverIo.executorCount() != cfg.server_io_threads()) {
+			if (serverIo == null || serverIo.executorCount() != cfg.server_io_threads()) {
 				toUnregister = toUnregister == null ? msfReg : toUnregister;
 				toDestroy = toDestroy == null ? msf : toDestroy;
 				msfReg = null;
@@ -166,17 +167,16 @@ public class Activator implements BundleActivator {
 				AtomicInteger ioThreadId = new AtomicInteger(1);
 
 				serverIo = new NioEventLoopGroup(cfg.server_io_threads(), r -> {
-					String name = (cfg.share_io_threads() ?
-							"Paremus RSA distribution IO: " :
-							"Paremus RSA distribution server IO: ") + ioThreadId.getAndIncrement();
+					String name = (cfg.share_io_threads() ? "Paremus RSA distribution IO: "
+						: "Paremus RSA distribution server IO: ") + ioThreadId.getAndIncrement();
 					Thread thread = new FastThreadLocalThread(r, name);
 					thread.setDaemon(true);
 					return thread;
 				});
 			}
 
-			if(cfg.share_io_threads()) {
-				if(clientIo != serverIo) {
+			if (cfg.share_io_threads()) {
+				if (clientIo != serverIo) {
 					toUnregister = toUnregister == null ? msfReg : toUnregister;
 					toDestroy = toDestroy == null ? msf : toDestroy;
 					msfReg = null;
@@ -185,8 +185,8 @@ public class Activator implements BundleActivator {
 
 					clientIo = serverIo;
 				}
-			} else if(clientIo == null || clientIo == serverIo ||
-					clientIo.executorCount() != cfg.client_io_threads()) {
+			} else if (clientIo == null || clientIo == serverIo
+				|| clientIo.executorCount() != cfg.client_io_threads()) {
 				toUnregister = toUnregister == null ? msfReg : toUnregister;
 				toDestroy = toDestroy == null ? msf : toDestroy;
 				msfReg = null;
@@ -203,8 +203,8 @@ public class Activator implements BundleActivator {
 				});
 			}
 
-			if(serverWorkers == null || serverWorkers.executorCount() != cfg.server_io_threads() ||
-					serverWorkQueueMaxLength != cfg.server_task_queue_depth()) {
+			if (serverWorkers == null || serverWorkers.executorCount() != cfg.server_io_threads()
+				|| serverWorkQueueMaxLength != cfg.server_task_queue_depth()) {
 				toUnregister = toUnregister == null ? msfReg : toUnregister;
 				toDestroy = toDestroy == null ? msf : toDestroy;
 				msfReg = null;
@@ -216,17 +216,16 @@ public class Activator implements BundleActivator {
 				AtomicInteger ioThreadId = new AtomicInteger(1);
 
 				serverWorkers = new RSAExecutorGroup(cfg.server_io_threads(), r -> {
-					String name = (cfg.share_io_threads() ?
-							"Paremus RSA Server Worker " :
-							"Paremus RSA Worker ") + ioThreadId.getAndIncrement();
+					String name = (cfg.share_io_threads() ? "Paremus RSA Server Worker " : "Paremus RSA Worker ")
+						+ ioThreadId.getAndIncrement();
 					Thread thread = new FastThreadLocalThread(r, name);
 					thread.setDaemon(true);
 					return thread;
 				}, serverWorkQueueMaxLength);
 			}
 
-			if(cfg.share_worker_threads()) {
-				if(clientWorkers != serverWorkers) {
+			if (cfg.share_worker_threads()) {
+				if (clientWorkers != serverWorkers) {
 					toUnregister = toUnregister == null ? msfReg : toUnregister;
 					toDestroy = toDestroy == null ? msf : toDestroy;
 					msfReg = null;
@@ -235,9 +234,9 @@ public class Activator implements BundleActivator {
 
 					clientWorkers = serverWorkers;
 				}
-			} else if(clientWorkers == null || clientWorkers == serverWorkers ||
-					clientWorkers.executorCount() != cfg.client_worker_threads() ||
-							clientWorkQueueMaxLength != cfg.client_task_queue_depth()) {
+			} else if (clientWorkers == null || clientWorkers == serverWorkers
+				|| clientWorkers.executorCount() != cfg.client_worker_threads()
+				|| clientWorkQueueMaxLength != cfg.client_task_queue_depth()) {
 				toUnregister = toUnregister == null ? msfReg : toUnregister;
 				toDestroy = toDestroy == null ? msf : toDestroy;
 				msfReg = null;
@@ -256,8 +255,9 @@ public class Activator implements BundleActivator {
 				}, clientWorkQueueMaxLength);
 			}
 
-			if(msf == null) {
-				msf = new ManagedServiceFactoryImpl(context, timer, serverIo, clientIo, serverWorkers, clientWorkers, allocator);
+			if (msf == null) {
+				msf = new ManagedServiceFactoryImpl(context, timer, serverIo, clientIo, serverWorkers, clientWorkers,
+					allocator);
 				toRegister = msf;
 			}
 
@@ -285,11 +285,11 @@ public class Activator implements BundleActivator {
 
 		destroy(toUnregister, toDestroy, toDestroy2, toDestroy3, toDestroy4, toDestroy5);
 
-		if(toRegister != null) {
+		if (toRegister != null) {
 			registerMSF(toRegister);
 		}
 
-		if(toPassTo != null) {
+		if (toPassTo != null) {
 			toPassTo.updated(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE, props == null ? new Hashtable<>() : props);
 		}
 	}
@@ -297,11 +297,11 @@ public class Activator implements BundleActivator {
 	private void registerMSF(ManagedServiceFactoryImpl toRegister) {
 		Hashtable<String, Object> table = new Hashtable<>();
 		table.put(SERVICE_PID, TransportConfig.PID);
-		ServiceRegistration<ManagedServiceFactory> toUnregister =
-				context.registerService(ManagedServiceFactory.class, toRegister, table);
+		ServiceRegistration<ManagedServiceFactory> toUnregister = context.registerService(ManagedServiceFactory.class,
+			toRegister, table);
 		stateLock.lock();
 		try {
-			if(msf == toRegister) {
+			if (msf == toRegister) {
 				msfReg = toUnregister;
 				toUnregister = null;
 				toRegister = null;
@@ -350,29 +350,30 @@ public class Activator implements BundleActivator {
 			awaitTermination(toDestroy5);
 		} catch (InterruptedException e) {
 			LOG.debug("Will not wait for shutdown as this thread is interrupted", e);
-			Thread.currentThread().interrupt();
+			Thread.currentThread()
+				.interrupt();
 		}
 
 		timer.stop();
 	}
 
 	private void awaitTermination(EventExecutorGroup toDestroy) throws InterruptedException {
-		if(toDestroy != null) {
+		if (toDestroy != null) {
 			toDestroy.awaitTermination(3, TimeUnit.SECONDS);
 		}
 	}
 
 	private void destroy(ServiceRegistration<?> toUnregister, ManagedServiceFactoryImpl toDestroy,
-			EventLoopGroup toDestroy2, EventLoopGroup toDestroy3, EventExecutorGroup toDestroy4,
-			EventExecutorGroup toDestroy5) {
+		EventLoopGroup toDestroy2, EventLoopGroup toDestroy3, EventExecutorGroup toDestroy4,
+		EventExecutorGroup toDestroy5) {
 
-		if(toUnregister != null) {
+		if (toUnregister != null) {
 			try {
 				toUnregister.unregister();
 			} catch (IllegalStateException ise) {}
 		}
 
-		if(toDestroy != null) {
+		if (toDestroy != null) {
 			toDestroy.destroy();
 		}
 
@@ -383,7 +384,7 @@ public class Activator implements BundleActivator {
 	}
 
 	private void shutdown(EventExecutorGroup toDestroy) {
-		if(toDestroy != null) {
+		if (toDestroy != null) {
 			toDestroy.shutdownGracefully(1, 2, TimeUnit.SECONDS);
 		}
 	}

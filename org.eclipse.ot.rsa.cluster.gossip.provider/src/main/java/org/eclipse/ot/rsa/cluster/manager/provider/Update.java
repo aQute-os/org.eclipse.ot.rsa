@@ -13,5 +13,8 @@
 package org.eclipse.ot.rsa.cluster.manager.provider;
 
 public enum Update {
-	CONSUME, FORWARD, RESYNC, FORWARD_LOCAL;
+	CONSUME,
+	FORWARD,
+	RESYNC,
+	FORWARD_LOCAL;
 }

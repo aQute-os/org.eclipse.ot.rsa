@@ -95,42 +95,41 @@ import io.netty.util.concurrent.EventExecutorGroup;
 })
 public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin {
 
-	private static final String CONFIDENTIALITY_MESSAGE = "confidentiality.message";
+	private static final String															CONFIDENTIALITY_MESSAGE	= "confidentiality.message";
 
-	private static final Logger LOG = LoggerFactory.getLogger(RemoteServiceAdminImpl.class);
+	private static final Logger															LOG						= LoggerFactory
+		.getLogger(RemoteServiceAdminImpl.class);
 
-	private static final EndpointPermission exportPermission = new EndpointPermission("*",
-	        EndpointPermission.EXPORT);
+	private static final EndpointPermission												exportPermission		= new EndpointPermission(
+		"*", EndpointPermission.EXPORT);
 
-	private final Map<Framework, Map<ServiceReference<?>, Set<ExportRegistrationImpl>>> exports
-		= new HashMap<>();
-	private final Map<Framework, Map<UUID, Set<ImportRegistrationImpl>>> imports
-		= new HashMap<>();
+	private final Map<Framework, Map<ServiceReference<?>, Set<ExportRegistrationImpl>>>	exports					= new HashMap<>();
+	private final Map<Framework, Map<UUID, Set<ImportRegistrationImpl>>>				imports					= new HashMap<>();
 
-	private final Framework defaultFramework;
-	private final RemoteServiceAdminEventPublisher publisher;
+	private final Framework																defaultFramework;
+	private final RemoteServiceAdminEventPublisher										publisher;
 
-	private final List<? extends RemotingProvider> remoteProviders;
+	private final List<? extends RemotingProvider>										remoteProviders;
 
-	private final ClientConnectionManager clientConnectionManager;
+	private final ClientConnectionManager												clientConnectionManager;
 
-	private final ProxyHostBundleFactory proxyHostBundleFactory;
+	private final ProxyHostBundleFactory												proxyHostBundleFactory;
 
-	private final EventExecutorGroup serverWorkers;
-	private final EventExecutorGroup clientWorkers;
+	private final EventExecutorGroup													serverWorkers;
+	private final EventExecutorGroup													clientWorkers;
 
-	private final Timer timer;
+	private final Timer																	timer;
 
-	private TransportConfig config;
+	private TransportConfig																config;
 
-	private final List<String> intents;
+	private final List<String>															intents;
 
-	private final RemoteServiceAdminFactoryImpl factory;
+	private final RemoteServiceAdminFactoryImpl											factory;
 
-	public RemoteServiceAdminImpl(RemoteServiceAdminFactoryImpl factory, Framework defaultFramework, RemoteServiceAdminEventPublisher publisher,
-			List<? extends RemotingProvider> remoteProviders, ClientConnectionManager ccm, List<String> intents,
-			ProxyHostBundleFactory phbf, EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers,
-			Timer timer, TransportConfig config) {
+	public RemoteServiceAdminImpl(RemoteServiceAdminFactoryImpl factory, Framework defaultFramework,
+		RemoteServiceAdminEventPublisher publisher, List<? extends RemotingProvider> remoteProviders,
+		ClientConnectionManager ccm, List<String> intents, ProxyHostBundleFactory phbf,
+		EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, Timer timer, TransportConfig config) {
 		this.factory = factory;
 		this.defaultFramework = defaultFramework;
 		this.publisher = publisher;
@@ -149,35 +148,37 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 		return exportService(defaultFramework, reference, properties);
 	}
 
-    @Override
-    public Collection<ExportRegistration> exportService(Framework framework, ServiceReference<?> ref,
-    		Map<String, ?> additionalProperties) {
-        LOG.debug("exportService: {}", ref);
+	@Override
+	public Collection<ExportRegistration> exportService(Framework framework, ServiceReference<?> ref,
+		Map<String, ?> additionalProperties) {
+		LOG.debug("exportService: {}", ref);
 
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            try {
-                sm.checkPermission(exportPermission);
-            }
-            catch (SecurityException se) {
-                return Collections.singletonList(new ExportRegistrationImpl(ref, this, se));
-            }
-        }
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+			try {
+				sm.checkPermission(exportPermission);
+			} catch (SecurityException se) {
+				return Collections.singletonList(new ExportRegistrationImpl(ref, this, se));
+			}
+		}
 
-        PrivilegedAction<Collection<ExportRegistration>> exportAction =
-        		() -> privilegedExportService(framework, ref, additionalProperties);
+		PrivilegedAction<Collection<ExportRegistration>> exportAction = () -> privilegedExportService(framework, ref,
+			additionalProperties);
 
-        return AccessController.doPrivileged(exportAction);
-    }
+		return AccessController.doPrivileged(exportAction);
+	}
 
 	private Collection<ExportRegistration> privilegedExportService(Framework framework, ServiceReference<?> ref,
-			Map<String, ?> props) {
+		Map<String, ?> props) {
 		String target = config.endpoint_export_target();
 
-		if(!target.isEmpty()) {
+		if (!target.isEmpty()) {
 			try {
-				if(!FrameworkUtil.createFilter(target).match(ref)) {
-					LOG.debug("The service reference {} is excluded by the configured export filter {} and will not be exported", ref, target);
+				if (!FrameworkUtil.createFilter(target)
+					.match(ref)) {
+					LOG.debug(
+						"The service reference {} is excluded by the configured export filter {} and will not be exported",
+						ref, target);
 					return emptyList();
 				}
 			} catch (InvalidSyntaxException e) {
@@ -188,12 +189,12 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 
 		ExportRegistrationImpl reg;
 		synchronized (exports) {
-			Map<ServiceReference<?>, Set<ExportRegistrationImpl>> exportsForFramework =
-					exports.computeIfAbsent(framework, k -> new HashMap<>());
+			Map<ServiceReference<?>, Set<ExportRegistrationImpl>> exportsForFramework = exports
+				.computeIfAbsent(framework, k -> new HashMap<>());
 			ExportRegistrationImpl tmpReg;
 			try {
 				EndpointDescription endpoint = createEndpointDescription(framework, ref, props);
-				if(endpoint == null) {
+				if (endpoint == null) {
 					return Collections.emptySet();
 				}
 				tmpReg = new ExportRegistrationImpl(ref, props, endpoint, framework, this);
@@ -208,24 +209,25 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 				tmpReg = new ExportRegistrationImpl(ref, this, e);
 			}
 			reg = tmpReg;
-			exportsForFramework.compute(ref, (k,v) -> {
-				return Stream.concat(Stream.of(reg), ofNullable(v).map(Set::stream).orElse(Stream.empty()))
-						.collect(toSet());
+			exportsForFramework.compute(ref, (k, v) -> {
+				return Stream.concat(Stream.of(reg), ofNullable(v).map(Set::stream)
+					.orElse(Stream.empty()))
+					.collect(toSet());
 			});
 		}
 
-		switch(reg.getState()) {
+		switch (reg.getState()) {
 			case PRE_INIT :
 				notifyExport(reg, reg.start());
 				break;
-			case OPEN:
+			case OPEN :
 				LOG.info("The service {} already had an open export from this RSA", ref);
 				break;
-			case ERROR:
+			case ERROR :
 				LOG.info("The service {} failed to export from this RSA", ref);
 				break;
-			case CLOSED:
-			default:
+			case CLOSED :
+			default :
 				break;
 		}
 
@@ -233,187 +235,190 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	}
 
 	private void notifyExport(ExportRegistrationImpl reg, RegistrationState registrationState) {
-		switch(registrationState) {
-			case ERROR:
+		switch (registrationState) {
+			case ERROR :
 				publisher.notifyExportError(reg.getServiceReference(), reg.getException());
 				break;
-			case OPEN:
+			case OPEN :
 				ExportReference er = reg.getExportReference();
 				publisher.notifyExport(er.getExportedService(), er.getExportedEndpoint());
 				break;
-			case PRE_INIT:
+			case PRE_INIT :
 				throw new IllegalStateException("The registration should have been initialized");
-			case CLOSED:
-			default:
+			case CLOSED :
+			default :
 				break;
 
 		}
 	}
 
-	private EndpointDescription createEndpointDescription(Framework framework,
-			ServiceReference<?> ref, Map<String, ?> additionalProperties) {
+	private EndpointDescription createEndpointDescription(Framework framework, ServiceReference<?> ref,
+		Map<String, ?> additionalProperties) {
 		return createEndpointDescription(framework, ref, additionalProperties, UUID.randomUUID());
 	}
 
-	private EndpointDescription createEndpointDescription(Framework framework,
-			ServiceReference<?> ref, Map<String, ?> additionalProperties, UUID id) {
+	private EndpointDescription createEndpointDescription(Framework framework, ServiceReference<?> ref,
+		Map<String, ?> additionalProperties, UUID id) {
 
 		// gather properties from service
-        Map<String, Object> serviceProperties = new HashMap<>();
-        for (String k : ref.getPropertyKeys()) {
-        	if(k.charAt(0) != '.') {
-        		serviceProperties.put(k, ref.getProperty(k));
-        	}
-        }
+		Map<String, Object> serviceProperties = new HashMap<>();
+		for (String k : ref.getPropertyKeys()) {
+			if (k.charAt(0) != '.') {
+				serviceProperties.put(k, ref.getProperty(k));
+			}
+		}
 
-        // overlay properties with any additional properties
-        if (additionalProperties != null) {
-            overlayProperties(serviceProperties, additionalProperties);
-        }
+		// overlay properties with any additional properties
+		if (additionalProperties != null) {
+			overlayProperties(serviceProperties, additionalProperties);
+		}
 
-        ExportedServiceConfig config;
+		ExportedServiceConfig config;
 		try {
-			config = Converters.standardConverter().convert(
-					serviceProperties).to(ExportedServiceConfig.class);
+			config = Converters.standardConverter()
+				.convert(serviceProperties)
+				.to(ExportedServiceConfig.class);
 		} catch (Exception ex) {
 			LOG.error("A failure occurred trying to export service {}", ref, ex);
 			return null;
 		}
 
-        String[] configs = config.service_exported_configs();
-		if(configs.length > 0 && !Arrays.asList(configs)
+		String[] configs = config.service_exported_configs();
+		if (configs.length > 0 && !Arrays.asList(configs)
 			.contains(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE)) {
-        	LOG.info("Unable to export the service {} as it only supports the configuration types {}",
-        			ref, configs);
-        	return null;
-        }
-
-        Set<String> requiredIntents = Stream.concat(
-        		Arrays.stream(config.service_exported_intents()),
-	            Arrays.stream(config.service_exported_intents_extra()))
-        			.collect(toSet());
-
-        Set<String> supportedIntents = new HashSet<>(intents);
-        Set<String> unsupported = requiredIntents.stream()
-        	.filter(s -> !supportedIntents.contains(s))
-        	.collect(Collectors.toSet());
-
-        if (!unsupported.isEmpty()) {
-        	LOG.info("Unable to export the service {} as the following intents are not supported {}"
-		                            , ref, unsupported);
-        	throw new UnsupportedOperationException(unsupported.toString());
+			LOG.info("Unable to export the service {} as it only supports the configuration types {}", ref, configs);
+			return null;
 		}
 
-        Object service = ref.getBundle().getBundleContext().getService(ref);
-        if(service == null) {
-        	LOG.info("Unable to obtain the service object for {}", ref);
-        	throw new ServiceException("The service object was null and so cannot be exported", UNREGISTERED);
-        }
+		Set<String> requiredIntents = Stream
+			.concat(Arrays.stream(config.service_exported_intents()),
+				Arrays.stream(config.service_exported_intents_extra()))
+			.collect(toSet());
 
-        List<String> objectClass = Arrays.asList(config.objectClass());
+		Set<String> supportedIntents = new HashSet<>(intents);
+		Set<String> unsupported = requiredIntents.stream()
+			.filter(s -> !supportedIntents.contains(s))
+			.collect(Collectors.toSet());
 
-        List<Class<?>> exportedClasses = Arrays.stream(config.service_exported_interfaces())
-        		.flatMap(s -> "*".equals(s) ? objectClass.stream() : Stream.of(s))
-        		.filter(s -> objectClass.contains(s))
-        		.map(n -> {
-	        			try {
-	        				ClassLoader loader = service.getClass().getClassLoader();
-	        				Class<?> toReturn = (loader != null) ? loader.loadClass(n) : Class.forName(n);
-							return toReturn;
-		        		} catch (ClassNotFoundException cnfe) {
-	        				LOG.error("The service {} exports the type {} but cannot load it.", ref, n);
-	        				return null;
-	        			}
-        			})
-        		.filter(c -> c != null)
-        		.filter(c -> c.isInstance(service))
-        		.collect(toList());
+		if (!unsupported.isEmpty()) {
+			LOG.info("Unable to export the service {} as the following intents are not supported {}", ref, unsupported);
+			throw new UnsupportedOperationException(unsupported.toString());
+		}
 
-        // no interface can be resolved..why?
-        if (exportedClasses.isEmpty()) {
-        	LOG.error("Unable to obtain any exported types for service {} with exported interfaces {}",
-        			ref, config.service_exported_interfaces());
-        	throw new IllegalArgumentException("Unable to load any exported types for the service " + ref +
-        			" with exported interfaces " + config.service_exported_interfaces());
-        }
+		Object service = ref.getBundle()
+			.getBundleContext()
+			.getService(ref);
+		if (service == null) {
+			LOG.info("Unable to obtain the service object for {}", ref);
+			throw new ServiceException("The service object was null and so cannot be exported", UNREGISTERED);
+		}
 
-        try {
-	        Predicate<RemotingProvider> remotingSelector;
+		List<String> objectClass = Arrays.asList(config.objectClass());
 
-	        if(requiredIntents.contains(CONFIDENTIALITY_MESSAGE) ||
-	        		requiredIntents.contains("osgi.confidential")) {
-	        	remotingSelector = rp -> rp.isSecure();
-	        } else {
-	        	remotingSelector = rp -> true;
-	        }
+		List<Class<?>> exportedClasses = Arrays.stream(config.service_exported_interfaces())
+			.flatMap(s -> "*".equals(s) ? objectClass.stream() : Stream.of(s))
+			.filter(s -> objectClass.contains(s))
+			.map(n -> {
+				try {
+					ClassLoader loader = service.getClass()
+						.getClassLoader();
+					Class<?> toReturn = (loader != null) ? loader.loadClass(n) : Class.forName(n);
+					return toReturn;
+				} catch (ClassNotFoundException cnfe) {
+					LOG.error("The service {} exports the type {} but cannot load it.", ref, n);
+					return null;
+				}
+			})
+			.filter(c -> c != null)
+			.filter(c -> c.isInstance(service))
+			.collect(toList());
 
-	        List<RemotingProvider> validProviders = remoteProviders.stream()
-	        		.filter(remotingSelector)
-	        		.collect(Collectors.<RemotingProvider>toList());
-	        List<RemotingProvider> invalidProviders = remoteProviders.stream()
-	        		.filter(remotingSelector.negate())
-	        		.collect(Collectors.<RemotingProvider>toList());
+		// no interface can be resolved..why?
+		if (exportedClasses.isEmpty()) {
+			LOG.error("Unable to obtain any exported types for service {} with exported interfaces {}", ref,
+				config.service_exported_interfaces());
+			throw new IllegalArgumentException("Unable to load any exported types for the service " + ref
+				+ " with exported interfaces " + config.service_exported_interfaces());
+		}
 
-	        invalidProviders.stream()
-	         	.forEach(rp -> rp.unregisterService(id));
+		try {
+			Predicate<RemotingProvider> remotingSelector;
 
-	        if(validProviders.isEmpty()) {
-	        	LOG.debug("There are no remoting providers for this RSA able to export the service {}", ref);
-	        	return null;
-	        }
+			if (requiredIntents.contains(CONFIDENTIALITY_MESSAGE) || requiredIntents.contains("osgi.confidential")) {
+				remotingSelector = rp -> rp.isSecure();
+			} else {
+				remotingSelector = rp -> true;
+			}
+
+			List<RemotingProvider> validProviders = remoteProviders.stream()
+				.filter(remotingSelector)
+				.collect(Collectors.<RemotingProvider> toList());
+			List<RemotingProvider> invalidProviders = remoteProviders.stream()
+				.filter(remotingSelector.negate())
+				.collect(Collectors.<RemotingProvider> toList());
+
+			invalidProviders.stream()
+				.forEach(rp -> rp.unregisterService(id));
+
+			if (validProviders.isEmpty()) {
+				LOG.debug("There are no remoting providers for this RSA able to export the service {}", ref);
+				return null;
+			}
 
 			SerializationType serializationType = SerializationType
 				.of(config.org_eclipse_ot_rsa_distribution_config_serialization());
 
-	        Bundle classSpace = FrameworkUtil.getBundle(service.getClass());
+			Bundle classSpace = FrameworkUtil.getBundle(service.getClass());
 
-			Serializer serializer = serializationType
-	        		 .getFactory().create(classSpace == null ? ref.getBundle() : classSpace);
+			Serializer serializer = serializationType.getFactory()
+				.create(classSpace == null ? ref.getBundle() : classSpace);
 
-	        SortedMap<String, Method> methodMappings = exportedClasses.stream()
-	        		 .map(Class::getMethods)
-	        		 .flatMap(Arrays::stream)
-	        		 .collect(Collectors.toMap(m -> toSignature(m), Function.identity(),
-	        				 (a,b) -> a, TreeMap::new));
+			SortedMap<String, Method> methodMappings = exportedClasses.stream()
+				.map(Class::getMethods)
+				.flatMap(Arrays::stream)
+				.collect(Collectors.toMap(m -> toSignature(m), Function.identity(), (a, b) -> a, TreeMap::new));
 
-	        Function<RemotingProvider, ServiceInvoker> invoker =
-	        		rp -> new ServiceInvoker(rp, id, serializer, service, methodMappings
-	        		.values().toArray(new Method[0]), serverWorkers, timer);
+			Function<RemotingProvider, ServiceInvoker> invoker = rp -> new ServiceInvoker(rp, id, serializer, service,
+				methodMappings.values()
+					.toArray(new Method[0]),
+				serverWorkers, timer);
 
-	        List<String> connectionStrings = validProviders.stream()
-	        		 .map(rp -> rp.registerService(id, invoker.apply(rp)))
-	        		 .flatMap(Collection::stream)
-	        		 .map(URI::toString)
-	        		 .collect(toList());
+			List<String> connectionStrings = validProviders.stream()
+				.map(rp -> rp.registerService(id, invoker.apply(rp)))
+				.flatMap(Collection::stream)
+				.map(URI::toString)
+				.collect(toList());
 
-	        if(connectionStrings.isEmpty()) {
-	        	LOG.warn("No remoting providers successfully exposed the service {}", ref);
-	        	throw new IllegalArgumentException("No remoting providers are able to expose the service " + ref);
-	        }
-	        addRSAProperties(serviceProperties, id, ref, config, exportedClasses,
-	        		supportedIntents, connectionStrings, methodMappings, framework);
+			if (connectionStrings.isEmpty()) {
+				LOG.warn("No remoting providers successfully exposed the service {}", ref);
+				throw new IllegalArgumentException("No remoting providers are able to expose the service " + ref);
+			}
+			addRSAProperties(serviceProperties, id, ref, config, exportedClasses, supportedIntents, connectionStrings,
+				methodMappings, framework);
 
-	        return new EndpointDescription(serviceProperties);
-        } catch (Exception e) {
-        	remoteProviders.stream()
-        		.forEach(rp -> rp.unregisterService(id));
-        	throw e;
-        }
+			return new EndpointDescription(serviceProperties);
+		} catch (Exception e) {
+			remoteProviders.stream()
+				.forEach(rp -> rp.unregisterService(id));
+			throw e;
+		}
 	}
 
-	private void addRSAProperties(Map<String, Object> serviceProperties, UUID id,
-			ServiceReference<?> ref, ExportedServiceConfig config, List<Class<?>> exportedClasses,
-			Set<String> intents, List<String> connectionStrings, Map<String, Method> methodMappings, Framework framework) {
+	private void addRSAProperties(Map<String, Object> serviceProperties, UUID id, ServiceReference<?> ref,
+		ExportedServiceConfig config, List<Class<?>> exportedClasses, Set<String> intents,
+		List<String> connectionStrings, Map<String, Method> methodMappings, Framework framework) {
 
 		Set<String> packages = exportedClasses.stream()
-					.map(Class::getPackage)
-					.map(Package::getName)
-					.collect(toSet());
+			.map(Class::getPackage)
+			.map(Package::getName)
+			.collect(toSet());
 
-		BundleWiring wiring = ref.getBundle().adapt(BundleWiring.class);
+		BundleWiring wiring = ref.getBundle()
+			.adapt(BundleWiring.class);
 		Map<String, Version> importedVersions = wiring.getRequiredWires(PackageNamespace.PACKAGE_NAMESPACE)
 			.stream()
-			.map(bw -> bw.getCapability().getAttributes())
+			.map(bw -> bw.getCapability()
+				.getAttributes())
 			.filter(m -> packages.contains(m.get(PackageNamespace.PACKAGE_NAMESPACE)))
 			.collect(toMap(m -> (String) m.get(PackageNamespace.PACKAGE_NAMESPACE), m -> (Version) m.get("version")));
 
@@ -426,75 +431,77 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 			.forEach(m -> importedVersions.putIfAbsent((String) m.get(PackageNamespace.PACKAGE_NAMESPACE),
 				(Version) m.get("version")));
 
-		importedVersions.entrySet().stream()
-			.forEach(e -> serviceProperties.put(RemoteConstants.ENDPOINT_PACKAGE_VERSION_ + e.getKey(), e.getValue().toString()));
+		importedVersions.entrySet()
+			.stream()
+			.forEach(e -> serviceProperties.put(RemoteConstants.ENDPOINT_PACKAGE_VERSION_ + e.getKey(), e.getValue()
+				.toString()));
 
-        serviceProperties.put(ENDPOINT_ID, id.toString());
-        serviceProperties.put(ENDPOINT_FRAMEWORK_UUID, framework.getBundleContext().getProperty(FRAMEWORK_UUID));
-        serviceProperties.put(ENDPOINT_SERVICE_ID, ref.getProperty(SERVICE_ID));
-        serviceProperties.put(SERVICE_INTENTS,
-        		Stream.concat(intents.stream(),
-        				ofNullable(config.service_intents())
-        					.map(Arrays::stream)
-        					.orElse(Stream.empty()))
-        			.collect(toList()));
+		serviceProperties.put(ENDPOINT_ID, id.toString());
+		serviceProperties.put(ENDPOINT_FRAMEWORK_UUID, framework.getBundleContext()
+			.getProperty(FRAMEWORK_UUID));
+		serviceProperties.put(ENDPOINT_SERVICE_ID, ref.getProperty(SERVICE_ID));
+		serviceProperties.put(SERVICE_INTENTS,
+			Stream.concat(intents.stream(), ofNullable(config.service_intents()).map(Arrays::stream)
+				.orElse(Stream.empty()))
+				.collect(toList()));
 		serviceProperties.put(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE, connectionStrings);
 		serviceProperties.put(SERVICE_IMPORTED_CONFIGS, RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE);
-        serviceProperties.put(OBJECTCLASS, exportedClasses.stream()
-        					.map(Class::getName)
-        					.collect(toList()).toArray(new String[0]));
+		serviceProperties.put(OBJECTCLASS, exportedClasses.stream()
+			.map(Class::getName)
+			.collect(toList())
+			.toArray(new String[0]));
 
-        AtomicInteger i = new AtomicInteger();
-        List<String> methodMappingData = methodMappings.keySet().stream()
-        		.sequential()
-        		.map(s -> new StringBuilder()
-        				.append(i.getAndIncrement())
-        				.append('=')
-        				.append(s)
-        				.toString())
-        		.collect(toList());
+		AtomicInteger i = new AtomicInteger();
+		List<String> methodMappingData = methodMappings.keySet()
+			.stream()
+			.sequential()
+			.map(s -> new StringBuilder().append(i.getAndIncrement())
+				.append('=')
+				.append(s)
+				.toString())
+			.collect(toList());
 
 		if (serviceProperties.containsKey(RSAConstants.DISTRIBUTION_CONFIG_METHODS)) {
-        	throw new IllegalArgumentException("The org.eclipse.ot.rsa.distribution.provider.methods property is not user editable");
-        }
+			throw new IllegalArgumentException(
+				"The org.eclipse.ot.rsa.distribution.provider.methods property is not user editable");
+		}
 
 		serviceProperties.put(RSAConstants.DISTRIBUTION_CONFIG_METHODS, methodMappingData);
 
-        if(!this.config.endpoint_marker().isEmpty()) {
+		if (!this.config.endpoint_marker()
+			.isEmpty()) {
 			serviceProperties.put(RSAConstants.DISTRIBUTION_CONFIG_ENDPOINT_MARKER, this.config.endpoint_marker());
-        }
+		}
 	}
 
-	void removeExportRegistration(ExportRegistrationImpl exportRegistration,
-			ServiceReference<?> serviceReference) {
+	void removeExportRegistration(ExportRegistrationImpl exportRegistration, ServiceReference<?> serviceReference) {
 		synchronized (exports) {
 			UUID id = exportRegistration.getId();
 			// Exports that failed early may not have an id at all.
-			if(id != null) {
+			if (id != null) {
 				remoteProviders.stream()
 					.forEach(rp -> {
 						rp.unregisterService(id);
 					});
 			}
 
-			exports.compute(exportRegistration.getSourceFramework(), (k,v) -> {
-				Map<ServiceReference<?>, Set<ExportRegistrationImpl>> m =
-						v == null ? new HashMap<>() : new HashMap<>(v);
+			exports.compute(exportRegistration.getSourceFramework(), (k, v) -> {
+				Map<ServiceReference<?>, Set<ExportRegistrationImpl>> m = v == null ? new HashMap<>()
+					: new HashMap<>(v);
 
-						m.computeIfPresent(serviceReference, (ref, set) -> {
-							Set<ExportRegistrationImpl> s2 = set.stream()
-									.filter(e -> e != exportRegistration)
-									.collect(toSet());
-							return s2.isEmpty() ? null : s2;
-						});
+				m.computeIfPresent(serviceReference, (ref, set) -> {
+					Set<ExportRegistrationImpl> s2 = set.stream()
+						.filter(e -> e != exportRegistration)
+						.collect(toSet());
+					return s2.isEmpty() ? null : s2;
+				});
 				return m.isEmpty() ? null : m;
 			});
 		}
-		ofNullable(serviceReference.getBundle())
-			.map(Bundle::getBundleContext)
+		ofNullable(serviceReference.getBundle()).map(Bundle::getBundleContext)
 			.ifPresent(bc -> bc.ungetService(serviceReference));
 		publisher.notifyExportRemoved(serviceReference, exportRegistration.getEndpointDescription(),
-				exportRegistration.internalGetException());
+			exportRegistration.internalGetException());
 	}
 
 	@Override
@@ -506,21 +513,21 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	public ImportRegistration importService(Framework framework, EndpointDescription e) {
 		LOG.debug("importService: {}", e);
 
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            String property = doPrivGetFrameworkId(framework);
-			EndpointPermission importPermission = new EndpointPermission(e,
-                property, EndpointPermission.IMPORT);
-            sm.checkPermission(importPermission);
-        }
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null) {
+			String property = doPrivGetFrameworkId(framework);
+			EndpointPermission importPermission = new EndpointPermission(e, property, EndpointPermission.IMPORT);
+			sm.checkPermission(importPermission);
+		}
 
-        PrivilegedAction<ImportRegistration> importAction = () -> privilegedImportService(framework, e);
+		PrivilegedAction<ImportRegistration> importAction = () -> privilegedImportService(framework, e);
 
-        return AccessController.doPrivileged(importAction);
+		return AccessController.doPrivileged(importAction);
 	}
 
 	private String doPrivGetFrameworkId(Framework framework) {
-		PrivilegedAction<String> getFwId = () -> framework.getBundleContext().getProperty(FRAMEWORK_UUID);
+		PrivilegedAction<String> getFwId = () -> framework.getBundleContext()
+			.getProperty(FRAMEWORK_UUID);
 		String property = AccessController.doPrivileged(getFwId);
 		return property;
 	}
@@ -529,18 +536,21 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 
 		if (!e.getConfigurationTypes()
 			.contains(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE)) {
-			LOG.info("Unable to import the endpoint {} because it uses unsupported configuration types {}",
-					e, e.getConfigurationTypes());
+			LOG.info("Unable to import the endpoint {} because it uses unsupported configuration types {}", e,
+				e.getConfigurationTypes());
 			return null;
 		}
 
 		Map<String, Object> endpointProperties = e.getProperties();
 
 		String target = config.endpoint_import_target();
-		if(!target.isEmpty()) {
+		if (!target.isEmpty()) {
 			try {
-				if(!FrameworkUtil.createFilter(target).match(new Hashtable<>(endpointProperties))) {
-					LOG.debug("The endpointDescription {} is excluded by the configured import filter {} and will not be exported", e, target);
+				if (!FrameworkUtil.createFilter(target)
+					.match(new Hashtable<>(endpointProperties))) {
+					LOG.debug(
+						"The endpointDescription {} is excluded by the configured import filter {} and will not be exported",
+						e, target);
 					return null;
 				}
 			} catch (InvalidSyntaxException ex) {
@@ -551,65 +561,61 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 
 		ExportedServiceConfig edConfig;
 		try {
-			edConfig = Converters.standardConverter().convert(
-			    		endpointProperties).to(ExportedServiceConfig.class);
+			edConfig = Converters.standardConverter()
+				.convert(endpointProperties)
+				.to(ExportedServiceConfig.class);
 		} catch (Exception ex) {
 			LOG.error("A failure occurred trying to import endpoint {}", e, ex);
 			return null;
 		}
 
-        Set<String> unsupported = Stream.concat(
-        		ofNullable(edConfig.service_exported_intents())
-            	.map(Arrays::stream)
-            	.orElse(Stream.empty()),
-            ofNullable(edConfig.service_exported_intents_extra())
-            	.map(Arrays::stream)
-            	.orElse(Stream.empty()))
-		        	.filter(s -> !intents.contains(s))
-		        	.collect(Collectors.toSet());
+		Set<String> unsupported = Stream.concat(ofNullable(edConfig.service_exported_intents()).map(Arrays::stream)
+			.orElse(Stream.empty()),
+			ofNullable(edConfig.service_exported_intents_extra()).map(Arrays::stream)
+				.orElse(Stream.empty()))
+			.filter(s -> !intents.contains(s))
+			.collect(Collectors.toSet());
 
-        if (!unsupported.isEmpty()) {
-        	LOG.info("Unable to import the endpoint {} as the following intents are not supported {}"
-		                            , e, unsupported);
-        	return null;
+		if (!unsupported.isEmpty()) {
+			LOG.info("Unable to import the endpoint {} as the following intents are not supported {}", e, unsupported);
+			return null;
 		}
 
 		UUID id = UUID.fromString(e.getId());
 
-		BundleContext proxyHostContext = proxyHostBundleFactory.getProxyBundle(framework).getBundleContext();
+		BundleContext proxyHostContext = proxyHostBundleFactory.getProxyBundle(framework)
+			.getBundleContext();
 
 		ImportRegistrationImpl reg;
-		if(proxyHostContext == null) {
+		if (proxyHostContext == null) {
 			// Don't bother with a stack trace
 			IllegalStateException failure = new IllegalStateException(
-					"The RSA host bundle context in target framework " + framework  + " is not active");
+				"The RSA host bundle context in target framework " + framework + " is not active");
 			failure.setStackTrace(new StackTraceElement[0]);
-			reg = new ImportRegistrationImpl(e, framework, this,
-					failure);
+			reg = new ImportRegistrationImpl(e, framework, this, failure);
 		} else {
-			reg = new ImportRegistrationImpl(e, framework, proxyHostContext, this,
-					clientConnectionManager, config.client_default_timeout(),
-					clientWorkers, timer);
+			reg = new ImportRegistrationImpl(e, framework, proxyHostContext, this, clientConnectionManager,
+				config.client_default_timeout(), clientWorkers, timer);
 
 			synchronized (imports) {
 				imports.computeIfAbsent(framework, k -> new HashMap<>())
-					.compute(id, (k,v) ->
-						Stream.concat(Stream.of(reg),
-								ofNullable(v).map(Set::stream).orElseGet(() -> Stream.empty()))
-							.collect(toSet()));
+					.compute(id, (k, v) -> Stream.concat(Stream.of(reg), ofNullable(v).map(Set::stream)
+						.orElseGet(() -> Stream.empty()))
+						.collect(toSet()));
 			}
 		}
 
-		switch(reg.getState()) {
-			case ERROR:
+		switch (reg.getState()) {
+			case ERROR :
 				publisher.notifyImportError(reg.getEndpointDescription(), reg.getException());
 				break;
-			case OPEN:
+			case OPEN :
 				publisher.notifyImport(reg.getServiceReference(), reg.getEndpointDescription());
 				break;
-			case CLOSED:
-			case PRE_INIT:
-				reg.asyncFail(new IllegalStateException("The registration was not fully initialized, and was found in state " + reg.getState()));
+			case CLOSED :
+			case PRE_INIT :
+				reg.asyncFail(new IllegalStateException(
+					"The registration was not fully initialized, and was found in state " + reg.getState()));
 				break;
 		}
 
@@ -619,54 +625,54 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	/**
 	 * Remove a registered ImportRegistration. Must not be called while holding
 	 * a lock on the ImportRegistration
+	 * 
 	 * @param importRegistration
 	 * @param endpointId
 	 */
-	void removeImportRegistration(ImportRegistrationImpl importRegistration,
-			String endpointId) {
+	void removeImportRegistration(ImportRegistrationImpl importRegistration, String endpointId) {
 		synchronized (imports) {
-			imports.computeIfPresent(importRegistration.getTargetFramework(), (k,v) -> {
+			imports.computeIfPresent(importRegistration.getTargetFramework(), (k, v) -> {
 				Map<UUID, Set<ImportRegistrationImpl>> m2 = new HashMap<>(v);
-						m2.computeIfPresent(UUID.fromString(endpointId), (id,set) -> {
-							Set<ImportRegistrationImpl> s2 = set.stream()
-									.filter(ir -> ir != importRegistration)
-									.collect(toSet());
-							return s2.isEmpty() ? null : s2;
-						});
+				m2.computeIfPresent(UUID.fromString(endpointId), (id, set) -> {
+					Set<ImportRegistrationImpl> s2 = set.stream()
+						.filter(ir -> ir != importRegistration)
+						.collect(toSet());
+					return s2.isEmpty() ? null : s2;
+				});
 				return m2.isEmpty() ? null : m2;
 			});
 		}
 
 		publisher.notifyImportRemoved(importRegistration.getServiceReference(),
-				importRegistration.getEndpointDescription(), importRegistration.internalGetException());
+			importRegistration.getEndpointDescription(), importRegistration.internalGetException());
 	}
 
 	/**
-	 * Notify of a failed ImportRegistration. Must not be called while holding
-	 * a lock on the ImportRegistration
+	 * Notify of a failed ImportRegistration. Must not be called while holding a
+	 * lock on the ImportRegistration
+	 * 
 	 * @param importRegistration
 	 * @param endpointId
 	 */
 	void notifyImportError(ImportRegistrationImpl importRegistration, String endpointId) {
 		synchronized (imports) {
-			imports.computeIfPresent(importRegistration.getTargetFramework(), (k,v) -> {
+			imports.computeIfPresent(importRegistration.getTargetFramework(), (k, v) -> {
 				Map<UUID, Set<ImportRegistrationImpl>> m2 = new HashMap<>(v);
-						m2.computeIfPresent(UUID.fromString(endpointId), (id,set) -> {
-							Set<ImportRegistrationImpl> s2 = set.stream()
-									.filter(ir -> ir != importRegistration)
-									.collect(toSet());
-							return s2.isEmpty() ? null : s2;
-						});
+				m2.computeIfPresent(UUID.fromString(endpointId), (id, set) -> {
+					Set<ImportRegistrationImpl> s2 = set.stream()
+						.filter(ir -> ir != importRegistration)
+						.collect(toSet());
+					return s2.isEmpty() ? null : s2;
+				});
 				return m2.isEmpty() ? null : m2;
 			});
 		}
 
-		publisher.notifyImportError(importRegistration.getEndpointDescription(),
-				importRegistration.getException());
+		publisher.notifyImportError(importRegistration.getEndpointDescription(), importRegistration.getException());
 	}
 
 	void notifyImportUpdate(ServiceReference<?> reference, EndpointDescription endpointDescription,
-			Throwable exception) {
+		Throwable exception) {
 		publisher.notifyImportUpdate(reference, endpointDescription, exception);
 	}
 
@@ -678,8 +684,10 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	@Override
 	public Collection<ExportReference> getExportedServices(Framework framework) {
 
-		List<Set<ExportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins().stream()
-			.flatMap(impl -> impl.localGetExportedServices(framework).stream())
+		List<Set<ExportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins()
+			.stream()
+			.flatMap(impl -> impl.localGetExportedServices(framework)
+				.stream())
 			.collect(toList());
 
 		return doGetExportedServices(framework, toShow.stream());
@@ -688,9 +696,9 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	private List<Set<ExportRegistrationImpl>> localGetExportedServices(Framework framework) {
 		List<Set<ExportRegistrationImpl>> toShow;
 		synchronized (exports) {
-			toShow = ofNullable(exports.get(framework))
-				.map(m -> m.values().stream()
-						.collect(toList()))
+			toShow = ofNullable(exports.get(framework)).map(m -> m.values()
+				.stream()
+				.collect(toList()))
 				.orElse(emptyList());
 		}
 		return toShow;
@@ -699,54 +707,61 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	@Override
 	public Collection<ExportReference> getAllExportedServices() {
 
-		Map<Framework, Set<ExportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins().stream()
+		Map<Framework, Set<ExportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins()
+			.stream()
 			.map(RemoteServiceAdminImpl::localGetAllExportedServices)
-			.reduce(new HashMap<>(), (a,b) -> {
-					Map<Framework, Set<ExportRegistrationImpl>> toReturn = new HashMap<>(a);
+			.reduce(new HashMap<>(), (a, b) -> {
+				Map<Framework, Set<ExportRegistrationImpl>> toReturn = new HashMap<>(a);
 
-					b.entrySet().stream()
-						.forEach(e -> toReturn.compute(e.getKey(),
-								(k,v) -> Stream.concat(v.stream(), e.getValue().stream()).collect(toSet())));
+				b.entrySet()
+					.stream()
+					.forEach(e -> toReturn.compute(e.getKey(), (k, v) -> Stream.concat(v.stream(), e.getValue()
+						.stream())
+						.collect(toSet())));
 
-					return toReturn;
-				});
+				return toReturn;
+			});
 
-		return toShow.entrySet().stream()
-				.map(e -> doGetExportedServices(e.getKey(), Stream.of(e.getValue())))
-				.flatMap(Collection::stream)
-				.collect(toSet());
+		return toShow.entrySet()
+			.stream()
+			.map(e -> doGetExportedServices(e.getKey(), Stream.of(e.getValue())))
+			.flatMap(Collection::stream)
+			.collect(toSet());
 	}
 
 	private Map<Framework, Set<ExportRegistrationImpl>> localGetAllExportedServices() {
-		Map<Framework,Set<ExportRegistrationImpl>> toShow;
+		Map<Framework, Set<ExportRegistrationImpl>> toShow;
 		synchronized (exports) {
-			toShow = exports.entrySet().stream()
-					.collect(toMap(Entry::getKey, e -> e.getValue().values().stream()
-							.flatMap(Set::stream)
-							.collect(toSet())));
+			toShow = exports.entrySet()
+				.stream()
+				.collect(toMap(Entry::getKey, e -> e.getValue()
+					.values()
+					.stream()
+					.flatMap(Set::stream)
+					.collect(toSet())));
 		}
 		return toShow;
 	}
 
-	private Collection<ExportReference> doGetExportedServices(Framework framework, Stream<Set<ExportRegistrationImpl>> stream) {
+	private Collection<ExportReference> doGetExportedServices(Framework framework,
+		Stream<Set<ExportRegistrationImpl>> stream) {
 
 		Predicate<ExportReference> securityCheck;
 
 		SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-        	String fwId = doPrivGetFrameworkId(framework);
-        	securityCheck = er -> {
-        			try {
-        				sm.checkPermission(new EndpointPermission(er.getExportedEndpoint(),
-        					fwId, EndpointPermission.READ));
-        				return true;
-        			} catch (SecurityException se) {
-        				return false;
-        			}
-        		};
-        } else {
-        	securityCheck = er -> true;
-        }
+		if (sm != null) {
+			String fwId = doPrivGetFrameworkId(framework);
+			securityCheck = er -> {
+				try {
+					sm.checkPermission(new EndpointPermission(er.getExportedEndpoint(), fwId, EndpointPermission.READ));
+					return true;
+				} catch (SecurityException se) {
+					return false;
+				}
+			};
+		} else {
+			securityCheck = er -> true;
+		}
 
 		return stream.flatMap(Set::stream)
 			.filter(i -> i.getState() == OPEN)
@@ -764,9 +779,11 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	@Override
 	public Collection<ImportReference> getImportedEndpoints(Framework framework) {
 
-		List<Set<ImportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins().stream()
-				.flatMap(impl -> impl.localGetImportedServices(framework).stream())
-				.collect(toList());
+		List<Set<ImportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins()
+			.stream()
+			.flatMap(impl -> impl.localGetImportedServices(framework)
+				.stream())
+			.collect(toList());
 
 		return doGetImportedServices(framework, toShow.stream());
 	}
@@ -774,9 +791,9 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	private List<Set<ImportRegistrationImpl>> localGetImportedServices(Framework framework) {
 		List<Set<ImportRegistrationImpl>> toShow;
 		synchronized (imports) {
-			toShow = ofNullable(imports.get(framework))
-				.map(m -> m.values().stream()
-						.collect(toList()))
+			toShow = ofNullable(imports.get(framework)).map(m -> m.values()
+				.stream()
+				.collect(toList()))
 				.orElse(emptyList());
 		}
 		return toShow;
@@ -785,113 +802,121 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	@Override
 	public Collection<ImportReference> getAllImportedEndpoints() {
 
-		Map<Framework, Set<ImportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins().stream()
-				.map(RemoteServiceAdminImpl::localGetAllImportedEndpoints)
-				.reduce(new HashMap<>(), (a,b) -> {
-						Map<Framework, Set<ImportRegistrationImpl>> toReturn = new HashMap<>(a);
+		Map<Framework, Set<ImportRegistrationImpl>> toShow = factory.getRemoteServiceAdmins()
+			.stream()
+			.map(RemoteServiceAdminImpl::localGetAllImportedEndpoints)
+			.reduce(new HashMap<>(), (a, b) -> {
+				Map<Framework, Set<ImportRegistrationImpl>> toReturn = new HashMap<>(a);
 
-						b.entrySet().stream()
-							.forEach(e -> toReturn.compute(e.getKey(),
-									(k,v) -> Stream.concat(v.stream(), e.getValue().stream()).collect(toSet())));
+				b.entrySet()
+					.stream()
+					.forEach(e -> toReturn.compute(e.getKey(), (k, v) -> Stream.concat(v.stream(), e.getValue()
+						.stream())
+						.collect(toSet())));
 
-						return toReturn;
-					});
+				return toReturn;
+			});
 
-		return toShow.entrySet().stream()
-				.map(e -> doGetImportedServices(e.getKey(), Stream.of(e.getValue())))
-				.flatMap(Collection::stream)
-				.collect(toSet());
+		return toShow.entrySet()
+			.stream()
+			.map(e -> doGetImportedServices(e.getKey(), Stream.of(e.getValue())))
+			.flatMap(Collection::stream)
+			.collect(toSet());
 	}
 
 	private Map<Framework, Set<ImportRegistrationImpl>> localGetAllImportedEndpoints() {
-		Map<Framework,Set<ImportRegistrationImpl>> toShow;
+		Map<Framework, Set<ImportRegistrationImpl>> toShow;
 		synchronized (imports) {
-			toShow = imports.entrySet().stream()
-					.collect(toMap(Entry::getKey, e -> e.getValue().values().stream()
-							.flatMap(Set::stream)
-							.collect(toSet())));
+			toShow = imports.entrySet()
+				.stream()
+				.collect(toMap(Entry::getKey, e -> e.getValue()
+					.values()
+					.stream()
+					.flatMap(Set::stream)
+					.collect(toSet())));
 		}
 		return toShow;
 	}
 
-	private Collection<ImportReference> doGetImportedServices(Framework framework, Stream<Set<ImportRegistrationImpl>> stream) {
+	private Collection<ImportReference> doGetImportedServices(Framework framework,
+		Stream<Set<ImportRegistrationImpl>> stream) {
 
 		Predicate<ImportReference> securityCheck;
 
 		SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-        	String fwId = doPrivGetFrameworkId(framework);
-        	securityCheck = ir -> {
-        			try {
-        				sm.checkPermission(new EndpointPermission(ir.getImportedEndpoint(),
-        					fwId, EndpointPermission.READ));
-        				return true;
-        			} catch (SecurityException se) {
-        				return false;
-        			}
-        		};
-        } else {
-        	securityCheck = er -> true;
-        }
+		if (sm != null) {
+			String fwId = doPrivGetFrameworkId(framework);
+			securityCheck = ir -> {
+				try {
+					sm.checkPermission(new EndpointPermission(ir.getImportedEndpoint(), fwId, EndpointPermission.READ));
+					return true;
+				} catch (SecurityException se) {
+					return false;
+				}
+			};
+		} else {
+			securityCheck = er -> true;
+		}
 
 		return stream.flatMap(Set::stream)
-				.filter(i -> i.getState() == OPEN)
-				.map(ImportRegistration::getImportReference)
-				.filter(i -> i != null)
-				.filter(securityCheck)
-				.collect(toSet());
+			.filter(i -> i.getState() == OPEN)
+			.map(ImportRegistration::getImportReference)
+			.filter(i -> i != null)
+			.filter(securityCheck)
+			.collect(toSet());
 	}
 
 	/**
-     * Overlays (overwrites or adds) a set of key/value pairs onto a given Map. Keys are
-     * handled case-insensitively: an original mapping of <code>fooBar=x</code> will be
-     * overwritten with <code>FooBar=y</code>. Mappings with {@link Constants#OBJECTCLASS}
-     * and {@link Constants#SERVICE_ID} keys are <b>not</b> overwritten, regardless of
-     * case.
-     *
-     * @param serviceProperties a <b>mutable</b> Map of key/value pairs
-     * @param additionalProperties additional key/value mappings to overlay
-     * @throws NullPointerException if either argument is <code>null</code>
-     */
-    static void overlayProperties(Map<String, Object> serviceProperties,
-                                         Map<String, ?> additionalProperties) {
-        Objects.requireNonNull(serviceProperties, "The service properties were null");
+	 * Overlays (overwrites or adds) a set of key/value pairs onto a given Map.
+	 * Keys are handled case-insensitively: an original mapping of
+	 * <code>fooBar=x</code> will be overwritten with <code>FooBar=y</code>.
+	 * Mappings with {@link Constants#OBJECTCLASS} and
+	 * {@link Constants#SERVICE_ID} keys are <b>not</b> overwritten, regardless
+	 * of case.
+	 *
+	 * @param serviceProperties a <b>mutable</b> Map of key/value pairs
+	 * @param additionalProperties additional key/value mappings to overlay
+	 * @throws NullPointerException if either argument is <code>null</code>
+	 */
+	static void overlayProperties(Map<String, Object> serviceProperties, Map<String, ?> additionalProperties) {
+		Objects.requireNonNull(serviceProperties, "The service properties were null");
 
-        if (additionalProperties == null || additionalProperties.isEmpty()) {
-            // nothing to do
-            return;
-        }
+		if (additionalProperties == null || additionalProperties.isEmpty()) {
+			// nothing to do
+			return;
+		}
 
-        // Maps lower case key to original key
-        Map<String, String> lowerKeys = new HashMap<>(serviceProperties.size());
-        for (Entry<String, Object> sp : serviceProperties.entrySet()) {
-            lowerKeys.put(sp.getKey().toLowerCase(), sp.getKey());
-        }
+		// Maps lower case key to original key
+		Map<String, String> lowerKeys = new HashMap<>(serviceProperties.size());
+		for (Entry<String, Object> sp : serviceProperties.entrySet()) {
+			lowerKeys.put(sp.getKey()
+				.toLowerCase(), sp.getKey());
+		}
 
-        // keys that must not be overwritten
-        String lowerObjClass = OBJECTCLASS.toLowerCase();
-        String lowerServiceId = SERVICE_ID.toLowerCase();
+		// keys that must not be overwritten
+		String lowerObjClass = OBJECTCLASS.toLowerCase();
+		String lowerServiceId = SERVICE_ID.toLowerCase();
 
-        for (Entry<String, ?> ap : additionalProperties.entrySet()) {
-            String key = ap.getKey().toLowerCase();
-            if (lowerObjClass.equals(key) || lowerServiceId.equals(key)) {
-                // exportService called with additional properties map that contained
-                // illegal key; the key is ignored
-                continue;
-            }
-            else if (lowerKeys.containsKey(key)) {
-                String origKey = lowerKeys.get(key);
-                serviceProperties.put(origKey, ap.getValue());
-            }
-            else {
-                serviceProperties.put(ap.getKey(), ap.getValue());
-                lowerKeys.put(key, ap.getKey());
-            }
-        }
-    }
+		for (Entry<String, ?> ap : additionalProperties.entrySet()) {
+			String key = ap.getKey()
+				.toLowerCase();
+			if (lowerObjClass.equals(key) || lowerServiceId.equals(key)) {
+				// exportService called with additional properties map that
+				// contained
+				// illegal key; the key is ignored
+				continue;
+			} else if (lowerKeys.containsKey(key)) {
+				String origKey = lowerKeys.get(key);
+				serviceProperties.put(origKey, ap.getValue());
+			} else {
+				serviceProperties.put(ap.getKey(), ap.getValue());
+				lowerKeys.put(key, ap.getKey());
+			}
+		}
+	}
 
-	EndpointDescription updateExport(Framework source, ServiceReference<?> ref,
-			Map<String, ?> additionalProperties, UUID id, EndpointDescription previous) {
+	EndpointDescription updateExport(Framework source, ServiceReference<?> ref, Map<String, ?> additionalProperties,
+		UUID id, EndpointDescription previous) {
 		EndpointDescription ed = null;
 		try {
 			ed = createEndpointDescription(source, ref, additionalProperties, id);
@@ -905,8 +930,10 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 	void close() {
 		Set<ImportRegistration> importsToClose;
 		synchronized (imports) {
-			importsToClose = imports.values().stream()
-				.flatMap(m -> m.values().stream())
+			importsToClose = imports.values()
+				.stream()
+				.flatMap(m -> m.values()
+					.stream())
 				.flatMap(Set::stream)
 				.collect(toSet());
 		}
@@ -916,8 +943,10 @@ public class RemoteServiceAdminImpl implements MultiFrameworkRemoteServiceAdmin 
 
 		Set<ExportRegistration> exportsToClose;
 		synchronized (exports) {
-			exportsToClose = exports.values().stream()
-				.flatMap(m -> m.values().stream())
+			exportsToClose = exports.values()
+				.stream()
+				.flatMap(m -> m.values()
+					.stream())
 				.flatMap(Set::stream)
 				.collect(toSet());
 		}

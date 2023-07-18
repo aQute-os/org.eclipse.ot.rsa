@@ -26,15 +26,15 @@ import io.netty.channel.ChannelPromise;
 
 public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessageType> {
 
-	private final int parameterIndex;
+	private final int				parameterIndex;
 
-	private final Object result;
+	private final Object			result;
 
-	private final ClientInvocation invocation;
+	private final ClientInvocation	invocation;
 
 	public AsyncArgumentCompletion(boolean success, ClientInvocation invocation, int i, Object result) {
-		super(success ? ASYNC_ARG_SUCCESS : ASYNC_ARG_FAILURE, invocation.getServiceId(),
-				invocation.getCallId(), invocation.getSerializer());
+		super(success ? ASYNC_ARG_SUCCESS : ASYNC_ARG_FAILURE, invocation.getServiceId(), invocation.getCallId(),
+			invocation.getSerializer());
 
 		this.invocation = invocation;
 
@@ -62,10 +62,10 @@ public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessag
 		writeLength(buffer);
 
 		promise.addListener(f -> {
-			if(!f.isSuccess()) {
+			if (!f.isSuccess()) {
 				// TODO log this?
-				invocation.fail(new ServiceException("Failed to handle an asynchronous method parameter for service " +
-					getServiceId() + " due to a communications failure" , REMOTE, f.cause()));
+				invocation.fail(new ServiceException("Failed to handle an asynchronous method parameter for service "
+					+ getServiceId() + " due to a communications failure", REMOTE, f.cause()));
 			}
 		});
 	}

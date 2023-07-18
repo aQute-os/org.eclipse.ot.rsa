@@ -35,93 +35,97 @@ import org.slf4j.LoggerFactory;
 
 public class ExportRegistrationImpl implements ExportRegistration {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ExportRegistrationImpl.class);
+	private static final Logger											LOG		= LoggerFactory
+		.getLogger(ExportRegistrationImpl.class);
 
-    private final ServiceReference<?> _serviceReference;
-    private final Framework _sourceFramework;
-    private final ExportReference _exportReference;
-    private final RemoteServiceAdminImpl _rsa;
-    private final ServiceTracker<? super Object, ServiceReference<?>> _serviceTracker;
-    private final UUID _id;
+	private final ServiceReference<?>									_serviceReference;
+	private final Framework												_sourceFramework;
+	private final ExportReference										_exportReference;
+	private final RemoteServiceAdminImpl								_rsa;
+	private final ServiceTracker<? super Object, ServiceReference<?>>	_serviceTracker;
+	private final UUID													_id;
 
-    private EndpointDescription _endpointDescription;
-    private Throwable _exception;
-    private RegistrationState _state = PRE_INIT;
+	private EndpointDescription											_endpointDescription;
+	private Throwable													_exception;
+	private RegistrationState											_state	= PRE_INIT;
 
-	private Map<String, ?> _extraProperties;
+	private Map<String, ?>												_extraProperties;
 
-    /**
-     * Default constructor for a new service export.
-     *
-     * @param sref a reference to the service being exported
-     * @param extraProperties the extra properties with which this service is being exported
-     * @param endpoint the description of the exported endpoint
-     * @param sourceFramework the framework from which this service is being exported
-     * @param rsa the exporting {@link RemoteServiceAdmin}
-     * @throws NullPointerException if either argument is <code>null</code>
-     */
-    @SuppressWarnings("unchecked")
+	/**
+	 * Default constructor for a new service export.
+	 *
+	 * @param sref a reference to the service being exported
+	 * @param extraProperties the extra properties with which this service is
+	 *            being exported
+	 * @param endpoint the description of the exported endpoint
+	 * @param sourceFramework the framework from which this service is being
+	 *            exported
+	 * @param rsa the exporting {@link RemoteServiceAdmin}
+	 * @throws NullPointerException if either argument is <code>null</code>
+	 */
+	@SuppressWarnings("unchecked")
 	public ExportRegistrationImpl(ServiceReference<?> sref, Map<String, ?> extraProperties,
-			EndpointDescription endpoint, Framework sourceFramework, RemoteServiceAdminImpl rsa) {
+		EndpointDescription endpoint, Framework sourceFramework, RemoteServiceAdminImpl rsa) {
 
-        _serviceReference = Objects.requireNonNull(sref, "The service reference for an export must not be null");
-        _extraProperties = extraProperties;
-        _sourceFramework = Objects.requireNonNull(sourceFramework, "The source framework of the service reference for an export must not be null");
-        _endpointDescription = Objects.requireNonNull(endpoint, "The endpoint for an export must not be null");
-        _id = UUID.fromString(_endpointDescription.getId());
-        _exportReference = new SimpleExportReference();
-        _rsa = rsa;
-        _exception = null;
+		_serviceReference = Objects.requireNonNull(sref, "The service reference for an export must not be null");
+		_extraProperties = extraProperties;
+		_sourceFramework = Objects.requireNonNull(sourceFramework,
+			"The source framework of the service reference for an export must not be null");
+		_endpointDescription = Objects.requireNonNull(endpoint, "The endpoint for an export must not be null");
+		_id = UUID.fromString(_endpointDescription.getId());
+		_exportReference = new SimpleExportReference();
+		_rsa = rsa;
+		_exception = null;
 
-        _serviceTracker =  new ServiceTracker<Object, ServiceReference<?>>(_serviceReference.getBundle()
-        		.getBundleContext(), (ServiceReference<Object>) _serviceReference, null) {
+		_serviceTracker = new ServiceTracker<Object, ServiceReference<?>>(_serviceReference.getBundle()
+			.getBundleContext(), (ServiceReference<Object>) _serviceReference, null) {
 
-        	@Override
+			@Override
 			public ServiceReference<?> addingService(ServiceReference<Object> sr) {
-                return sr;
-            }
+				return sr;
+			}
 
-        	@Override
+			@Override
 			public void removedService(ServiceReference<Object> sr, ServiceReference<?> s) {
-            	synchronized (ExportRegistrationImpl.this) {
-            		if(_state != CLOSED) {
+				synchronized (ExportRegistrationImpl.this) {
+					if (_state != CLOSED) {
 						LOG.debug(
 							"The exported service {} has been unregistered and so the export will be automatically closed.",
 							sr);
-            			close();
-            		}
-            	}
-            }
-        };
-    }
+						close();
+					}
+				}
+			}
+		};
+	}
 
-    /**
-     * Default constructor for a failed service export.
-     *
-     * @param sref a reference to the service being exported
-     * @param rsa the exporting {@link RemoteServiceAdmin}
-     * @param failure the error that occurred when exporting the service
-     * @throws NullPointerException if either argument is <code>null</code>
-     */
-    public ExportRegistrationImpl(ServiceReference<?> sref, RemoteServiceAdminImpl rsa, Throwable failure) {
+	/**
+	 * Default constructor for a failed service export.
+	 *
+	 * @param sref a reference to the service being exported
+	 * @param rsa the exporting {@link RemoteServiceAdmin}
+	 * @param failure the error that occurred when exporting the service
+	 * @throws NullPointerException if either argument is <code>null</code>
+	 */
+	public ExportRegistrationImpl(ServiceReference<?> sref, RemoteServiceAdminImpl rsa, Throwable failure) {
 
-    	_serviceReference = Objects.requireNonNull(sref, "The service reference for an export must not be null");
-    	_sourceFramework = null;
-    	_endpointDescription = null;
-    	_extraProperties = null;
-    	_exportReference = new SimpleExportReference();
-    	_rsa = rsa;
-    	_exception = failure;
-    	_state = ERROR;
+		_serviceReference = Objects.requireNonNull(sref, "The service reference for an export must not be null");
+		_sourceFramework = null;
+		_endpointDescription = null;
+		_extraProperties = null;
+		_exportReference = new SimpleExportReference();
+		_rsa = rsa;
+		_exception = failure;
+		_state = ERROR;
 
-    	_serviceTracker = null;
-    	_id = null;
-    }
+		_serviceTracker = null;
+		_id = null;
+	}
 
 	RegistrationState start() {
 		RegistrationState postInitState;
 		synchronized (this) {
-			if(_state == PRE_INIT) {
+			if (_state == PRE_INIT) {
 				try {
 					_serviceTracker.open();
 					_state = OPEN;
@@ -133,14 +137,14 @@ public class ExportRegistrationImpl implements ExportRegistration {
 			postInitState = _state;
 		}
 
-        if(postInitState == OPEN && _serviceTracker.getService() == null) {
+		if (postInitState == OPEN && _serviceTracker.getService() == null) {
 			LOG.debug("The exported service {} has been unregistered and so the export will be automatically closed.",
 				_serviceReference);
 			close();
-        }
+		}
 
-        synchronized (this) {
-        	return _state;
+		synchronized (this) {
+			return _state;
 		}
 	}
 
@@ -150,92 +154,96 @@ public class ExportRegistrationImpl implements ExportRegistration {
 		}
 	}
 
-    public Framework getSourceFramework() {
+	public Framework getSourceFramework() {
 		return _sourceFramework;
 	}
 
 	/**
-     * Default implementation of {@link ExportRegistration#close()}, removing this export
-     * from the associated {@link RemoteServiceAdminImpl}.
-     */
-    @Override
-    public void close() {
-        synchronized (this) {
-            if (_state == CLOSED) {
-                return;
-            }
+	 * Default implementation of {@link ExportRegistration#close()}, removing
+	 * this export from the associated {@link RemoteServiceAdminImpl}.
+	 */
+	@Override
+	public void close() {
+		synchronized (this) {
+			if (_state == CLOSED) {
+				return;
+			}
 
-            // we must remove ourselves from the RSA *before* closing, otherwise
-            // RSAListeners will not have access to the ExportReference in received
-            // events.
-            _rsa.removeExportRegistration(this, _serviceReference);
+			// we must remove ourselves from the RSA *before* closing, otherwise
+			// RSAListeners will not have access to the ExportReference in
+			// received
+			// events.
+			_rsa.removeExportRegistration(this, _serviceReference);
 
-            _state = CLOSED;
-            if(_serviceTracker != null) _serviceTracker.close();
-        }
-    }
-
-    @Override
-    public ExportReference getExportReference() {
-        synchronized (this) {
-            if (_state == CLOSED) {
-                return null;
-            }
-
-            if (_state == ERROR) {
-                throw new IllegalStateException("The ExportRegistration associated with this ExportReference has failed", _exception);
-            }
-
-            return _exportReference;
-        }
-    }
-
-    @Override
-    public Throwable getException() {
-        synchronized (this) {
-        	if(_state == ERROR) {
-    			return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
-	    	}
-	    	return null;
-        }
-    }
-
-    /**
-     * Like {@link #getException()} except it continues to return the exception after
-     * close has been called
-     * @return
-     */
-    Throwable internalGetException() {
-    	synchronized (this) {
-        	if(_state == ERROR) {
-        			return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
-        	}
-        	return _exception;
-        }
+			_state = CLOSED;
+			if (_serviceTracker != null)
+				_serviceTracker.close();
+		}
 	}
 
-    @Override
+	@Override
+	public ExportReference getExportReference() {
+		synchronized (this) {
+			if (_state == CLOSED) {
+				return null;
+			}
+
+			if (_state == ERROR) {
+				throw new IllegalStateException(
+					"The ExportRegistration associated with this ExportReference has failed", _exception);
+			}
+
+			return _exportReference;
+		}
+	}
+
+	@Override
+	public Throwable getException() {
+		synchronized (this) {
+			if (_state == ERROR) {
+				return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
+			}
+			return null;
+		}
+	}
+
+	/**
+	 * Like {@link #getException()} except it continues to return the exception
+	 * after close has been called
+	 * 
+	 * @return
+	 */
+	Throwable internalGetException() {
+		synchronized (this) {
+			if (_state == ERROR) {
+				return _exception == null ? new ServiceException("An unknown error occurred", REMOTE) : _exception;
+			}
+			return _exception;
+		}
+	}
+
+	@Override
 	public EndpointDescription update(Map<String, ?> properties) {
-    	synchronized (this) {
-    		if (_state == CLOSED) {
-                return null;
-            }
+		synchronized (this) {
+			if (_state == CLOSED) {
+				return null;
+			}
 
-            if (_state == ERROR) {
-                LOG.info("Clearing exception {} on Export {} because it is being updated", _exception, this);
-                _exception = null;
-                _state = OPEN;
-            }
-            if(properties != null) {
-            	_extraProperties = properties;
-            }
+			if (_state == ERROR) {
+				LOG.info("Clearing exception {} on Export {} because it is being updated", _exception, this);
+				_exception = null;
+				_state = OPEN;
+			}
+			if (properties != null) {
+				_extraProperties = properties;
+			}
 
-            try {
-            	EndpointDescription ed = _rsa.updateExport(_sourceFramework, _serviceReference,
-            			_extraProperties, _id, _endpointDescription);
-            	if(ed != null) {
-            		_endpointDescription = ed;
-            	}
+			try {
+				EndpointDescription ed = _rsa.updateExport(_sourceFramework, _serviceReference, _extraProperties, _id,
+					_endpointDescription);
+				if (ed != null) {
+					_endpointDescription = ed;
+				}
 				return ed;
 			} catch (Exception e) {
 				LOG.error("Error updating service", e);
@@ -243,38 +251,39 @@ public class ExportRegistrationImpl implements ExportRegistration {
 				_exception = e;
 				return null;
 			}
-        }
+		}
 	}
 
 	@Override
-    public String toString() {
-        synchronized (this) {
-            StringBuilder b = new StringBuilder(200);
-            b.append("{");
-            b.append("serviceReference: " + _serviceReference);
-            b.append(", ");
-            b.append("endpointDescription: " + _endpointDescription);
-            b.append(", ");
-            b.append("exception: " + _exception);
-            b.append(", ");
-            b.append("state: " + _state);
-            b.append("}");
-            return b.toString();
-        }
-    }
-
-    private final class SimpleExportReference implements ExportReference {
-    	@Override
-		public EndpointDescription getExportedEndpoint() {
-		    synchronized (ExportRegistrationImpl.this) {
-		        return _state == CLOSED ? null : _endpointDescription;
-		    }
+	public String toString() {
+		synchronized (this) {
+			StringBuilder b = new StringBuilder(200);
+			b.append("{");
+			b.append("serviceReference: " + _serviceReference);
+			b.append(", ");
+			b.append("endpointDescription: " + _endpointDescription);
+			b.append(", ");
+			b.append("exception: " + _exception);
+			b.append(", ");
+			b.append("state: " + _state);
+			b.append("}");
+			return b.toString();
 		}
-    	@Override
+	}
+
+	private final class SimpleExportReference implements ExportReference {
+		@Override
+		public EndpointDescription getExportedEndpoint() {
+			synchronized (ExportRegistrationImpl.this) {
+				return _state == CLOSED ? null : _endpointDescription;
+			}
+		}
+
+		@Override
 		public ServiceReference<?> getExportedService() {
-		    synchronized (ExportRegistrationImpl.this) {
-		        return _state == CLOSED ? null : _serviceReference;
-		    }
+			synchronized (ExportRegistrationImpl.this) {
+				return _state == CLOSED ? null : _serviceReference;
+			}
 		}
 	}
 

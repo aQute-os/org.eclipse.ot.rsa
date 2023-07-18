@@ -140,8 +140,7 @@ public class ServiceInvoker {
 			toNettyFutureAdapter = PromiseFactory.toNettyFutureAdapter(promise);
 			fromNettyFutureAdapter = PromiseFactory.fromNettyFutureAdapter(promise, serverWorkers);
 		} catch (NoClassDefFoundError | Exception e) {
-			LOG.debug("Unable to integrate with promises for the remote service {}",
-				serviceId);
+			LOG.debug("Unable to integrate with promises for the remote service {}", serviceId);
 		}
 
 		this.nettyPromiseCreator = nettyPromiseCreator;

@@ -25,14 +25,14 @@ import io.netty.util.concurrent.Promise;
 
 class PushEventSourceImpl<T> implements PushEventSource<T> {
 
-	private final CacheKey key;
+	private final CacheKey				key;
 
-	private final OnConnect<T> onConnect;
-	private final Consumer<CacheKey> onClose;
-	private final EventExecutor executor;
+	private final OnConnect<T>			onConnect;
+	private final Consumer<CacheKey>	onClose;
+	private final EventExecutor			executor;
 
-	public PushEventSourceImpl(CacheKey key, OnConnect<T> onConnect,
-			Consumer<CacheKey> onClose, EventExecutor executor) {
+	public PushEventSourceImpl(CacheKey key, OnConnect<T> onConnect, Consumer<CacheKey> onClose,
+		EventExecutor executor) {
 		this.key = key;
 		this.onConnect = onConnect;
 		this.onClose = onClose;
@@ -45,31 +45,31 @@ class PushEventSourceImpl<T> implements PushEventSource<T> {
 		Promise<Object> closePromise = executor.newPromise();
 
 		onConnect.connect(key, executor, closePromise, t -> {
+			try {
+				return aec.accept(PushEvent.data(t));
+			} catch (Exception e) {
 				try {
-					return aec.accept(PushEvent.data(t));
-				} catch (Exception e) {
-					try {
-						aec.accept(PushEvent.error(e));
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-					} finally {
-						closePromise.trySuccess(null);
-					}
-				}
-				return -1;
-			}, t -> {
-				try {
-					aec.accept(t == null ? PushEvent.close() : PushEvent.error(t));
-				} catch (Exception e) {
-					try {
-						aec.accept(PushEvent.error(e));
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-					}
+					aec.accept(PushEvent.error(e));
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
 				} finally {
 					closePromise.trySuccess(null);
 				}
-			});
+			}
+			return -1;
+		}, t -> {
+			try {
+				aec.accept(t == null ? PushEvent.close() : PushEvent.error(t));
+			} catch (Exception e) {
+				try {
+					aec.accept(PushEvent.error(e));
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+				}
+			} finally {
+				closePromise.trySuccess(null);
+			}
+		});
 
 		return () -> {
 			onClose.accept(key);

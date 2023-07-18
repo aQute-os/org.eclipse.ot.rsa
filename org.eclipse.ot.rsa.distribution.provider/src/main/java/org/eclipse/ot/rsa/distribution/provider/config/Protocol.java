@@ -14,10 +14,12 @@ package org.eclipse.ot.rsa.distribution.provider.config;
 
 public enum Protocol {
 
-	TCP("ptcp", false), TCP_TLS("ptcps", true), TCP_CLIENT_AUTH("ptcpca", true);
+	TCP("ptcp", false),
+	TCP_TLS("ptcps", true),
+	TCP_CLIENT_AUTH("ptcpca", true);
 
-	private final boolean secure;
-	private final String uriScheme;
+	private final boolean	secure;
+	private final String	uriScheme;
 
 	private Protocol(String uriScheme, boolean secure) {
 		this.uriScheme = uriScheme;

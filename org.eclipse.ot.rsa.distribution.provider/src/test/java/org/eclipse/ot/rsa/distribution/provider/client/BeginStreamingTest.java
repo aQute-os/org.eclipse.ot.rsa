@@ -45,25 +45,25 @@ import io.netty.util.concurrent.Promise;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class BeginStreamingTest {
 
-	private static final Exception MARKER_EXCEPTION = new Exception("marker");
+	private static final Exception	MARKER_EXCEPTION	= new Exception("marker");
 
-	private final UUID serviceId = UUID.randomUUID();
+	private final UUID				serviceId			= UUID.randomUUID();
 
-	private final int callId = 42;
+	private final int				callId				= 42;
 
 	@Mock
-	Channel channel;
+	Channel							channel;
 
-	ChannelPromise promise;
-	ChannelPromise promise2;
+	ChannelPromise					promise;
+	ChannelPromise					promise2;
 
-	Promise<Void> closePromise = ImmediateEventExecutor.INSTANCE.newPromise();
+	Promise<Void>					closePromise		= ImmediateEventExecutor.INSTANCE.newPromise();
 
-	List<Object> data = new CopyOnWriteArrayList<>();
+	List<Object>					data				= new CopyOnWriteArrayList<>();
 
-	AtomicReference<Exception> failure = new AtomicReference<>(MARKER_EXCEPTION);
+	AtomicReference<Exception>		failure				= new AtomicReference<>(MARKER_EXCEPTION);
 
-	Serializer serializer;
+	Serializer						serializer;
 
 	@BeforeEach
 	public void setUp() {
@@ -75,8 +75,8 @@ public class BeginStreamingTest {
 
 	@Test
 	public void testOpenStream() {
-		BeginStreamingInvocation bsi = new BeginStreamingInvocation(serviceId, callId,
-				serializer, ImmediateEventExecutor.INSTANCE, data::add, failure::set, closePromise);
+		BeginStreamingInvocation bsi = new BeginStreamingInvocation(serviceId, callId, serializer,
+			ImmediateEventExecutor.INSTANCE, data::add, failure::set, closePromise);
 
 		ByteBuf buffer = Unpooled.buffer();
 

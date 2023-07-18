@@ -28,27 +28,26 @@ import io.netty.util.concurrent.Promise;
 
 abstract class AbstractPushEventConsumerImpl implements PushEventConsumer<Object>, DataStream {
 
-	protected final AtomicBoolean closed = new AtomicBoolean(false);
+	protected final AtomicBoolean			closed					= new AtomicBoolean(false);
 
-	long backPressureFutureTime = 0;
+	long									backPressureFutureTime	= 0;
 
-	protected final Promise<Void> closeFuture = ImmediateEventExecutor.INSTANCE.newPromise();
+	protected final Promise<Void>			closeFuture				= ImmediateEventExecutor.INSTANCE.newPromise();
 
-	private final ToLongFunction<Object> onData;
-	private final Consumer<Throwable> onTerminal;
+	private final ToLongFunction<Object>	onData;
+	private final Consumer<Throwable>		onTerminal;
 
-	public AbstractPushEventConsumerImpl(ToLongFunction<Object> onData,
-			Consumer<Throwable> onTerminal) {
+	public AbstractPushEventConsumerImpl(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal) {
 		this.onData = onData;
 		this.onTerminal = onTerminal;
 	}
 
 	@Override
 	public long accept(PushEvent<? extends Object> event) throws Exception {
-		if(event.isTerminal()) {
+		if (event.isTerminal()) {
 			terminalEvent(event);
 			return -1;
-		} else if(!closed.get()){
+		} else if (!closed.get()) {
 			long localBP = onData.applyAsLong(event.getData());
 			return localBP < 0 ? localBP : calculateBackPressure(localBP);
 		}
@@ -63,16 +62,17 @@ abstract class AbstractPushEventConsumerImpl implements PushEventConsumer<Object
 		}
 
 		long remoteBP;
-		if(remoteBPTime == 0) {
-			// A special value meaning we have never seen backpressure, or that it was reset
+		if (remoteBPTime == 0) {
+			// A special value meaning we have never seen backpressure, or that
+			// it was reset
 			// for the fast path
 			remoteBP = 0;
 		} else {
 			remoteBP = Math.max(0, TimeUnit.NANOSECONDS.toMillis(remoteBPTime - System.nanoTime()));
 			// If we have passed the threshold then reset to zero
-			if(remoteBP == 0) {
+			if (remoteBP == 0) {
 				synchronized (this) {
-					if(backPressureFutureTime == remoteBPTime) {
+					if (backPressureFutureTime == remoteBPTime) {
 						backPressureFutureTime = 0;
 					}
 				}
@@ -83,13 +83,12 @@ abstract class AbstractPushEventConsumerImpl implements PushEventConsumer<Object
 	}
 
 	protected void terminalEvent(PushEvent<? extends Object> event) {
-		if(event.getType() == EventType.CLOSE) {
+		if (event.getType() == EventType.CLOSE) {
 			onTerminal.accept(null);
 		} else if (event.getType() == EventType.ERROR) {
 			onTerminal.accept(event.getFailure());
 		} else {
-			onTerminal.accept(new IllegalArgumentException(
-					"Received an unknown event type " + event.getType()));
+			onTerminal.accept(new IllegalArgumentException("Received an unknown event type " + event.getType()));
 		}
 	}
 

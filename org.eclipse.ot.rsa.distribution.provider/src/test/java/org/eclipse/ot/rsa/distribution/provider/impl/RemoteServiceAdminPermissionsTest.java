@@ -73,299 +73,315 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class RemoteServiceAdminPermissionsTest {
 
-    @Mock
-    private Framework _framework, _childFramework;
+	@Mock
+	private Framework					_framework, _childFramework;
 
-    @Mock
-    private Bundle _proxyBundle;
-    @Mock
-    private BundleContext _frameworkContext, _childFrameworkContext, _proxyContext;
-    @Mock
-    private Filter _filter;
+	@Mock
+	private Bundle						_proxyBundle;
+	@Mock
+	private BundleContext				_frameworkContext, _childFrameworkContext, _proxyContext;
+	@Mock
+	private Filter						_filter;
 
-    @Mock
-    RemoteServiceAdminEventPublisher _publisher;
-    @Mock
-    RemotingProvider _insecureProvider, _secureProvider;
-    @Mock
-    ClientConnectionManager _clientConnectionManager;
-    @Mock
-    ProxyHostBundleFactory _proxyHostBundleFactory;
+	@Mock
+	RemoteServiceAdminEventPublisher	_publisher;
+	@Mock
+	RemotingProvider					_insecureProvider, _secureProvider;
+	@Mock
+	ClientConnectionManager				_clientConnectionManager;
+	@Mock
+	ProxyHostBundleFactory				_proxyHostBundleFactory;
 
-    EventExecutorGroup _serverWorkers = ImmediateEventExecutor.INSTANCE;
+	EventExecutorGroup					_serverWorkers	= ImmediateEventExecutor.INSTANCE;
 
-    EventExecutorGroup _clientWorkers = ImmediateEventExecutor.INSTANCE;
-    @Mock
-    Timer _timer;
+	EventExecutorGroup					_clientWorkers	= ImmediateEventExecutor.INSTANCE;
+	@Mock
+	Timer								_timer;
 
-    @Mock
-    RemoteServiceAdminFactoryImpl _factory;
+	@Mock
+	RemoteServiceAdminFactoryImpl		_factory;
 
-    private RemoteServiceAdminImpl _rsa;
+	private RemoteServiceAdminImpl		_rsa;
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        when(_framework.getBundleContext()).thenReturn(_frameworkContext);
-        when(_frameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(new UUID(123, 456).toString());
-        when(_childFramework.getBundleContext()).thenReturn(_childFrameworkContext);
-        when(_childFrameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(new UUID(345, 678).toString());
+	@BeforeEach
+	public void setUp() throws Exception {
+		when(_framework.getBundleContext()).thenReturn(_frameworkContext);
+		when(_frameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(new UUID(123, 456).toString());
+		when(_childFramework.getBundleContext()).thenReturn(_childFrameworkContext);
+		when(_childFrameworkContext.getProperty(FRAMEWORK_UUID)).thenReturn(new UUID(345, 678).toString());
 
-        when(_insecureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(singleton(new URI("ptcp://127.0.0.1:1234")));
-        when(_secureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Collections.singleton(new URI("ptcp://127.0.0.1:1235")));
+		when(_insecureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(singleton(new URI("ptcp://127.0.0.1:1234")));
+		when(_secureProvider.registerService(ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(Collections.singleton(new URI("ptcp://127.0.0.1:1235")));
 
-        // misc. RSA internals
+		// misc. RSA internals
 
-        _rsa = new RemoteServiceAdminImpl(_factory, _framework, _publisher, asList(_insecureProvider, _secureProvider),
-        		_clientConnectionManager, Collections.singletonList("asyncInvocation"), _proxyHostBundleFactory,
-        		_serverWorkers, _clientWorkers, _timer, Converters.standardConverter().convert(
-        				Collections.emptyMap()).to(TransportConfig.class));
+		_rsa = new RemoteServiceAdminImpl(_factory, _framework, _publisher, asList(_insecureProvider, _secureProvider),
+			_clientConnectionManager, Collections.singletonList("asyncInvocation"), _proxyHostBundleFactory,
+			_serverWorkers, _clientWorkers, _timer, Converters.standardConverter().convert(
+				Collections.emptyMap()).to(TransportConfig.class));
 
-        Mockito.when(_factory.getRemoteServiceAdmins()).thenReturn(Collections.singletonList(_rsa));
-    }
+		Mockito.when(_factory.getRemoteServiceAdmins()).thenReturn(Collections.singletonList(_rsa));
+	}
 
-    @Test
-    public void testNoExportWithSecurityException() {
-        ServiceReference<?> sref = mock(ServiceReference.class);
+	@Test
+	public void testNoExportWithSecurityException() {
+		ServiceReference<?> sref = mock(ServiceReference.class);
 
-        try {
-            // install failing SecurityManager
-            System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-            // try to export service
-            Collection<ExportRegistration> exregs = _rsa.exportService(sref, null);
+			// try to export service
+			Collection<ExportRegistration> exregs = _rsa.exportService(sref, null);
 
-            // returned ExportRegistration collection must not be null or empty
-            assertNotNull(exregs);
-            assertEquals(1, exregs.size());
+			// returned ExportRegistration collection must not be null or empty
+			assertNotNull(exregs);
+			assertEquals(1, exregs.size());
 
-            // one ExportRegistration must have been returned
-            ExportRegistration exreg = exregs.iterator().next();
-            assertNotNull(exreg);
+			// one ExportRegistration must have been returned
+			ExportRegistration exreg = exregs.iterator()
+				.next();
+			assertNotNull(exreg);
 
-            // ExportRegistration must have an exception
-            Throwable t = exreg.getException();
-            assertNotNull(t);
-            assertTrue(t instanceof SecurityException, t.getClass().toString());
-            assertTrue(t.getMessage().contains("export"), t.getMessage());
-        }
-        catch (SecurityException s) {
-            fail("must not have propagated: " + s.getMessage());
-        }
-        finally {
-            // get rid of security again
-            System.setSecurityManager(null);
-        }
+			// ExportRegistration must have an exception
+			Throwable t = exreg.getException();
+			assertNotNull(t);
+			assertTrue(t instanceof SecurityException, t.getClass()
+				.toString());
+			assertTrue(t.getMessage()
+				.contains("export"), t.getMessage());
+		} catch (SecurityException s) {
+			fail("must not have propagated: " + s.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-        // service must not be exported
-        assertEquals(0, _rsa.getExportedServices().size());
-    }
+		// service must not be exported
+		assertEquals(0, _rsa.getExportedServices()
+			.size());
+	}
 
-    @Test
-    public void testNoExportWithChildSecurityException() {
-    	ServiceReference<?> sref = mock(ServiceReference.class);
+	@Test
+	public void testNoExportWithChildSecurityException() {
+		ServiceReference<?> sref = mock(ServiceReference.class);
 
-    	try {
-    		// install failing SecurityManager
-    		System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-    		// try to export service
-    		Collection<ExportRegistration> exregs = _rsa.exportService(_childFramework, sref, null);
+			// try to export service
+			Collection<ExportRegistration> exregs = _rsa.exportService(_childFramework, sref, null);
 
-    		// returned ExportRegistration collection must not be null or empty
-    		assertNotNull(exregs);
-    		assertEquals(1, exregs.size());
+			// returned ExportRegistration collection must not be null or empty
+			assertNotNull(exregs);
+			assertEquals(1, exregs.size());
 
-    		// one ExportRegistration must have been returned
-    		ExportRegistration exreg = exregs.iterator().next();
-    		assertNotNull(exreg);
+			// one ExportRegistration must have been returned
+			ExportRegistration exreg = exregs.iterator()
+				.next();
+			assertNotNull(exreg);
 
-    		// ExportRegistration must have an exception
-    		Throwable t = exreg.getException();
-    		assertNotNull(t);
-    		assertTrue(t instanceof SecurityException, t.getClass().toString());
-    		assertTrue(t.getMessage().contains("export"), t.getMessage());
-    	}
-    	catch (SecurityException s) {
-    		fail("must not have propagated: " + s.getMessage());
-    	}
-    	finally {
-    		// get rid of security again
-    		System.setSecurityManager(null);
-    	}
+			// ExportRegistration must have an exception
+			Throwable t = exreg.getException();
+			assertNotNull(t);
+			assertTrue(t instanceof SecurityException, t.getClass()
+				.toString());
+			assertTrue(t.getMessage()
+				.contains("export"), t.getMessage());
+		} catch (SecurityException s) {
+			fail("must not have propagated: " + s.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-    	// service must not be exported
-    	assertEquals(0, _rsa.getExportedServices().size());
-    }
+		// service must not be exported
+		assertEquals(0, _rsa.getExportedServices()
+			.size());
+	}
 
-    @Test
-    public void testNoImportWithSecurityException() {
-        try {
-            // install failing SecurityManager
-            System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+	@Test
+	public void testNoImportWithSecurityException() {
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-            // try to import endpoint
-            _rsa.importService(createEndpoint());
-            fail("expected SecurityException");
-        }
-        catch (SecurityException t) {
-        	assertTrue(t.getMessage().contains("import"), t.getMessage());
-        }
-        finally {
-            // get rid of security again
-            System.setSecurityManager(null);
-        }
+			// try to import endpoint
+			_rsa.importService(createEndpoint());
+			fail("expected SecurityException");
+		} catch (SecurityException t) {
+			assertTrue(t.getMessage()
+				.contains("import"), t.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-        // endpoint must not be imported
-        assertEquals(0, _rsa.getImportedEndpoints().size());
-    }
+		// endpoint must not be imported
+		assertEquals(0, _rsa.getImportedEndpoints()
+			.size());
+	}
 
-    @Test
-    public void testNoChildImportWithSecurityException() {
-    	try {
-    		// install failing SecurityManager
-    		System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+	@Test
+	public void testNoChildImportWithSecurityException() {
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-    		// try to import endpoint
-    		_rsa.importService(_childFramework, createEndpoint());
-    		fail("expected SecurityException");
-    	}
-    	catch (SecurityException t) {
-    		assertTrue(t.getMessage().contains("import"), t.getMessage());
-    	}
-    	finally {
-    		// get rid of security again
-    		System.setSecurityManager(null);
-    	}
+			// try to import endpoint
+			_rsa.importService(_childFramework, createEndpoint());
+			fail("expected SecurityException");
+		} catch (SecurityException t) {
+			assertTrue(t.getMessage()
+				.contains("import"), t.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-    	// endpoint must not be imported
-    	assertEquals(0, _rsa.getImportedEndpoints().size());
-    }
+		// endpoint must not be imported
+		assertEquals(0, _rsa.getImportedEndpoints()
+			.size());
+	}
 
-    @Test
-    public void getExportedServicesWithSecurityException() throws Exception {
-        String serviceObject = "HelloWorld";
+	@Test
+	public void getExportedServicesWithSecurityException() throws Exception {
+		String serviceObject = "HelloWorld";
 
-        Bundle serviceBundle = mock(Bundle.class);
-        BundleContext serviceContext = mock(BundleContext.class);
-        BundleWiring serviceWiring = mock(BundleWiring.class);
+		Bundle serviceBundle = mock(Bundle.class);
+		BundleContext serviceContext = mock(BundleContext.class);
+		BundleWiring serviceWiring = mock(BundleWiring.class);
 
-        when(serviceBundle.getBundleContext()).thenReturn(serviceContext);
-        when(serviceBundle.adapt(BundleWiring.class)).thenReturn(serviceWiring);
+		when(serviceBundle.getBundleContext()).thenReturn(serviceContext);
+		when(serviceBundle.adapt(BundleWiring.class)).thenReturn(serviceWiring);
 
-        @SuppressWarnings("unchecked")
+		@SuppressWarnings("unchecked")
 		ServiceReference<String> sref = mock(ServiceReference.class);
 
-        when(serviceContext.getService(eq(sref))).thenReturn(serviceObject);
+		when(serviceContext.getService(eq(sref))).thenReturn(serviceObject);
 
-        when(sref.getBundle()).thenReturn(serviceBundle);
-        when(sref.getProperty(same(Constants.OBJECTCLASS))).thenReturn(new String[]{"java.lang.String"});
+		when(sref.getBundle()).thenReturn(serviceBundle);
+		when(sref.getProperty(same(Constants.OBJECTCLASS))).thenReturn(new String[] {
+			"java.lang.String"
+		});
 
-        when(sref.getProperty(same(RemoteConstants.SERVICE_EXPORTED_INTERFACES))).thenReturn("*");
-        when(sref.getProperty(same(Constants.SERVICE_ID))).thenReturn(1L);
-        when(sref.getPropertyKeys()).thenReturn(
-            new String[]{Constants.OBJECTCLASS, RemoteConstants.SERVICE_EXPORTED_INTERFACES});
+		when(sref.getProperty(same(RemoteConstants.SERVICE_EXPORTED_INTERFACES))).thenReturn("*");
+		when(sref.getProperty(same(Constants.SERVICE_ID))).thenReturn(1L);
+		when(sref.getPropertyKeys()).thenReturn(new String[] {
+			Constants.OBJECTCLASS, RemoteConstants.SERVICE_EXPORTED_INTERFACES
+		});
 
-        // export a service without security
-        _rsa.exportService(sref, null);
-        assertEquals(1, _rsa.getExportedServices().size());
+		// export a service without security
+		_rsa.exportService(sref, null);
+		assertEquals(1, _rsa.getExportedServices()
+			.size());
 
-        try {
-            // install failing SecurityManager
-            System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-            // try to get export services
-            Collection<ExportReference> exrefs = _rsa.getExportedServices();
+			// try to get export services
+			Collection<ExportReference> exrefs = _rsa.getExportedServices();
 
-            // returned ExportReferences collection must not be null, but empty
-            assertNotNull(exrefs);
-            assertEquals(0, exrefs.size());
-        }
-        catch (SecurityException se) {
-            fail("must not have propagated: " + se.getMessage());
-        }
-        finally {
-            // get rid of security again
-            System.setSecurityManager(null);
-        }
+			// returned ExportReferences collection must not be null, but empty
+			assertNotNull(exrefs);
+			assertEquals(0, exrefs.size());
+		} catch (SecurityException se) {
+			fail("must not have propagated: " + se.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-        // try again without security: returned collection must not be empty
-        assertEquals(1, _rsa.getExportedServices().size());
-    }
+		// try again without security: returned collection must not be empty
+		assertEquals(1, _rsa.getExportedServices()
+			.size());
+	}
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({
+		"rawtypes", "unchecked"
+	})
 	@Test
-    public void getImportedEndpointsWithSecurityException() {
+	public void getImportedEndpointsWithSecurityException() {
 
-    	Channel channel = Mockito.mock(Channel.class);
+		Channel channel = Mockito.mock(Channel.class);
 
-    	ServiceRegistration reg = Mockito.mock(ServiceRegistration.class);
-    	ServiceReference ref = Mockito.mock(ServiceReference.class);
+		ServiceRegistration reg = Mockito.mock(ServiceRegistration.class);
+		ServiceReference ref = Mockito.mock(ServiceReference.class);
 
-    	Mockito.when(_proxyHostBundleFactory.getProxyBundle(_framework)).thenReturn(_proxyBundle);
-    	Mockito.when(_proxyBundle.getBundleContext()).thenReturn(_proxyContext);
-    	Mockito.when(_clientConnectionManager.getChannelFor(ArgumentMatchers.any(), ArgumentMatchers.any())).
-    		thenReturn(channel);
-    	Mockito.when(_proxyContext.registerService(ArgumentMatchers.any(String[].class), ArgumentMatchers.any(), ArgumentMatchers.any()))
-    		.thenReturn(reg);
-    	Mockito.when(reg.getReference()).thenReturn(ref);
-    	Mockito.when(ref.getProperty(Constants.SERVICE_ID)).thenReturn(1234L);
+		Mockito.when(_proxyHostBundleFactory.getProxyBundle(_framework))
+			.thenReturn(_proxyBundle);
+		Mockito.when(_proxyBundle.getBundleContext())
+			.thenReturn(_proxyContext);
+		Mockito.when(_clientConnectionManager.getChannelFor(ArgumentMatchers.any(), ArgumentMatchers.any()))
+			.thenReturn(channel);
+		Mockito
+			.when(_proxyContext.registerService(ArgumentMatchers.any(String[].class), ArgumentMatchers.any(),
+				ArgumentMatchers.any()))
+			.thenReturn(reg);
+		Mockito.when(reg.getReference())
+			.thenReturn(ref);
+		Mockito.when(ref.getProperty(Constants.SERVICE_ID))
+			.thenReturn(1234L);
 
-        // import an endpoint
-        assertNotNull(_rsa.importService(createEndpoint()));
-        assertEquals(1, _rsa.getImportedEndpoints().size());
+		// import an endpoint
+		assertNotNull(_rsa.importService(createEndpoint()));
+		assertEquals(1, _rsa.getImportedEndpoints()
+			.size());
 
-        try {
-            // install failing SecurityManager
-            System.setSecurityManager(new NoEndpointPermissionSecurityManager());
+		try {
+			// install failing SecurityManager
+			System.setSecurityManager(new NoEndpointPermissionSecurityManager());
 
-            // returned collection must not be null, but empty
-            Collection<ImportReference> irefs = _rsa.getImportedEndpoints();
-            assertNotNull(irefs);
-            assertEquals(0, irefs.size());
-        }
-        catch (SecurityException se) {
-            fail("must not have propagated: " + se.getMessage());
-        }
-        finally {
-            // get rid of security again
-            System.setSecurityManager(null);
-        }
+			// returned collection must not be null, but empty
+			Collection<ImportReference> irefs = _rsa.getImportedEndpoints();
+			assertNotNull(irefs);
+			assertEquals(0, irefs.size());
+		} catch (SecurityException se) {
+			fail("must not have propagated: " + se.getMessage());
+		} finally {
+			// get rid of security again
+			System.setSecurityManager(null);
+		}
 
-        // try again without security: returned collection must not be empty
-        Collection<ImportReference> irefs = _rsa.getImportedEndpoints();
-        assertNotNull(irefs);
-        assertEquals(1, irefs.size());
-    }
+		// try again without security: returned collection must not be empty
+		Collection<ImportReference> irefs = _rsa.getImportedEndpoints();
+		assertNotNull(irefs);
+		assertEquals(1, irefs.size());
+	}
 
-    private EndpointDescription createEndpoint() {
-        Map<String, Object> p = new HashMap<>();
-        p.put(RemoteConstants.ENDPOINT_ID, new UUID(42, 42).toString());
-        p.put(Constants.OBJECTCLASS, new String[]{"my.class"});
+	private EndpointDescription createEndpoint() {
+		Map<String, Object> p = new HashMap<>();
+		p.put(RemoteConstants.ENDPOINT_ID, new UUID(42, 42).toString());
+		p.put(Constants.OBJECTCLASS, new String[] {
+			"my.class"
+		});
 		p.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE);
-        p.put(RSAConstants.DISTRIBUTION_CONFIG_METHODS, emptyList());
+		p.put(RSAConstants.DISTRIBUTION_CONFIG_METHODS, emptyList());
 		p.put(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE, singletonList(URI.create("ptcp://127.0.0.1:1234")));
-        return new EndpointDescription(p);
-    }
+		return new EndpointDescription(p);
+	}
 
-    private static class NoEndpointPermissionSecurityManager extends SecurityManager {
+	private static class NoEndpointPermissionSecurityManager extends SecurityManager {
 
-        @Override
-        public void checkPermission(Permission perm) {
-            // only fail EndpointPermissions
-        	if(perm instanceof FilePermission) {
-        		//We may be loading the EndpointPermission class - say yes!
-        		return;
-        	} else if (perm instanceof EndpointPermission) {
-                EndpointPermission epp = (EndpointPermission)perm;
-                throw new SecurityException(epp.getName() + " is not allowed: [" + epp.getActions() + "]");
-            }
-        }
+		@Override
+		public void checkPermission(Permission perm) {
+			// only fail EndpointPermissions
+			if (perm instanceof FilePermission) {
+				// We may be loading the EndpointPermission class - say yes!
+				return;
+			} else if (perm instanceof EndpointPermission) {
+				EndpointPermission epp = (EndpointPermission) perm;
+				throw new SecurityException(epp.getName() + " is not allowed: [" + epp.getActions() + "]");
+			}
+		}
 
-        @Override
-        public void checkSecurityAccess(String target) {
-            // disable all checks
-        }
+		@Override
+		public void checkSecurityAccess(String target) {
+			// disable all checks
+		}
 
-    }
+	}
 
 }

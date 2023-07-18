@@ -21,65 +21,68 @@ import java.lang.reflect.Field;
 class Unsafe implements Accessor {
 	static final sun.misc.Unsafe unsafe;
 
-    static {
-        try {
-            Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-            field.setAccessible(true);
-            unsafe = (sun.misc.Unsafe)field.get(null);
-        }
-        catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
+	static {
+		try {
+			Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+			field.setAccessible(true);
+			unsafe = (sun.misc.Unsafe) field.get(null);
+		} catch (Exception e) {
+			throw new AssertionError(e);
+		}
+	}
 
-    /* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see org.freshvanilla.lang.misc.Accessor#newInstance(java.lang.Class)
 	 */
 	@Override
 	public <T> T newInstance(Class<T> clazz) throws InstantiationException {
-        return unsafe.allocateInstance(clazz);
-    }
+		return unsafe.allocateInstance(clazz);
+	}
 
-    /* (non-Javadoc)
-	 * @see org.freshvanilla.lang.misc.Accessor#getFieldAccessor(java.lang.reflect.Field)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.freshvanilla.lang.misc.Accessor#getFieldAccessor(java.lang.reflect.
+	 * Field)
 	 */
-    @Override
+	@Override
 	public FieldAccessor<?> getFieldAccessor(Field field) {
-        Class<?> type = field.getType();
-        final long offset = unsafe.objectFieldOffset(field);
+		Class<?> type = field.getType();
+		final long offset = unsafe.objectFieldOffset(field);
 
-        if (type == boolean.class) {
-            return new UnsafeBooleanFieldAccessor(offset);
-        }
+		if (type == boolean.class) {
+			return new UnsafeBooleanFieldAccessor(offset);
+		}
 
-        if (type == byte.class) {
-            return new UnsafeByteFieldAccessor(offset);
-        }
+		if (type == byte.class) {
+			return new UnsafeByteFieldAccessor(offset);
+		}
 
-        if (type == char.class) {
-            return new UnsafeCharFieldAccessor(offset);
-        }
+		if (type == char.class) {
+			return new UnsafeCharFieldAccessor(offset);
+		}
 
-        if (type == short.class) {
-            return new UnsafeShortFieldAccessor(offset);
-        }
+		if (type == short.class) {
+			return new UnsafeShortFieldAccessor(offset);
+		}
 
-        if (type == int.class) {
-            return new UnsafeIntFieldAccessor(offset);
-        }
+		if (type == int.class) {
+			return new UnsafeIntFieldAccessor(offset);
+		}
 
-        if (type == float.class) {
-            return new UnsafeFloatFieldAccessor(offset);
-        }
+		if (type == float.class) {
+			return new UnsafeFloatFieldAccessor(offset);
+		}
 
-        if (type == long.class) {
-            return new UnsafeLongFieldAccessor(offset);
-        }
+		if (type == long.class) {
+			return new UnsafeLongFieldAccessor(offset);
+		}
 
-        if (type == double.class) {
-            return new UnsafeDoubleFieldAccessor(offset);
-        }
+		if (type == double.class) {
+			return new UnsafeDoubleFieldAccessor(offset);
+		}
 
-        return new UnsafeObjectFieldAccessor(offset);
-    }
+		return new UnsafeObjectFieldAccessor(offset);
+	}
 }

@@ -13,7 +13,13 @@
 package org.eclipse.ot.rsa.distribution.test.fabric.v2.dto;
 
 public enum Status {
-	UNKNOWN, VALID, WARNING, ERROR, CRITICAL, DISABLED, DELETED;
+	UNKNOWN,
+	VALID,
+	WARNING,
+	ERROR,
+	CRITICAL,
+	DISABLED,
+	DELETED;
 
 	public Status escalate(Status next) {
 		if (next.compareTo(this) > 0)

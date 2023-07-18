@@ -39,9 +39,8 @@ public class ConsumerImpl {
 	final BundleContext			context;
 
 	@Activate
-	public ConsumerImpl(
-			@Reference ConfigurationAdmin cm,
-			BundleContext context) throws IOException {
+	public ConsumerImpl(@Reference
+	ConfigurationAdmin cm, BundleContext context) throws IOException {
 		this.cm = cm;
 		this.context = context;
 

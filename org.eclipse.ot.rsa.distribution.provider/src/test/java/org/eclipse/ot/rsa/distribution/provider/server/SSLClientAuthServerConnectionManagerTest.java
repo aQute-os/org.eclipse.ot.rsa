@@ -34,8 +34,7 @@ public class SSLClientAuthServerConnectionManagerTest extends AbstractSSLServerC
 	@Override
 	protected SSLEngine getConfiguredSSLEngine() throws NoSuchAlgorithmException, KeyManagementException {
 		SSLContext context = SSLContext.getInstance("TLSv1.2");
-		context.init(keyManagerFactory.getKeyManagers(),
-				trustManagerFactory.getTrustManagers(), new SecureRandom());
+		context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
 
 		SSLEngine sslEngine = context.createSSLEngine();
 		sslEngine.setUseClientMode(true);

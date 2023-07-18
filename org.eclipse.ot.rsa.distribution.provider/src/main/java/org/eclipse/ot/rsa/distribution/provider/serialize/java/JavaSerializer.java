@@ -57,8 +57,7 @@ public class JavaSerializer implements Serializer {
 	public Object deserializeReturn(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteBufInputStream(buffer)) {
 			@Override
-			protected Class<?> resolveClass(ObjectStreamClass arg0)
-					throws IOException, ClassNotFoundException {
+			protected Class<?> resolveClass(ObjectStreamClass arg0) throws IOException, ClassNotFoundException {
 				return classSpace.loadClass(arg0.getName());
 			}
 		}) {

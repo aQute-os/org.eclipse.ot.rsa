@@ -21,8 +21,7 @@ public enum Action {
 	 */
 	ADDED,
 	/**
-	 * The properties stored by the member have
-	 * been updated
+	 * The properties stored by the member have been updated
 	 */
 	UPDATED,
 	/**

@@ -56,33 +56,35 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
-	private static final Logger logger = LoggerFactory.getLogger(ManagedServiceFactoryImpl.class);
+	private static final Logger																				logger			= LoggerFactory
+		.getLogger(ManagedServiceFactoryImpl.class);
 
-	private final BundleContext context;
+	private final BundleContext																				context;
 
-	private final Timer timer;
+	private final Timer																						timer;
 
-	private final EventLoopGroup serverIo;
+	private final EventLoopGroup																			serverIo;
 
-	private final EventLoopGroup clientIo;
+	private final EventLoopGroup																			clientIo;
 
-	private final EventExecutorGroup serverWorkers;
+	private final EventExecutorGroup																		serverWorkers;
 
-	private final EventExecutorGroup clientWorkers;
+	private final EventExecutorGroup																		clientWorkers;
 
-	private final ByteBufAllocator allocator;
+	private final ByteBufAllocator																			allocator;
 
-	private final ConcurrentHashMap<String, ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>> trackers = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>>				trackers		= new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<String, RemoteServiceAdminFactoryImpl> rsas = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<RemoteServiceAdminFactoryImpl, ServiceRegistration<?>> registrations = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, RemoteServiceAdminFactoryImpl>									rsas			= new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<RemoteServiceAdminFactoryImpl, ServiceRegistration<?>>					registrations	= new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<ServiceReference<ParemusNettyTLS>, List<RemoteServiceAdminFactoryImpl>> usedBy = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<ServiceReference<ParemusNettyTLS>, List<RemoteServiceAdminFactoryImpl>>	usedBy			= new ConcurrentHashMap<>();
 
-	private volatile boolean open = true;
+	private volatile boolean																				open			= true;
 
-	public ManagedServiceFactoryImpl(BundleContext context, Timer timer, EventLoopGroup serverIo, EventLoopGroup clientIo,
-			EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, ByteBufAllocator allocator) {
+	public ManagedServiceFactoryImpl(BundleContext context, Timer timer, EventLoopGroup serverIo,
+		EventLoopGroup clientIo, EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers,
+		ByteBufAllocator allocator) {
 		this.context = context;
 		this.timer = timer;
 		this.serverIo = serverIo;
@@ -102,19 +104,21 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
 		deleted(pid);
 
-		if(!open) {
+		if (!open) {
 			return;
 		}
 
 		TransportConfig config;
 		try {
-			config = Converters.standardConverter().convert(toMap(properties)).to(TransportConfig.class);
+			config = Converters.standardConverter()
+				.convert(toMap(properties))
+				.to(TransportConfig.class);
 		} catch (Exception e) {
 			logger.error("Unable to process the configuration for pid {}", pid, e);
 			throw new ConfigurationException(null, e.getMessage());
 		}
 
-		if(config.server_protocols().length == 0 && config.client_protocols().length == 0) {
+		if (config.server_protocols().length == 0 && config.client_protocols().length == 0) {
 			logger.info("The pid {} defines no RSA transports, so no RSA will be created", pid);
 			return;
 		}
@@ -122,7 +126,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 		String filter = config.encoding_scheme_target();
 
 		Predicate<ServiceReference<ParemusNettyTLS>> selector;
-		if(filter.isEmpty()) {
+		if (filter.isEmpty()) {
 			selector = r -> true;
 		} else {
 			Filter f;
@@ -136,116 +140,117 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			selector = r -> f.match(r);
 		}
 
-		ServiceTracker<ParemusNettyTLS, ParemusNettyTLS> tracker = new ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>(context, ParemusNettyTLS.class, null) {
-				@Override
-				public ParemusNettyTLS addingService(ServiceReference<ParemusNettyTLS> reference) {
-					ParemusNettyTLS esf = super.addingService(reference);
+		ServiceTracker<ParemusNettyTLS, ParemusNettyTLS> tracker = new ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>(
+			context, ParemusNettyTLS.class, null) {
+			@Override
+			public ParemusNettyTLS addingService(ServiceReference<ParemusNettyTLS> reference) {
+				ParemusNettyTLS esf = super.addingService(reference);
 
-					if(esf != null && selector.test(reference) && !rsas.containsKey(pid)) {
-						setup(reference, esf, config);
-					}
-
-					return esf;
+				if (esf != null && selector.test(reference) && !rsas.containsKey(pid)) {
+					setup(reference, esf, config);
 				}
 
-				private boolean setup(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS esf, TransportConfig cfg) {
-					RemoteServiceAdminFactoryImpl newRSA;
-					try {
-						newRSA = new RemoteServiceAdminFactoryImpl(context,config, esf, allocator, serverIo,
-								clientIo, serverWorkers, clientWorkers, timer);
-					} catch (IllegalArgumentException iae) {
-						logger.error("The RSA could not be created with encoding scheme {}", reference, iae);
-						return false;
+				return esf;
+			}
+
+			private boolean setup(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS esf,
+				TransportConfig cfg) {
+				RemoteServiceAdminFactoryImpl newRSA;
+				try {
+					newRSA = new RemoteServiceAdminFactoryImpl(context, config, esf, allocator, serverIo, clientIo,
+						serverWorkers, clientWorkers, timer);
+				} catch (IllegalArgumentException iae) {
+					logger.error("The RSA could not be created with encoding scheme {}", reference, iae);
+					return false;
+				}
+
+				rsas.put(pid, newRSA);
+				usedBy.compute(reference,
+					(k, v) -> v == null ? singletonList(newRSA) : concat(v.stream(), of(newRSA)).collect(toList()));
+
+				Hashtable<String, Object> props = new Hashtable<>();
+
+				Enumeration<String> keys = properties.keys();
+
+				while (keys.hasMoreElements()) {
+					String key = keys.nextElement();
+					if (!key.startsWith(".")) {
+						props.put(key, properties.get(key));
 					}
+				}
 
-					rsas.put(pid, newRSA);
-					usedBy.compute(reference, (k,v) -> v == null ? singletonList(newRSA) :
-								concat(v.stream(), of(newRSA)).collect(toList()));
-
-					Hashtable<String, Object> props = new Hashtable<>();
-
-					Enumeration<String> keys = properties.keys();
-
-					while(keys.hasMoreElements()) {
-						String key = keys.nextElement();
-						if(!key.startsWith(".")) {
-							props.put(key, properties.get(key));
-						}
-					}
-
-					props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, newRSA.getSupportedIntents());
+				props.put(RemoteConstants.REMOTE_INTENTS_SUPPORTED, newRSA.getSupportedIntents());
 				props.put(RemoteConstants.REMOTE_CONFIGS_SUPPORTED,
 					Collections.singletonList(RSAConstants.DISTRIBUTION_CONFIGURATION_TYPE));
 
-					ServiceRegistration<?> newRSAReg = context.registerService(new String[] {
-							RemoteServiceAdmin.class.getName(), MultiFrameworkRemoteServiceAdmin.class.getName()},
-							newRSA, props);
+				ServiceRegistration<?> newRSAReg = context.registerService(new String[] {
+					RemoteServiceAdmin.class.getName(), MultiFrameworkRemoteServiceAdmin.class.getName()
+				}, newRSA, props);
 
-					registrations.put(newRSA, newRSAReg);
-					return true;
-				}
+				registrations.put(newRSA, newRSAReg);
+				return true;
+			}
 
-				@Override
-				public void modifiedService(ServiceReference<ParemusNettyTLS> reference,
-						ParemusNettyTLS service) {
-					if(!selector.test(reference)) {
-						removeAndAdd(reference);
-					}
-				}
-
-				private void removeAndAdd(ServiceReference<ParemusNettyTLS> reference) {
-					RemoteServiceAdminFactoryImpl rsa = rsas.get(pid);
-					if(rsa != null) {
-						if(usedBy.getOrDefault(reference, emptyList()).contains(rsa)) {
-
-							usedBy.compute(reference, (k,v) -> {
-									List<RemoteServiceAdminFactoryImpl> l = v == null ? emptyList() :
-										new ArrayList<>(v);
-									l.remove(rsa);
-									return l.isEmpty() ? null : l;
-								});
-							rsas.remove(pid, rsa);
-
-							ServiceRegistration<?> reg = registrations.remove(rsa);
-
-							if(reg != null) {
-								try {
-									reg.unregister();
-								} catch (IllegalStateException ise) {
-									// No matter
-								}
-							}
-
-							rsa.close();
-						} else {
-							return;
-						}
-					}
-					getTracked().entrySet().stream()
-						.filter(e -> setup(e.getKey(), e.getValue(), config))
-						.findFirst();
-				}
-
-				@Override
-				public void removedService(ServiceReference<ParemusNettyTLS> reference,
-						ParemusNettyTLS service) {
+			@Override
+			public void modifiedService(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS service) {
+				if (!selector.test(reference)) {
 					removeAndAdd(reference);
-					super.removedService(reference, service);
 				}
-			};
+			}
+
+			private void removeAndAdd(ServiceReference<ParemusNettyTLS> reference) {
+				RemoteServiceAdminFactoryImpl rsa = rsas.get(pid);
+				if (rsa != null) {
+					if (usedBy.getOrDefault(reference, emptyList())
+						.contains(rsa)) {
+
+						usedBy.compute(reference, (k, v) -> {
+							List<RemoteServiceAdminFactoryImpl> l = v == null ? emptyList() : new ArrayList<>(v);
+							l.remove(rsa);
+							return l.isEmpty() ? null : l;
+						});
+						rsas.remove(pid, rsa);
+
+						ServiceRegistration<?> reg = registrations.remove(rsa);
+
+						if (reg != null) {
+							try {
+								reg.unregister();
+							} catch (IllegalStateException ise) {
+								// No matter
+							}
+						}
+
+						rsa.close();
+					} else {
+						return;
+					}
+				}
+				getTracked().entrySet()
+					.stream()
+					.filter(e -> setup(e.getKey(), e.getValue(), config))
+					.findFirst();
+			}
+
+			@Override
+			public void removedService(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS service) {
+				removeAndAdd(reference);
+				super.removedService(reference, service);
+			}
+		};
 		trackers.put(pid, tracker);
 
 		tracker.open();
 
-		if(!open) {
+		if (!open) {
 			deleted(pid);
 		}
 	}
 
-	static Map<String,Object> toMap(Dictionary<String, ?> properties) {
-		Map<String,Object> map = new HashMap<>();
+	static Map<String, Object> toMap(Dictionary<String, ?> properties) {
+		Map<String, Object> map = new HashMap<>();
 		Enumeration<String> keys = properties.keys();
-		while(keys.hasMoreElements()) {
+		while (keys.hasMoreElements()) {
 			String key = keys.nextElement();
 			map.put(key, properties.get(key));
 		}
@@ -254,7 +259,9 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
 	public void destroy() {
 		open = false;
-		trackers.keySet().stream().forEach(this::deleted);
+		trackers.keySet()
+			.stream()
+			.forEach(this::deleted);
 	}
 
 	@Override

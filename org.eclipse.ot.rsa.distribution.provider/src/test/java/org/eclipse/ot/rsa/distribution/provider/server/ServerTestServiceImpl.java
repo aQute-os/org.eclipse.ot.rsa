@@ -49,10 +49,12 @@ public class ServerTestServiceImpl implements ServerTestService {
 	public Future<CharSequence> subSequence(Promise<Integer> p, CompletionStage<Integer> cs) {
 		CompletableFuture<Integer> cf = new CompletableFuture<>();
 
-		p.then(x -> {cf.complete(p.getValue()); return null;},
-				x -> cf.completeExceptionally(p.getFailure()));
+		p.then(x -> {
+			cf.complete(p.getValue());
+			return null;
+		}, x -> cf.completeExceptionally(p.getFailure()));
 
-		return cf.thenCombine(cs, (start,end) -> subSequence(start, end));
+		return cf.thenCombine(cs, (start, end) -> subSequence(start, end));
 	}
 
 	@Override
@@ -60,24 +62,24 @@ public class ServerTestServiceImpl implements ServerTestService {
 		PushStreamProvider provider = new PushStreamProvider();
 		SimplePushEventSource<Character> source = provider.createSimpleEventSource(Character.class);
 
-		source.connectPromise().onResolve(() ->
-				new Thread(() -> {
-					delegate.chars()
-						.limit(failAfter)
-						.mapToObj(Character::toChars)
-						.map(c -> c[0])
-						.map(this::slow)
-						.forEach(source::publish);
-					slow(' ');
+		source.connectPromise()
+			.onResolve(() -> new Thread(() -> {
+				delegate.chars()
+					.limit(failAfter)
+					.mapToObj(Character::toChars)
+					.map(c -> c[0])
+					.map(this::slow)
+					.forEach(source::publish);
+				slow(' ');
 
-					if(delegate.length() > failAfter) {
-						source.error(new ArrayIndexOutOfBoundsException("Failed after " + failAfter));
-					} else {
-						source.endOfStream();
-					}
-					slow(' ');
-					source.close();
-				}).start());
+				if (delegate.length() > failAfter) {
+					source.error(new ArrayIndexOutOfBoundsException("Failed after " + failAfter));
+				} else {
+					source.endOfStream();
+				}
+				slow(' ');
+				source.close();
+			}).start());
 
 		return provider.createStream(source);
 	}

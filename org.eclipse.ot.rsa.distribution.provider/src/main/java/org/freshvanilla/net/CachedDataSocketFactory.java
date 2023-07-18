@@ -30,160 +30,154 @@ import org.freshvanilla.utils.VanillaResource;
 
 public class CachedDataSocketFactory extends VanillaResource implements Factory<String, DataSocket> {
 
-    private final ConcurrentMap<String, DataSockets> _dataSocketsMap = new ConcurrentHashMap<>();
-    private final Factory<String, DataSocket> _dataSocketBuilder;
-    private int _maximumConnections = 4;
+	private final ConcurrentMap<String, DataSockets>	_dataSocketsMap		= new ConcurrentHashMap<>();
+	private final Factory<String, DataSocket>			_dataSocketBuilder;
+	private int											_maximumConnections	= 4;
 
-    public CachedDataSocketFactory(String name, String connectionString, MetaClasses metaClasses) {
-        this(name, connectionString, Long.MAX_VALUE, metaClasses);
-    }
+	public CachedDataSocketFactory(String name, String connectionString, MetaClasses metaClasses) {
+		this(name, connectionString, Long.MAX_VALUE, metaClasses);
+	}
 
-    public CachedDataSocketFactory(String name,
-                                   String connectionString,
-                                   long timeoutMillis,
-                                   MetaClasses metaClasses) {
-        this(name, new DataSocketFactory(name, connectionString, timeoutMillis, metaClasses));
-    }
+	public CachedDataSocketFactory(String name, String connectionString, long timeoutMillis, MetaClasses metaClasses) {
+		this(name, new DataSocketFactory(name, connectionString, timeoutMillis, metaClasses));
+	}
 
-    public CachedDataSocketFactory(String name, Factory<String, DataSocket> dataSocketBuilder) {
-        super(name);
-        _dataSocketBuilder = dataSocketBuilder;
-    }
+	public CachedDataSocketFactory(String name, Factory<String, DataSocket> dataSocketBuilder) {
+		super(name);
+		_dataSocketBuilder = dataSocketBuilder;
+	}
 
-    public int getMaximumConnections() {
-        return _maximumConnections;
-    }
+	public int getMaximumConnections() {
+		return _maximumConnections;
+	}
 
-    public void setMaximumConnections(int maximumConnections) {
-        _maximumConnections = maximumConnections;
-    }
+	public void setMaximumConnections(int maximumConnections) {
+		_maximumConnections = maximumConnections;
+	}
 
-    @Override
+	@Override
 	public DataSocket acquire(String description) throws InterruptedException {
-        checkedClosed();
-        DataSockets dataSockets = _dataSocketsMap.get(description);
-        if (dataSockets == null) {
-            _dataSocketsMap.putIfAbsent(description, new DataSockets(_maximumConnections));
-            dataSockets = _dataSocketsMap.get(description);
-        }
-        DataSocket ds = acquire0(dataSockets, description);
-        synchronized (dataSockets.used) {
-            dataSockets.used.add(ds);
-        }
-        return ds;
-    }
+		checkedClosed();
+		DataSockets dataSockets = _dataSocketsMap.get(description);
+		if (dataSockets == null) {
+			_dataSocketsMap.putIfAbsent(description, new DataSockets(_maximumConnections));
+			dataSockets = _dataSocketsMap.get(description);
+		}
+		DataSocket ds = acquire0(dataSockets, description);
+		synchronized (dataSockets.used) {
+			dataSockets.used.add(ds);
+		}
+		return ds;
+	}
 
-    private DataSocket acquire0(DataSockets dataSockets, String description) throws InterruptedException {
-        // is there one free?
-        DataSocket ds = dataSockets.free.poll();
-        if (ds != null) {
-            return ds;
-        }
+	private DataSocket acquire0(DataSockets dataSockets, String description) throws InterruptedException {
+		// is there one free?
+		DataSocket ds = dataSockets.free.poll();
+		if (ds != null) {
+			return ds;
+		}
 
-        // otherwise we might have to make one.
-        if (!dataSockets.used.isEmpty()) {
-            Thread.yield();
-            // see if it was freed.
-            ds = dataSockets.free.poll();
-            if (ds != null) {
-                return ds;
-            }
-        }
+		// otherwise we might have to make one.
+		if (!dataSockets.used.isEmpty()) {
+			Thread.yield();
+			// see if it was freed.
+			ds = dataSockets.free.poll();
+			if (ds != null) {
+				return ds;
+			}
+		}
 
-        // should not go over the maximum.
-        int count = 1;
-        while (dataSockets.used.size() >= _maximumConnections) {
-            Thread.sleep(1);
-            // see if it was freed.
-            ds = dataSockets.free.poll();
-            if (ds != null) {
-                if (count >= 1) {
-                    getLog().debug(getName() + ": got a connection after " + count);
-                }
-                return ds;
-            }
-            count++;
-        }
+		// should not go over the maximum.
+		int count = 1;
+		while (dataSockets.used.size() >= _maximumConnections) {
+			Thread.sleep(1);
+			// see if it was freed.
+			ds = dataSockets.free.poll();
+			if (ds != null) {
+				if (count >= 1) {
+					getLog().debug(getName() + ": got a connection after " + count);
+				}
+				return ds;
+			}
+			count++;
+		}
 
-        // there is a race condition where this could appear less than the actual number.
-        if (dataSockets.free.size() + dataSockets.used.size() >= _maximumConnections) {
-            return dataSockets.free.take();
-        }
+		// there is a race condition where this could appear less than the
+		// actual number.
+		if (dataSockets.free.size() + dataSockets.used.size() >= _maximumConnections) {
+			return dataSockets.free.take();
+		}
 
-        try {
-            return _dataSocketBuilder.acquire(description);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+		try {
+			return _dataSocketBuilder.acquire(description);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @Override
+	@Override
 	public void recycle(DataSocket dataSocket) {
-        if (dataSocket == null) {
-            return;
-        }
+		if (dataSocket == null) {
+			return;
+		}
 
-        DataSockets dataSockets = _dataSocketsMap.get(dataSocket.getName());
-        if (dataSockets == null) {
-            getLog().warn(getName() + ": unexpected recycled object " + dataSocket);
-            dataSocket.close();
-            return;
-        }
+		DataSockets dataSockets = _dataSocketsMap.get(dataSocket.getName());
+		if (dataSockets == null) {
+			getLog().warn(getName() + ": unexpected recycled object " + dataSocket);
+			dataSocket.close();
+			return;
+		}
 
-        synchronized (dataSockets.used) {
-            dataSockets.used.remove(dataSocket);
-        }
+		synchronized (dataSockets.used) {
+			dataSockets.used.remove(dataSocket);
+		}
 
-        if (isClosed()) {
-            dataSocket.close();
-        }
-        else if (!dataSocket.isClosed()) {
-            try {
-                if (dataSockets.free.offer(dataSocket, 2, TimeUnit.MILLISECONDS)) {
-                    dataSocket = null;
-                }
-                else {
-                    getLog().debug(getName() + ": closing as over maximum connections " + dataSocket);
-                }
-            }
-            catch (InterruptedException ignored) {
-                Thread.currentThread().interrupt();
-            }
-            finally {
-                if (dataSocket != null) {
-                    dataSocket.close();
-                }
-            }
-        }
-    }
+		if (isClosed()) {
+			dataSocket.close();
+		} else if (!dataSocket.isClosed()) {
+			try {
+				if (dataSockets.free.offer(dataSocket, 2, TimeUnit.MILLISECONDS)) {
+					dataSocket = null;
+				} else {
+					getLog().debug(getName() + ": closing as over maximum connections " + dataSocket);
+				}
+			} catch (InterruptedException ignored) {
+				Thread.currentThread()
+					.interrupt();
+			} finally {
+				if (dataSocket != null) {
+					dataSocket.close();
+				}
+			}
+		}
+	}
 
-    @Override
+	@Override
 	public void close() {
-        super.close();
+		super.close();
 
-        for (DataSockets dataSockets : _dataSocketsMap.values()) {
-            for (DataSocket socket : dataSockets.free) {
-                socket.close();
-            }
+		for (DataSockets dataSockets : _dataSocketsMap.values()) {
+			for (DataSocket socket : dataSockets.free) {
+				socket.close();
+			}
 
-            synchronized (dataSockets.used) {
-                for (DataSocket socket : dataSockets.used) {
-                    socket.close();
-                }
-            }
-        }
+			synchronized (dataSockets.used) {
+				for (DataSocket socket : dataSockets.used) {
+					socket.close();
+				}
+			}
+		}
 
-        _dataSocketsMap.clear();
-    }
+		_dataSocketsMap.clear();
+	}
 
-    static class DataSockets {
-        final BlockingQueue<DataSocket> free;
-        final Set<DataSocket> used;
+	static class DataSockets {
+		final BlockingQueue<DataSocket>	free;
+		final Set<DataSocket>			used;
 
-        DataSockets(int maximumConnections) {
-            free = new ArrayBlockingQueue<>(maximumConnections + 1);
-            used = new HashSet<>(maximumConnections);
-        }
-    }
+		DataSockets(int maximumConnections) {
+			free = new ArrayBlockingQueue<>(maximumConnections + 1);
+			used = new HashSet<>(maximumConnections);
+		}
+	}
 }

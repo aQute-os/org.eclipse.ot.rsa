@@ -33,140 +33,133 @@ import org.freshvanilla.utils.VanillaResource;
 
 public class VanillaDataServerSocket extends VanillaResource implements Runnable {
 
-    private final ServerSocketChannel _channel;
-    private final Factory<DataSocket, DataSocketHandler> _factory;
-    private final Map<String, Object> _header;
-    private final ObjectBuilder<WireFormat> _wireFormatBuilder;
-    private final int _maximumMessageSize;
-    private final ExecutorService _executor;
-    private final int port;
+	private final ServerSocketChannel						_channel;
+	private final Factory<DataSocket, DataSocketHandler>	_factory;
+	private final Map<String, Object>						_header;
+	private final ObjectBuilder<WireFormat>					_wireFormatBuilder;
+	private final int										_maximumMessageSize;
+	private final ExecutorService							_executor;
+	private final int										port;
 
-    public VanillaDataServerSocket(String name,
-                                   Factory<DataSocket, DataSocketHandler> factory,
-                                   Map<String, Object> header,
-                                   int port,
-                                   ObjectBuilder<WireFormat> wireFormatBuilder,
-                                   int maximumMessageSize) throws IOException {
-        super(name);
-        _factory = factory;
-        _header = header;
-        _wireFormatBuilder = wireFormatBuilder;
-        _maximumMessageSize = maximumMessageSize;
+	public VanillaDataServerSocket(String name, Factory<DataSocket, DataSocketHandler> factory,
+		Map<String, Object> header, int port, ObjectBuilder<WireFormat> wireFormatBuilder, int maximumMessageSize)
+		throws IOException {
+		super(name);
+		_factory = factory;
+		_header = header;
+		_wireFormatBuilder = wireFormatBuilder;
+		_maximumMessageSize = maximumMessageSize;
 
-        _channel = ServerSocketChannel.open();
-        _channel.configureBlocking(true);
-        port = bindToPort(port);
-        this.port = port;
-        _executor = Executors.newCachedThreadPool(new NamedThreadFactory(name + "-server",
-            Thread.MAX_PRIORITY, true));
-        _executor.submit(this);
-    }
+		_channel = ServerSocketChannel.open();
+		_channel.configureBlocking(true);
+		port = bindToPort(port);
+		this.port = port;
+		_executor = Executors.newCachedThreadPool(new NamedThreadFactory(name + "-server", Thread.MAX_PRIORITY, true));
+		_executor.submit(this);
+	}
 
-    private int bindToPort(int port) throws IOException {
-        boolean findAPort = port <= 0;
+	private int bindToPort(int port) throws IOException {
+		boolean findAPort = port <= 0;
 
-        while (true) {
-            if (findAPort) {
-                port = (int)(Math.random() * (63 * 1024) + 1024);
-            }
+		while (true) {
+			if (findAPort) {
+				port = (int) (Math.random() * (63 * 1024) + 1024);
+			}
 
-            try {
-                _channel.socket().bind(new InetSocketAddress(port));
-                getLog().debug(getName() + ": Listening on port " + port);
-                break;
-            }
-            catch (SocketException e) {
-                if (!findAPort) throw e;
-            }
+			try {
+				_channel.socket()
+					.bind(new InetSocketAddress(port));
+				getLog().debug(getName() + ": Listening on port " + port);
+				break;
+			} catch (SocketException e) {
+				if (!findAPort)
+					throw e;
+			}
 
-            try {
-                Thread.sleep(50);
-            }
-            catch (InterruptedException e) {
-                throw new AssertionError(e);
-            }
-        }
-        return port;
-    }
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				throw new AssertionError(e);
+			}
+		}
+		return port;
+	}
 
-    public int getPort() {
-        return port;
-    }
+	public int getPort() {
+		return port;
+	}
 
-    @Override
+	@Override
 	public void run() {
-        try {
-            while (!isClosed()) {
-                final SocketChannel socketChannel = _channel.accept();
-                Runnable runnable = new RmiServerRunnable(socketChannel);
-                _executor.submit(runnable);
-            }
-        }
-        catch (IOException e) {
-            if (!isClosed()) {
-                getLog().error("Unexpected error for running server", e);
-                close();
-            }
-        }
-    }
+		try {
+			while (!isClosed()) {
+				final SocketChannel socketChannel = _channel.accept();
+				Runnable runnable = new RmiServerRunnable(socketChannel);
+				_executor.submit(runnable);
+			}
+		} catch (IOException e) {
+			if (!isClosed()) {
+				getLog().error("Unexpected error for running server", e);
+				close();
+			}
+		}
+	}
 
-    @Override
+	@Override
 	public void close() {
-        super.close();
-        try {
-            _channel.close();
-        }
-        catch (IOException ignored) {
-            // ignored.
-        }
-        _executor.shutdown();
-    }
+		super.close();
+		try {
+			_channel.close();
+		} catch (IOException ignored) {
+			// ignored.
+		}
+		_executor.shutdown();
+	}
 
-    public String getConnectionString() {
-        final InetAddress address = _channel.socket().getInetAddress();
-        return address.getCanonicalHostName() + ':' + _channel.socket().getLocalPort();
-    }
+	public String getConnectionString() {
+		final InetAddress address = _channel.socket()
+			.getInetAddress();
+		return address.getCanonicalHostName() + ':' + _channel.socket()
+			.getLocalPort();
+	}
 
-    class RmiServerRunnable implements Runnable {
-        private final SocketChannel socketChannel;
+	class RmiServerRunnable implements Runnable {
+		private final SocketChannel socketChannel;
 
-        RmiServerRunnable(SocketChannel socketChannel) {
-            this.socketChannel = socketChannel;
-        }
+		RmiServerRunnable(SocketChannel socketChannel) {
+			this.socketChannel = socketChannel;
+		}
 
-        @Override
+		@Override
 		public void run() {
-            DataSocket ds = null;
-            DataSocketHandler socketHandler = null;
-            try {
-                ds = new VanillaDataSocket(getName(), null, socketChannel, _wireFormatBuilder.create(), _header,
-                    _maximumMessageSize);
-                socketHandler = _factory.acquire(ds);
-                socketHandler.onConnection();
-                while (!ds.isClosed()) {
-                    socketHandler.onMessage();
-                }
-                socketHandler.onDisconnection();
-            }
-            catch (Throwable e) {
-                getLog().error("Unexpected error for running server", e);
-                try {
-                    if (socketHandler != null) {
-                        socketHandler.onDisconnection();
-                    }
-                }
-                catch (Exception ignored) {
-                    // ignored
-                }
-                try {
-                    if (ds != null) {
-                        ds.close();
-                    }
-                }
-                catch (Exception ignored) {
-                    // ignored
-                }
-            }
-        }
-    }
+			DataSocket ds = null;
+			DataSocketHandler socketHandler = null;
+			try {
+				ds = new VanillaDataSocket(getName(), null, socketChannel, _wireFormatBuilder.create(), _header,
+					_maximumMessageSize);
+				socketHandler = _factory.acquire(ds);
+				socketHandler.onConnection();
+				while (!ds.isClosed()) {
+					socketHandler.onMessage();
+				}
+				socketHandler.onDisconnection();
+			} catch (Throwable e) {
+				getLog().error("Unexpected error for running server", e);
+				try {
+					if (socketHandler != null) {
+						socketHandler.onDisconnection();
+					}
+				} catch (Exception ignored) {
+					// ignored
+				}
+				try {
+					if (ds != null) {
+						ds.close();
+					}
+				} catch (Exception ignored) {
+					// ignored
+				}
+			}
+		}
+	}
 }

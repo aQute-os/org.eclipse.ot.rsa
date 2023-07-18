@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 
-public  class IncomingTCPReplicator extends AbstractTCPReplicator {
+public class IncomingTCPReplicator extends AbstractTCPReplicator {
 
 	private static final Logger logger = LoggerFactory.getLogger(IncomingTCPReplicator.class);
 
@@ -33,15 +33,19 @@ public  class IncomingTCPReplicator extends AbstractTCPReplicator {
 
 	@Override
 	protected int validateExchangeHeader(ChannelHandlerContext ctx, long incomingExchangeId, UUID incomingId,
-			int incomingSnapshotLength) {
+		int incomingSnapshotLength) {
 
 		MemberInfo info = gossip.getInfoFor(incomingId);
 
-		if(info != null && info.getAddress() != null) {
-			InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+		if (info != null && info.getAddress() != null) {
+			InetSocketAddress remoteAddress = (InetSocketAddress) ctx.channel()
+				.remoteAddress();
 
-			if(!remoteAddress.getAddress().equals(info.getAddress())) {
-				logger.warn("Received a synchronization request from address {} for node {}, but we think that node is at {}", remoteAddress.getAddress(), incomingId, info.getAddress());
+			if (!remoteAddress.getAddress()
+				.equals(info.getAddress())) {
+				logger.warn(
+					"Received a synchronization request from address {} for node {}, but we think that node is at {}",
+					remoteAddress.getAddress(), incomingId, info.getAddress());
 				return -1;
 			}
 		}

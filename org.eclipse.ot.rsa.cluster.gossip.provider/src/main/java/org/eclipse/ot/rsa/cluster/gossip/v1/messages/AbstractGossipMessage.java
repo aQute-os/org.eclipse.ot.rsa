@@ -11,6 +11,7 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.InetSocketAddress;
@@ -21,12 +22,11 @@ import org.eclipse.ot.rsa.cluster.gossip.api.GossipMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 
-
 public abstract class AbstractGossipMessage implements GossipMessage {
 
-	private final String clusterName;
+	private final String	clusterName;
 
-	private Snapshot update;
+	private Snapshot		update;
 
 	public AbstractGossipMessage(String clusterName, Snapshot snapshot) {
 		Objects.nonNull(snapshot);
@@ -36,7 +36,8 @@ public abstract class AbstractGossipMessage implements GossipMessage {
 
 	public AbstractGossipMessage(final ByteBuf input) {
 		try {
-			clusterName = input.readCharSequence(input.readUnsignedShort(), UTF_8).toString();
+			clusterName = input.readCharSequence(input.readUnsignedShort(), UTF_8)
+				.toString();
 			update = new Snapshot(input);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to read message", e);

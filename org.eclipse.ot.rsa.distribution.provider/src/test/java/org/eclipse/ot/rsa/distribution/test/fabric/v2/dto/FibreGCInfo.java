@@ -19,22 +19,21 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.ADA;
 public class FibreGCInfo extends struct {
 	private static final long	serialVersionUID	= 1L;
 
-
 	/**
 	 * @formatter:off
 	 */
 	@ADA(
-			description = "Garbage Collector name")
-																				public String				name;
+		description = "Garbage Collector name")
+	public String				name;
 	@ADA(
-			description = "Type of collector")
-																				public String				type;
+		description = "Type of collector")
+	public String				type;
 	@ADA(
 		name="Time",
 		description = "Milliseconds spent over the last minute "
-				+ "collecting garbage",
-		unit = Unit.ms)
-																				public long					timeLatch;
+			+ "collecting garbage",
+			unit = Unit.ms)
+	public long					timeLatch;
 	/**
 	 * @formatter:on
 	 */

@@ -12,7 +12,6 @@
  */
 package org.eclipse.ot.rsa.tls.netty.provider.test;
 
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -22,31 +21,32 @@ import io.netty.util.ResourceLeakDetector;
 
 public class TestResourceLeakDetector<T> extends ResourceLeakDetector<T> {
 
-    private static final List<String> leaks = new Vector<>();
+	private static final List<String> leaks = new Vector<>();
 
-    public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval) {
-        super(resourceType, samplingInterval);
-    }
-    public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval, long l) {
-        super(resourceType, samplingInterval);
-    }
+	public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval) {
+		super(resourceType, samplingInterval);
+	}
 
-    @Override
-    protected void reportTracedLeak(String resourceType, String records) {
-        leaks.add("\nRecord:\n" + resourceType + "\n" + records + "\n");
-        super.reportTracedLeak(resourceType, records);
-    }
+	public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval, long l) {
+		super(resourceType, samplingInterval);
+	}
 
-    @Override
-    protected void reportUntracedLeak(String resourceType) {
-        leaks.add("\nRecord:\n" + resourceType + "\n");
-        super.reportUntracedLeak(resourceType);
-    }
+	@Override
+	protected void reportTracedLeak(String resourceType, String records) {
+		leaks.add("\nRecord:\n" + resourceType + "\n" + records + "\n");
+		super.reportTracedLeak(resourceType, records);
+	}
 
-    public static void assertNoLeaks() {
-        System.gc();
-        assertTrue(leaks.isEmpty(), ()-> leaks.toString());
-        leaks.clear();
-    }
+	@Override
+	protected void reportUntracedLeak(String resourceType) {
+		leaks.add("\nRecord:\n" + resourceType + "\n");
+		super.reportUntracedLeak(resourceType);
+	}
+
+	public static void assertNoLeaks() {
+		System.gc();
+		assertTrue(leaks.isEmpty(), () -> leaks.toString());
+		leaks.clear();
+	}
 
 }

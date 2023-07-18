@@ -54,11 +54,11 @@ import io.netty.buffer.Unpooled;
 public class SerializationTest {
 
 	@Mock
-	private Bundle bundle;
+	private Bundle			bundle;
 	@Mock
-	private BundleWiring wiring;
+	private BundleWiring	wiring;
 
-	VanillaRMISerializer serializer;
+	VanillaRMISerializer	serializer;
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -128,7 +128,8 @@ public class SerializationTest {
 		serializer.serializeReturn(bb, nep);
 
 		NestedEnumPojo nep2 = (NestedEnumPojo) serializer.deserializeReturn(bb);
-		assertSame(MyEnum.BAR, nep2.getPojo().getMyEnum());
+		assertSame(MyEnum.BAR, nep2.getPojo()
+			.getMyEnum());
 	}
 
 	@Test
@@ -167,7 +168,8 @@ public class SerializationTest {
 
 		@SuppressWarnings("unchecked")
 		Set<Object> set2 = (Set<Object>) serializer.deserializeReturn(bb);
-		assertSame(set2, set2.iterator().next());
+		assertSame(set2, set2.iterator()
+			.next());
 	}
 
 	@Test
@@ -181,7 +183,8 @@ public class SerializationTest {
 		serializer.serializeReturn(bb, cp);
 
 		CyclePojo cp3 = (CyclePojo) serializer.deserializeReturn(bb);
-		assertSame(cp3, cp3.getPojo().getPojo());
+		assertSame(cp3, cp3.getPojo()
+			.getPojo());
 	}
 
 	@Test
@@ -204,11 +207,14 @@ public class SerializationTest {
 		cp2.setPojo(cp);
 
 		ByteBuf bb = Unpooled.buffer(16384);
-		serializer.serializeReturn(bb, new CyclePojo[] { cp, cp });
+		serializer.serializeReturn(bb, new CyclePojo[] {
+			cp, cp
+		});
 
 		CyclePojo[] cp3 = (CyclePojo[]) serializer.deserializeReturn(bb);
 		assertSame(cp3[0], cp3[1]);
-		assertSame(cp3[0], cp3[0].getPojo().getPojo());
+		assertSame(cp3[0], cp3[0].getPojo()
+			.getPojo());
 	}
 
 	@Test
@@ -219,11 +225,18 @@ public class SerializationTest {
 		cp2.setPojo(cp);
 
 		ByteBuf bb = Unpooled.buffer(16384);
-		serializer.serializeReturn(bb, new CyclePojo[][] { {cp}, {cp} });
+		serializer.serializeReturn(bb, new CyclePojo[][] {
+			{
+				cp
+			}, {
+				cp
+			}
+		});
 
 		CyclePojo[][] cp3 = (CyclePojo[][]) serializer.deserializeReturn(bb);
 		assertSame(cp3[0][0], cp3[1][0]);
-		assertSame(cp3[0][0], cp3[1][0].getPojo().getPojo());
+		assertSame(cp3[0][0], cp3[1][0].getPojo()
+			.getPojo());
 	}
 
 	@Test
@@ -234,11 +247,22 @@ public class SerializationTest {
 		cp2.setPojo(cp);
 
 		ByteBuf bb = Unpooled.buffer(16384);
-		serializer.serializeReturn(bb, new CyclePojo[][][] { {{cp}}, {{cp}} });
+		serializer.serializeReturn(bb, new CyclePojo[][][] {
+			{
+				{
+					cp
+				}
+			}, {
+				{
+					cp
+				}
+			}
+		});
 
 		CyclePojo[][][] cp3 = (CyclePojo[][][]) serializer.deserializeReturn(bb);
 		assertSame(cp3[0][0][0], cp3[1][0][0]);
-		assertSame(cp3[0][0][0], cp3[1][0][0].getPojo().getPojo());
+		assertSame(cp3[0][0][0], cp3[1][0][0].getPojo()
+			.getPojo());
 	}
 
 	@Test
@@ -250,7 +274,9 @@ public class SerializationTest {
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		Object[] o = new Object[2];
-		o[0] = new CyclePojo[] { cp, cp };
+		o[0] = new CyclePojo[] {
+			cp, cp
+		};
 		o[1] = o;
 		serializer.serializeReturn(bb, o);
 
@@ -259,7 +285,8 @@ public class SerializationTest {
 
 		CyclePojo[] cp3 = (CyclePojo[]) deserializeReturn[0];
 		assertSame(cp3[0], cp3[1]);
-		assertSame(cp3[0], cp3[0].getPojo().getPojo());
+		assertSame(cp3[0], cp3[0].getPojo()
+			.getPojo());
 	}
 
 	@Test
@@ -286,8 +313,10 @@ public class SerializationTest {
 
 	@Test
 	public void testClassArrays() throws IOException, ClassNotFoundException {
-		Class<?>[] clazz = new Class<?>[] { boolean.class, byte.class, char.class, short.class, int.class, float.class,
-				double.class, long.class, CyclePojo.class };
+		Class<?>[] clazz = new Class<?>[] {
+			boolean.class, byte.class, char.class, short.class, int.class, float.class, double.class, long.class,
+			CyclePojo.class
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, clazz);
@@ -298,7 +327,9 @@ public class SerializationTest {
 
 	@Test
 	public void testEnumArrays() throws IOException, ClassNotFoundException {
-		MyEnum[] a = new MyEnum[] { BAR, FOO, BAR, BAR, BAR, FOO, FOO, FOO };
+		MyEnum[] a = new MyEnum[] {
+			BAR, FOO, BAR, BAR, BAR, FOO, FOO, FOO
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, a);
@@ -311,7 +342,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysZ() throws IOException, ClassNotFoundException {
-		boolean[] b = new boolean[] { true, false, true, true, true, false, false, false };
+		boolean[] b = new boolean[] {
+			true, false, true, true, true, false, false, false
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, b);
@@ -322,7 +355,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysS() throws IOException, ClassNotFoundException {
-		short[] s = new short[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		short[] s = new short[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, s);
@@ -333,7 +368,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysC() throws IOException, ClassNotFoundException {
-		char[] c = new char[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		char[] c = new char[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, c);
@@ -344,7 +381,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysI() throws IOException, ClassNotFoundException {
-		int[] i = new int[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		int[] i = new int[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, i);
@@ -355,7 +394,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysJ() throws IOException, ClassNotFoundException {
-		long[] l = new long[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		long[] l = new long[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
@@ -366,7 +407,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysF() throws IOException, ClassNotFoundException {
-		float[] f = new float[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		float[] f = new float[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, f);
@@ -377,7 +420,9 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveArraysD() throws IOException, ClassNotFoundException {
-		double[] d = new double[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+		double[] d = new double[] {
+			1, 2, 3, 4, 5, 6, 7, 8
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, d);
@@ -388,8 +433,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysZ() throws IOException, ClassNotFoundException {
-		boolean[][] b = new boolean[][] {{ true, false, true, true, true, false, false, false },
-			{ false, true, true, true, true, false, false, false }};
+		boolean[][] b = new boolean[][] {
+			{
+				true, false, true, true, true, false, false, false
+			}, {
+				false, true, true, true, true, false, false, false
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, b);
@@ -401,7 +451,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysS() throws IOException, ClassNotFoundException {
-		short[][] s = new short[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		short[][] s = new short[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, s);
@@ -413,7 +469,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysC() throws IOException, ClassNotFoundException {
-		char[][] c = new char[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		char[][] c = new char[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, c);
@@ -425,7 +487,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysI() throws IOException, ClassNotFoundException {
-		int[][] i = new int[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		int[][] i = new int[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, i);
@@ -437,7 +505,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysJ() throws IOException, ClassNotFoundException {
-		long[][] l = new long[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		long[][] l = new long[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
@@ -449,7 +523,21 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysJ2() throws IOException, ClassNotFoundException {
-		long[][][] l = new long[][][] {{{ 1, 2, 3, 4}, {5, 6, 7, 8 }}, {{9, 10, 11, 12}, {13, 14, 15, 16}}};
+		long[][][] l = new long[][][] {
+			{
+				{
+					1, 2, 3, 4
+				}, {
+					5, 6, 7, 8
+				}
+			}, {
+				{
+					9, 10, 11, 12
+				}, {
+					13, 14, 15, 16
+				}
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, l);
@@ -463,7 +551,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysF() throws IOException, ClassNotFoundException {
-		float[][] f = new float[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		float[][] f = new float[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, f);
@@ -475,7 +569,13 @@ public class SerializationTest {
 
 	@Test
 	public void testPrimitiveMultiArraysD() throws IOException, ClassNotFoundException {
-		double[][] d = new double[][] {{ 1, 2, 3, 4, 5, 6, 7, 8 }, {9, 10, 11, 12, 13, 14, 15, 16}};
+		double[][] d = new double[][] {
+			{
+				1, 2, 3, 4, 5, 6, 7, 8
+			}, {
+				9, 10, 11, 12, 13, 14, 15, 16
+			}
+		};
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, d);
@@ -487,7 +587,7 @@ public class SerializationTest {
 
 	@Test
 	public void testVersionAware() throws IOException, ClassNotFoundException {
-		Version v = new Version(1,2,3,"foo");
+		Version v = new Version(1, 2, 3, "foo");
 
 		ByteBuf bb = Unpooled.buffer(16384);
 		serializer.serializeReturn(bb, v);
@@ -509,7 +609,7 @@ public class SerializationTest {
 		newWF.reset();
 
 		// Now without a qualifier
-		v = new Version(1,2,3);
+		v = new Version(1, 2, 3);
 
 		bb.clear();
 		serializer.serializeReturn(bb, v);
@@ -527,14 +627,16 @@ public class SerializationTest {
 		newWF.reset();
 
 		// Now with an array
-		Version[] vArray = new Version[] {new Version(2,3,4), new Version(3,4,5)};
+		Version[] vArray = new Version[] {
+			new Version(2, 3, 4), new Version(3, 4, 5)
+		};
 
 		bb.clear();
 		serializer.serializeReturn(bb, vArray);
 
 		bb.markReaderIndex();
 
-		v = new Version(1,2,3);
+		v = new Version(1, 2, 3);
 		assertArrayEquals(vArray, (Version[]) serializer.deserializeReturn(bb));
 		assertFalse(bb.isReadable());
 
@@ -548,7 +650,7 @@ public class SerializationTest {
 
 	@Test
 	public void testStringWithNonASCIIChars() throws Exception {
-		//Use an interrobang to upset the serializer
+		// Use an interrobang to upset the serializer
 		String toTest = "Hello World\u203D";
 
 		ByteBuf bb = Unpooled.buffer(16384);

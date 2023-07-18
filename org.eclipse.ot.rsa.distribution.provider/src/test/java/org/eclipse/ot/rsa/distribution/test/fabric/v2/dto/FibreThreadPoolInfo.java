@@ -18,15 +18,12 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.ADA;
 public class FibreThreadPoolInfo extends struct {
 	private static final long	serialVersionUID	= 1L;
 	public String				name;
-	@ADA(
-		description = "Number of threads currently active")
+	@ADA(description = "Number of threads currently active")
 	public int					active;
 	public int					max;
 	public long					queueDepth;
-	@ADA(
-		description = "Number of threads created in the last minute")
+	@ADA(description = "Number of threads created in the last minute")
 	public long					createdAvg;
 	public int					min;
 
 }
-

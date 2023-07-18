@@ -13,5 +13,7 @@
 package org.eclipse.ot.rsa.tls.netty.config;
 
 public enum ClientAuth {
-    NONE, WANT, NEED;
+	NONE,
+	WANT,
+	NEED;
 }

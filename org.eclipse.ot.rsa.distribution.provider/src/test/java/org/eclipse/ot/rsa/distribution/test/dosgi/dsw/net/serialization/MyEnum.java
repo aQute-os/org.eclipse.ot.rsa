@@ -13,5 +13,6 @@
 package org.eclipse.ot.rsa.distribution.test.dosgi.dsw.net.serialization;
 
 public enum MyEnum {
-	FOO, BAR;
+	FOO,
+	BAR;
 }

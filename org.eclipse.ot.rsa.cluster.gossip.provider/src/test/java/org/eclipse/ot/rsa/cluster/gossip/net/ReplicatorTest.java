@@ -68,76 +68,80 @@ import io.netty.util.concurrent.Future;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ReplicatorTest extends AbstractLeakCheckingTest {
 
-	static final UUID IDA = new UUID(1234, 5678);
-	static final UUID IDB = new UUID(9876, 5432);
+	static final UUID			IDA		= new UUID(1234, 5678);
+	static final UUID			IDB		= new UUID(9876, 5432);
 
-	Map<String, Object> config = new HashMap<>();
+	Map<String, Object>			config	= new HashMap<>();
 
-	Semaphore semA = new Semaphore(0), semB = new Semaphore(0);
+	Semaphore					semA	= new Semaphore(0), semB = new Semaphore(0);
 
-	ExecutorService ses = Executors.newFixedThreadPool(4);
+	ExecutorService				ses		= Executors.newFixedThreadPool(4);
 
-	private Snapshot snapA, snapB;
-	private MemberInfo memberA, memberB;
+	private Snapshot			snapA, snapB;
+	private MemberInfo			memberA, memberB;
 
-	private ServerSocketChannel server;
+	private ServerSocketChannel	server;
 
-	private ChannelGroup group;
-
-	@Mock
-	Gossip gossipA, gossipB;
+	private ChannelGroup		group;
 
 	@Mock
-	NettyComms socketCommsA, socketCommsB;
+	Gossip						gossipA, gossipB;
 
 	@Mock
-	ClusterInformation clusterInfo;
+	NettyComms					socketCommsA, socketCommsB;
 
-	private ServerBootstrap sb;
-	private Bootstrap b;
-	private NioEventLoopGroup nioEventLoopGroup;
+	@Mock
+	ClusterInformation			clusterInfo;
+
+	private ServerBootstrap		sb;
+	private Bootstrap			b;
+	private NioEventLoopGroup	nioEventLoopGroup;
 
 	@BeforeEach
 	public void setUp() throws Exception {
 		nioEventLoopGroup = new NioEventLoopGroup();
 		group = new DefaultChannelGroup(nioEventLoopGroup.next());
 
-		b = new Bootstrap()
-				.group(nioEventLoopGroup)
-				.channel(NioSocketChannel.class);
+		b = new Bootstrap().group(nioEventLoopGroup)
+			.channel(NioSocketChannel.class);
 
-		sb = new ServerBootstrap()
-				.group(nioEventLoopGroup)
-				.channel(NioServerSocketChannel.class)
-				.childHandler(new ChannelInitializer<Channel>() {
+		sb = new ServerBootstrap().group(nioEventLoopGroup)
+			.channel(NioServerSocketChannel.class)
+			.childHandler(new ChannelInitializer<Channel>() {
 
-					@Override
-					protected void initChannel(Channel ch) throws Exception {
-						group.add(ch);
-						ch.pipeline().addLast(new IncomingTCPReplicator(ch, IDB, gossipB));
-					}
-				});
+				@Override
+				protected void initChannel(Channel ch) throws Exception {
+					group.add(ch);
+					ch.pipeline()
+						.addLast(new IncomingTCPReplicator(ch, IDB, gossipB));
+				}
+			});
 
-		server = (ServerSocketChannel) sb.bind(new InetSocketAddress(getLoopbackAddress(), 0)).sync().channel();
+		server = (ServerSocketChannel) sb.bind(new InetSocketAddress(getLoopbackAddress(), 0))
+			.sync()
+			.channel();
 
-		snapA = new Snapshot(new Snapshot(IDA, 4567, (short) 1, PAYLOAD_UPDATE,
-				singletonMap("foo", new byte[] { 0x7F }), 1),
-				new InetSocketAddress(getLoopbackAddress(), 2345));
-		snapB = new Snapshot(new Snapshot(IDB, server.localAddress().getPort(),
-				(short) 1, PAYLOAD_UPDATE, singletonMap("foo",
-						new byte[] { 0x7F }), 1), new InetSocketAddress(
-				getLoopbackAddress(), 3456));
+		snapA = new Snapshot(new Snapshot(IDA, 4567, (short) 1, PAYLOAD_UPDATE, singletonMap("foo", new byte[] {
+			0x7F
+		}), 1), new InetSocketAddress(getLoopbackAddress(), 2345));
+		snapB = new Snapshot(new Snapshot(IDB, server.localAddress()
+			.getPort(), (short) 1, PAYLOAD_UPDATE, singletonMap("foo", new byte[] {
+				0x7F
+		}), 1), new InetSocketAddress(getLoopbackAddress(), 3456));
 
 		config.put("cluster.name", "test");
-		ClusterGossipConfig cfg = standardConverter().convert(config).to(ClusterGossipConfig.class);
+		ClusterGossipConfig cfg = standardConverter().convert(config)
+			.to(ClusterGossipConfig.class);
 
 		memberA = new MemberInfo(cfg, snapA, clusterInfo, Collections.emptyList());
 		memberA.update(snapA);
-		Mockito.when(gossipA.getInfoFor(IDA)).thenReturn(memberA);
+		Mockito.when(gossipA.getInfoFor(IDA))
+			.thenReturn(memberA);
 
 		memberB = new MemberInfo(cfg, snapB, clusterInfo, Collections.emptyList());
 		memberB.update(snapB);
-		Mockito.when(gossipB.getInfoFor(IDB)).thenReturn(memberB);
+		Mockito.when(gossipB.getInfoFor(IDB))
+			.thenReturn(memberB);
 	}
 
 	@AfterEach
@@ -160,49 +164,61 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 	@Test
 	public void testReplicate() throws Exception {
 		UUID snapCId = new UUID(2345, 6789);
-		Snapshot snapC = new Snapshot(new Snapshot(snapCId, 2, (short) 1,
-				PAYLOAD_UPDATE, singletonMap("bar", new byte[] { 0x7F }), 1),
-				new InetSocketAddress(getLoopbackAddress(), 1));
+		Snapshot snapC = new Snapshot(
+			new Snapshot(snapCId, 2, (short) 1, PAYLOAD_UPDATE, singletonMap("bar", new byte[] {
+				0x7F
+			}), 1), new InetSocketAddress(getLoopbackAddress(), 1));
 
-		MemberInfo memberC = new MemberInfo(standardConverter().convert(
-				config).to(ClusterGossipConfig.class), snapC, clusterInfo, Collections.emptyList());
+		MemberInfo memberC = new MemberInfo(standardConverter().convert(config)
+			.to(ClusterGossipConfig.class), snapC, clusterInfo, Collections.emptyList());
 		memberC.update(snapC);
 
 		UUID snapDId = new UUID(3456, 7890);
-		Snapshot snapDA = new Snapshot(new Snapshot(snapDId, 2, (short) 1,
-				PAYLOAD_UPDATE, singletonMap("bar", new byte[] { 0x7F }), 1),
-				new InetSocketAddress(getLoopbackAddress(), 1));
+		Snapshot snapDA = new Snapshot(
+			new Snapshot(snapDId, 2, (short) 1, PAYLOAD_UPDATE, singletonMap("bar", new byte[] {
+				0x7F
+			}), 1), new InetSocketAddress(getLoopbackAddress(), 1));
 
 		Thread.sleep(50);
 
-		Snapshot snapDB = new Snapshot(new Snapshot(snapDId, 2, (short) 1,
-				PAYLOAD_UPDATE, singletonMap("bar", new byte[] { 0x7F }), 1),
-				new InetSocketAddress(getLoopbackAddress(), 1));
+		Snapshot snapDB = new Snapshot(
+			new Snapshot(snapDId, 2, (short) 1, PAYLOAD_UPDATE, singletonMap("bar", new byte[] {
+				0x7F
+			}), 1), new InetSocketAddress(getLoopbackAddress(), 1));
 
-		MemberInfo memberDA = new MemberInfo(standardConverter().convert(
-				config).to(ClusterGossipConfig.class), snapDA, clusterInfo, Collections.emptyList());
+		MemberInfo memberDA = new MemberInfo(standardConverter().convert(config)
+			.to(ClusterGossipConfig.class), snapDA, clusterInfo, Collections.emptyList());
 		memberDA.update(snapDA);
-		MemberInfo memberDB = new MemberInfo(standardConverter().convert(
-				config).to(ClusterGossipConfig.class), snapDB, clusterInfo, Collections.emptyList());
+		MemberInfo memberDB = new MemberInfo(standardConverter().convert(config)
+			.to(ClusterGossipConfig.class), snapDB, clusterInfo, Collections.emptyList());
 		memberDB.update(snapDB);
 
-		Mockito.when(gossipA.getInfoFor(snapCId)).thenReturn(memberC);
-		Mockito.when(gossipA.getInfoFor(IDB)).thenReturn(memberB);
-		Mockito.when(gossipA.getInfoFor(snapDId)).thenReturn(memberDA);
+		Mockito.when(gossipA.getInfoFor(snapCId))
+			.thenReturn(memberC);
+		Mockito.when(gossipA.getInfoFor(IDB))
+			.thenReturn(memberB);
+		Mockito.when(gossipA.getInfoFor(snapDId))
+			.thenReturn(memberDA);
 
-		Mockito.when(gossipB.getInfoFor(snapDId)).thenReturn(memberDB);
-		Mockito.when(gossipB.getAllSnapshots()).thenReturn(
-				Arrays.asList(memberB.toSnapshot(HEADER), memberDB.toSnapshot(HEADER)));
+		Mockito.when(gossipB.getInfoFor(snapDId))
+			.thenReturn(memberDB);
+		Mockito.when(gossipB.getAllSnapshots())
+			.thenReturn(Arrays.asList(memberB.toSnapshot(HEADER), memberDB.toSnapshot(HEADER)));
 
 		Channel client = b.handler(new ChannelInitializer<Channel>() {
 			@Override
 			protected void initChannel(Channel ch) throws Exception {
-				ch.pipeline().addLast(new OutgoingTCPReplicator(ch, IDA, gossipA, IDB, 72,
-						Arrays.asList(memberA.toSnapshot(HEADER), memberB.toSnapshot(HEADER),
-								memberC.toSnapshot(HEADER), memberDA.toSnapshot(HEADER)), ch.newSucceededFuture()));
+				ch.pipeline()
+					.addLast(
+						new OutgoingTCPReplicator(
+							ch, IDA, gossipA, IDB, 72, Arrays.asList(memberA.toSnapshot(HEADER),
+								memberB.toSnapshot(HEADER), memberC.toSnapshot(HEADER), memberDA.toSnapshot(HEADER)),
+							ch.newSucceededFuture()));
 			}
-		}).connect(server.localAddress()).sync().channel();
-
+		})
+			.connect(server.localAddress())
+			.sync()
+			.channel();
 
 		Future<Void> clientSync = client.closeFuture();
 		Future<Void> serverSync = group.newCloseFuture();
@@ -213,16 +229,18 @@ public class ReplicatorTest extends AbstractLeakCheckingTest {
 		assertTrue(semA.tryAcquire(2, SECONDS));
 		assertTrue(semB.tryAcquire(2, SECONDS));
 
-		Mockito.verify(gossipB).merge(
-				ArgumentMatchers.argThat(isSnapshotWithIdAndType(IDA, PAYLOAD_UPDATE)));
 		Mockito.verify(gossipB)
-				.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapCId,
-						PAYLOAD_UPDATE)));
+			.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(IDA, PAYLOAD_UPDATE)));
+		Mockito.verify(gossipB)
+			.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapCId, PAYLOAD_UPDATE)));
 
-		Mockito.verify(gossipA, Mockito.never()).merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
-		Mockito.verify(gossipB, Mockito.never()).merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
+		Mockito.verify(gossipA, Mockito.never())
+			.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
+		Mockito.verify(gossipB, Mockito.never())
+			.merge(ArgumentMatchers.argThat(isSnapshotWithIdAndType(snapDId, PAYLOAD_UPDATE)));
 
-		assertEquals(snapDB.getSnapshotTimestamp(), memberDA.toSnapshot(HEADER).getSnapshotTimestamp());
+		assertEquals(snapDB.getSnapshotTimestamp(), memberDA.toSnapshot(HEADER)
+			.getSnapshotTimestamp());
 	}
 
 }

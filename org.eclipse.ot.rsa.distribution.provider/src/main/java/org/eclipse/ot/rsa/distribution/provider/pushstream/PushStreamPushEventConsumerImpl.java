@@ -28,25 +28,25 @@ import io.netty.util.Timer;
 
 class PushStreamPushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
-	private final PushStream<Object> stream;
+	private final PushStream<Object>	stream;
 
-	private final Timeout timeout;
+	private final Timeout				timeout;
 
-	public PushStreamPushEventConsumerImpl(ToLongFunction<Object> onData,
-			Consumer<Throwable> onTerminal, PushStream<Object> stream, Timer timer) {
+	public PushStreamPushEventConsumerImpl(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal,
+		PushStream<Object> stream, Timer timer) {
 		super(onData, onTerminal);
 		this.stream = stream;
 		timeout = timer.newTimeout(t -> {
-				if(closed.compareAndSet(false, true)) {
-					closeFuture.tryFailure(new TimeoutException("Stream timed out"));
-					stream.close();
-				}
-			}, 30, TimeUnit.SECONDS);
+			if (closed.compareAndSet(false, true)) {
+				closeFuture.tryFailure(new TimeoutException("Stream timed out"));
+				stream.close();
+			}
+		}, 30, TimeUnit.SECONDS);
 	}
 
 	@Override
 	protected void terminalEvent(PushEvent<? extends Object> event) {
-		if(closed.compareAndSet(false, true)) {
+		if (closed.compareAndSet(false, true)) {
 			closeFuture.trySuccess(null);
 			super.terminalEvent(event);
 		}
@@ -54,8 +54,8 @@ class PushStreamPushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
 	@Override
 	public void open() {
-		if(!closed.get()) {
-			if(timeout.cancel()) {
+		if (!closed.get()) {
+			if (timeout.cancel()) {
 				stream.forEachEvent(this);
 			} else if (!timeout.isCancelled()) {
 				super.terminalEvent(PushEvent.error(new ServiceException("The remote PushStream timed out", REMOTE)));
@@ -65,7 +65,7 @@ class PushStreamPushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
 	@Override
 	public void close() {
-		if(closed.compareAndSet(false, true)) {
+		if (closed.compareAndSet(false, true)) {
 			closeFuture.trySuccess(null);
 			stream.close();
 		}

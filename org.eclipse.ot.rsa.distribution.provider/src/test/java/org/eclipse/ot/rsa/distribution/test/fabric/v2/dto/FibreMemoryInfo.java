@@ -23,28 +23,15 @@ import org.eclipse.ot.rsa.distribution.test.entire.viewers.api.Bars;
 public class FibreMemoryInfo extends struct {
 	private static final long	serialVersionUID	= 1L;
 
-	@ADA(
-		description = "Initially allocated memory",
-		builder = Bars.Marker.class,
-		unit = Unit.bytes)
+	@ADA(description = "Initially allocated memory", builder = Bars.Marker.class, unit = Unit.bytes)
 	public long					init;
 
-	@ADA(
-		description = "Memory currently used",
-		builder = Bars.Value.class,
-		unit = Unit.bytes)
+	@ADA(description = "Memory currently used", builder = Bars.Value.class, unit = Unit.bytes)
 	public long					used;
 
-	@ADA(
-		description = "Maximum allowed memory",
-		builder = Bars.Marker.class,
-		unit = Unit.bytes)
+	@ADA(description = "Maximum allowed memory", builder = Bars.Marker.class, unit = Unit.bytes)
 	public long					max;
 
-	@ADA(
-		name = "comm.",
-		description = "Committed memory, means it is not in used but allocated from the OS",
-		builder = Bars.Marker.class,
-		unit = Unit.bytes)
+	@ADA(name = "comm.", description = "Committed memory, means it is not in used but allocated from the OS", builder = Bars.Marker.class, unit = Unit.bytes)
 	public long					committed;
 }

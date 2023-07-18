@@ -374,10 +374,7 @@ public class GossipImpl implements InternalClusterListener, Gossip {
 	}
 
 	private void gossip() {
-		if (!open.get()) {
-			return;
-		}
-		if (inGossip.getAndSet(true))
+		if (!open.get() || inGossip.getAndSet(true))
 			return;
 		try {
 

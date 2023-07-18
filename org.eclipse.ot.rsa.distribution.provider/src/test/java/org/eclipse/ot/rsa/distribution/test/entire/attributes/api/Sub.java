@@ -15,12 +15,10 @@ package org.eclipse.ot.rsa.distribution.test.entire.attributes.api;
 import org.eclipse.ot.rsa.distribution.test.entire.viewers.api.Bars;
 import org.eclipse.ot.rsa.distribution.test.entire.viewers.api.Summary;
 
-
 /**
  * Annotations cannot handle recursion ... So an {@link ADA} is used for the
  * specific attributes of an attribute and the Sub annotation allows one to go
  * one level deeper. See {@link Bars} and {@link Summary} how this can be used.
- *
  */
 public @interface Sub {
 	ADA[] value();

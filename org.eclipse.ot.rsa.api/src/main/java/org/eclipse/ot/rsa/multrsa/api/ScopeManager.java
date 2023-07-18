@@ -15,8 +15,8 @@ package org.eclipse.ot.rsa.multrsa.api;
 import java.util.Set;
 
 /**
- * The {@link ScopeManager} is used to add or remove local scopes from
- * this discovery node
+ * The {@link ScopeManager} is used to add or remove local scopes from this
+ * discovery node
  */
 public interface ScopeManager {
 
@@ -29,19 +29,20 @@ public interface ScopeManager {
 
 	/**
 	 * Add a scope
+	 * 
 	 * @param name The scope to add
 	 */
 	void addLocalScope(String name);
 
 	/**
 	 * Remove a scope
+	 * 
 	 * @param name The scope to remove
 	 */
 	void removeLocalScope(String name);
 
 	/**
-	 * Get the base scopes which apply to this discovery and
-	 * cannot be removed
+	 * Get the base scopes which apply to this discovery and cannot be removed
 	 *
 	 * @return the current scopes
 	 */

@@ -1,49 +1,49 @@
 package org.freshvanilla.lang.misc;
 
 class UnsafeCharFieldAccessor implements FieldAccessor<Character> {
-    private final long offset;
+	private final long offset;
 
-    UnsafeCharFieldAccessor(long offset) {
-        this.offset = offset;
-    }
+	UnsafeCharFieldAccessor(long offset) {
+		this.offset = offset;
+	}
 
-    @Override
+	@Override
 	public <Pojo> Character getField(Pojo pojo) {
-        return Unsafe.unsafe.getChar(pojo, offset);
-    }
+		return Unsafe.unsafe.getChar(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> boolean getBoolean(Pojo pojo) {
-        return Unsafe.unsafe.getChar(pojo, offset) != 0;
-    }
+		return Unsafe.unsafe.getChar(pojo, offset) != 0;
+	}
 
-    @Override
+	@Override
 	public <Pojo> long getNum(Pojo pojo) {
-        return Unsafe.unsafe.getChar(pojo, offset);
-    }
+		return Unsafe.unsafe.getChar(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> double getDouble(Pojo pojo) {
-        return Unsafe.unsafe.getChar(pojo, offset);
-    }
+		return Unsafe.unsafe.getChar(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setField(Pojo pojo, Character value) {
-        Unsafe.unsafe.putChar(pojo, offset, value);
-    }
+		Unsafe.unsafe.putChar(pojo, offset, value);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setBoolean(Pojo pojo, boolean value) {
-        Unsafe.unsafe.putChar(pojo, offset, (char)(value ? 1 : 0));
-    }
+		Unsafe.unsafe.putChar(pojo, offset, (char) (value ? 1 : 0));
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setNum(Pojo pojo, long value) {
-        Unsafe.unsafe.putChar(pojo, offset, (char)value);
-    }
+		Unsafe.unsafe.putChar(pojo, offset, (char) value);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setDouble(Pojo pojo, double value) {
-        Unsafe.unsafe.putChar(pojo, offset, (char)value);
-    }
+		Unsafe.unsafe.putChar(pojo, offset, (char) value);
+	}
 }

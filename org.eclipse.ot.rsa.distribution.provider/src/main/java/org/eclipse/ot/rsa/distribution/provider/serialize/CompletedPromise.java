@@ -15,12 +15,12 @@ package org.eclipse.ot.rsa.distribution.provider.serialize;
 public class CompletedPromise {
 
 	public static enum State {
-		SUCCEEDED, FAILED
+		SUCCEEDED,
+		FAILED
 	}
 
+	public State	state;
 
-	public State state;
-
-	public Object value;
+	public Object	value;
 
 }

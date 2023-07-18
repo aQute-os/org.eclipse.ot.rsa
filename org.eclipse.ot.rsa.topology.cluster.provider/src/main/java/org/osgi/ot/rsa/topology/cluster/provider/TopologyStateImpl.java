@@ -161,9 +161,7 @@ class TopologyStateImpl implements TopologyState {
 		public boolean equals(Object obj) {
 			if (this == obj)
 				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
+			if ((obj == null) || (getClass() != obj.getClass()))
 				return false;
 			ServiceId other = (ServiceId) obj;
 			return Objects.equals(host, other.host) && port == other.port && serviceId == other.serviceId;
@@ -243,9 +241,7 @@ class TopologyStateImpl implements TopologyState {
 		EndpointDescription last = null;
 
 		public void checkInterests() {
-			if (ed == null)
-				return;
-			if (!isActive())
+			if ((ed == null) || !isActive())
 				return;
 
 			int s = 0;

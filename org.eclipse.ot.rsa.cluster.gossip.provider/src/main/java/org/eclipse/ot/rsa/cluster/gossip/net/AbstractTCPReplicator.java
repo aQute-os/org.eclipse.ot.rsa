@@ -36,15 +36,15 @@ import io.netty.util.concurrent.PromiseCombiner;
 
 public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractTCPReplicator.class);
+	private static final Logger				logger	= LoggerFactory.getLogger(AbstractTCPReplicator.class);
 
-	protected final UUID localId;
+	protected final UUID					localId;
 
-	protected final Gossip gossip;
+	protected final Gossip					gossip;
 
-	protected final Collection<Snapshot> snapshotHeaders;
+	protected final Collection<Snapshot>	snapshotHeaders;
 
-	private final ChannelPromise syncCompletionPromise;
+	private final ChannelPromise			syncCompletionPromise;
 
 	public AbstractTCPReplicator(Channel channel, UUID localId, Gossip gossip, Collection<Snapshot> snapshotHeaders) {
 
@@ -72,7 +72,8 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 	}
 
 	protected ByteBuf getHeader(ChannelHandlerContext ctx, long exchangeId) {
-		ByteBuf buffer = ctx.alloc().buffer(29);
+		ByteBuf buffer = ctx.alloc()
+			.buffer(29);
 
 		buffer.writeByte(2);
 		buffer.writeLong(exchangeId);
@@ -86,8 +87,9 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 
 		@SuppressWarnings("deprecation")
 		PromiseCombiner pc = new PromiseCombiner();
-		for(Snapshot s : snapshots) {
-			ByteBuf buffer = ctx.alloc().buffer(s.guessSize() + 2);
+		for (Snapshot s : snapshots) {
+			ByteBuf buffer = ctx.alloc()
+				.buffer(s.guessSize() + 2);
 			int i = buffer.writerIndex();
 			buffer.writerIndex(i + 2);
 
@@ -102,22 +104,26 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 		return toReturn;
 	}
 
-	protected static enum REPLICATION_STATE {HEADER, SNAPSHOTS_LITE, SNAPSHOTS_FULL}
+	protected static enum REPLICATION_STATE {
+		HEADER,
+		SNAPSHOTS_LITE,
+		SNAPSHOTS_FULL
+	}
 
-	private REPLICATION_STATE state = REPLICATION_STATE.HEADER;
+	private REPLICATION_STATE	state				= REPLICATION_STATE.HEADER;
 
-	private ByteBuf unread;
+	private ByteBuf				unread;
 
-	private int snapshotsExpected;
+	private int					snapshotsExpected;
 
-	private Map<UUID, Snapshot> receivedSnapshots = new HashMap<>();
+	private Map<UUID, Snapshot>	receivedSnapshots	= new HashMap<>();
 
-	private ChannelFuture outputShutdown;
+	private ChannelFuture		outputShutdown;
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-		if(unread == null) {
+		if (unread == null) {
 			unread = (ByteBuf) msg;
 		} else {
 			unread = Unpooled.wrappedBuffer(unread, (ByteBuf) msg);
@@ -125,7 +131,7 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 
 		processRead(ctx);
 
-		if(unread.readableBytes() == 0) {
+		if (unread.readableBytes() == 0) {
 			unread.release();
 			unread = null;
 		} else {
@@ -134,14 +140,14 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 	}
 
 	private void processRead(ChannelHandlerContext ctx) {
-		switch(state) {
-			case HEADER:
+		switch (state) {
+			case HEADER :
 				handleHeader(ctx);
 				break;
-			case SNAPSHOTS_LITE:
+			case SNAPSHOTS_LITE :
 				handleLiteSnapshots(ctx);
 				break;
-			case SNAPSHOTS_FULL:
+			case SNAPSHOTS_FULL :
 				handleFullSnapshots(ctx);
 				break;
 		}
@@ -149,23 +155,25 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 
 	private void handleHeader(ChannelHandlerContext ctx) {
 
-		if(unread.getByte(unread.readerIndex()) != 2) {
-			logger.warn("Received an invalid gossip synchronization exchange from {}", ctx.channel().remoteAddress());
+		if (unread.getByte(unread.readerIndex()) != 2) {
+			logger.warn("Received an invalid gossip synchronization exchange from {}", ctx.channel()
+				.remoteAddress());
 			ctx.close();
 			unread.release();
 			unread = null;
 			return;
 		}
 
-		if(unread.readableBytes() < 29) {
+		if (unread.readableBytes() < 29) {
 			return;
 		}
 		// Skip the version byte that we have already validated
 		unread.skipBytes(1);
 		int snapshotsToReceive = validateIncomingExchangeStart(ctx, unread);
 
-		if(snapshotsToReceive < 0) {
-			logger.warn("Unable to synchronize cluster data with {}", ctx.channel().remoteAddress());
+		if (snapshotsToReceive < 0) {
+			logger.warn("Unable to synchronize cluster data with {}", ctx.channel()
+				.remoteAddress());
 			syncCompletionPromise.tryFailure(new IllegalArgumentException("Failed to validate the exchange header"));
 			ctx.close();
 			return;
@@ -185,11 +193,11 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 	}
 
 	protected abstract int validateExchangeHeader(ChannelHandlerContext ctx, long incomingExchangeId, UUID incomingId,
-			int incomingSnapshotLength);
+		int incomingSnapshotLength);
 
 	private void handleLiteSnapshots(ChannelHandlerContext ctx) {
-		while(snapshotsExpected > 0) {
-			if(readSnapshot()) {
+		while (snapshotsExpected > 0) {
+			if (readSnapshot()) {
 				unread.discardSomeReadBytes();
 			} else {
 				return;
@@ -199,7 +207,7 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 		Collection<Snapshot> fullSnapshotsToSend = getFullSnapshotsToSend(snapshotHeaders, receivedSnapshots);
 		ctx.write(Unpooled.copyInt(fullSnapshotsToSend.size()));
 		writeSnapshots(ctx, fullSnapshotsToSend)
-			.addListener(f -> outputShutdown = ((SocketChannel)ctx.channel()).shutdownOutput());
+			.addListener(f -> outputShutdown = ((SocketChannel) ctx.channel()).shutdownOutput());
 
 		state = REPLICATION_STATE.SNAPSHOTS_FULL;
 		snapshotsExpected = -1;
@@ -207,16 +215,16 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 	}
 
 	private void handleFullSnapshots(ChannelHandlerContext ctx) {
-		if(snapshotsExpected < 0) {
-			if(unread.readableBytes() < 4) {
+		if (snapshotsExpected < 0) {
+			if (unread.readableBytes() < 4) {
 				return;
 			} else {
 				snapshotsExpected = unread.readInt();
 			}
 		}
 
-		while(snapshotsExpected > 0) {
-			if(!readSnapshot()) {
+		while (snapshotsExpected > 0) {
+			if (!readSnapshot()) {
 				return;
 			}
 		}
@@ -224,17 +232,17 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 		@SuppressWarnings("deprecation")
 		PromiseCombiner pc = new PromiseCombiner();
 		pc.add(outputShutdown);
-		pc.add(((SocketChannel)ctx.channel()).shutdownInput());
+		pc.add(((SocketChannel) ctx.channel()).shutdownInput());
 
 		pc.finish(syncCompletionPromise);
 	}
 
 	private boolean readSnapshot() {
-		if(unread.readableBytes() < 2) {
+		if (unread.readableBytes() < 2) {
 			return false;
 		}
 		int length = unread.getUnsignedShort(unread.readerIndex());
-		if(unread.readableBytes() < length) {
+		if (unread.readableBytes() < length) {
 			return false;
 		} else {
 			ByteBuf snapshot = unread.readSlice(length);
@@ -252,26 +260,25 @@ public abstract class AbstractTCPReplicator extends ChannelInboundHandlerAdapter
 	}
 
 	private Collection<Snapshot> getFullSnapshotsToSend(Collection<Snapshot> headers,
-			Map<UUID, Snapshot> remoteSnapshots) {
+		Map<UUID, Snapshot> remoteSnapshots) {
 		return headers.stream()
-						.filter(snapshot -> {
-							Snapshot received = remoteSnapshots.get(snapshot.getId());
-							return received == null
-									|| shouldSendFullShapshot(snapshot, received);
-						})
-						.map(snapshot -> gossip.getInfoFor(snapshot.getId()).toSnapshot())
-						.collect(Collectors.toSet());
+			.filter(snapshot -> {
+				Snapshot received = remoteSnapshots.get(snapshot.getId());
+				return received == null || shouldSendFullShapshot(snapshot, received);
+			})
+			.map(snapshot -> gossip.getInfoFor(snapshot.getId())
+				.toSnapshot())
+			.collect(Collectors.toSet());
 	}
 
 	private boolean shouldSendFullShapshot(Snapshot localHeader, Snapshot remoteHeader) {
 		int delta = localHeader.getStateSequenceNumber() - remoteHeader.getStateSequenceNumber();
 
-		if(delta > 0) {
+		if (delta > 0) {
 			return true;
-		} else if (delta == 0 &&
-				(localHeader.getSnapshotTimestamp() - remoteHeader.getSnapshotTimestamp()) < 0) {
+		} else if (delta == 0 && (localHeader.getSnapshotTimestamp() - remoteHeader.getSnapshotTimestamp()) < 0) {
 			MemberInfo info = gossip.getInfoFor(localHeader.getId());
-			if(info != null) {
+			if (info != null) {
 				info.update(remoteHeader);
 			}
 		}

@@ -309,7 +309,6 @@ public interface HLogger {
 		return this;
 	}
 
-
 	default HLogger info(String format, Object... args) {
 		Logger l = logger();
 		if (l.isInfoEnabled()) {
@@ -349,6 +348,5 @@ public interface HLogger {
 		error("unexpected error %s", e);
 		e.printStackTrace();
 	}
-
 
 }

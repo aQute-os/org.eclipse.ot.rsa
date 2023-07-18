@@ -30,16 +30,17 @@ public abstract class AbstractLeakCheckingTest {
 	public final void setupLeakChecking(TestInfo name) throws IOException {
 
 		System.setProperty("io.netty.leakDetection.maxRecords", "100");
-        System.setProperty("io.netty.customResourceLeakDetector", TestResourceLeakDetector.class.getName());
-        TestResourceLeakDetector.addResourceTypeToIgnore(HashedWheelTimer.class);
+		System.setProperty("io.netty.customResourceLeakDetector", TestResourceLeakDetector.class.getName());
+		TestResourceLeakDetector.addResourceTypeToIgnore(HashedWheelTimer.class);
 
 		ResourceLeakDetector.setLevel(PARANOID);
-		LoggerFactory.getLogger(getClass()).info("Beginning test {}", name.getDisplayName());
+		LoggerFactory.getLogger(getClass())
+			.info("Beginning test {}", name.getDisplayName());
 	}
 
-    @AfterEach
-    public final void leakCheck() throws IOException {
-    	TestResourceLeakDetector.assertNoLeaks();
-    	TestResourceLeakDetector.clearIgnoredResourceTypes();
-    }
+	@AfterEach
+	public final void leakCheck() throws IOException {
+		TestResourceLeakDetector.assertNoLeaks();
+		TestResourceLeakDetector.clearIgnoredResourceTypes();
+	}
 }

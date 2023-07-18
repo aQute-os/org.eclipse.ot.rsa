@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 import org.eclipse.ot.rsa.logger.util.HLogger;
 
-
 /**
  * The purpose of this class is to execute all calls, in sequence, in a single
  * thread. This has the advantage that all internal data manipulation is
@@ -133,6 +132,7 @@ public class SingleThread implements AutoCloseable, InvocationHandler {
 	public interface RunnableWithException {
 		void run() throws Exception;
 	}
+
 	public void schedule(RunnableWithException r, long delay) {
 		executor.schedule(() -> {
 			try {

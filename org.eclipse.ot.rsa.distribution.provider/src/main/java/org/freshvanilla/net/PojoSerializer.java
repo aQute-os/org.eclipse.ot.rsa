@@ -22,10 +22,10 @@ import io.netty.buffer.ByteBuf;
 
 public interface PojoSerializer {
 
-    public <Pojo> boolean canSerialize(Pojo pojo);
+	public <Pojo> boolean canSerialize(Pojo pojo);
 
-    public <Pojo> void serialize(ByteBuf wb, WireFormat wf, Pojo pojo) throws IOException;
+	public <Pojo> void serialize(ByteBuf wb, WireFormat wf, Pojo pojo) throws IOException;
 
-    public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException;
+	public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException;
 
 }

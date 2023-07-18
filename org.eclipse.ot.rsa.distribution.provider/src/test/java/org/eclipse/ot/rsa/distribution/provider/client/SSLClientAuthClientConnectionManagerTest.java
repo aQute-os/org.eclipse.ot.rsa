@@ -30,14 +30,15 @@ public class SSLClientAuthClientConnectionManagerTest extends AbstractSSLClientC
 
 	@BeforeEach
 	public final void setUpClientAuth() throws Exception {
-		Mockito.when(tls.hasCertificate()).thenReturn(true);
+		Mockito.when(tls.hasCertificate())
+			.thenReturn(true);
 	}
 
 	@Override
 	protected Map<String, Object> getConfig() {
 		Map<String, Object> config = new HashMap<>();
 		config.put("client.protocols", "TCP_CLIENT_AUTH");
-        config.put("allow.insecure.transports", false);
+		config.put("allow.insecure.transports", false);
 		return config;
 	}
 
@@ -56,11 +57,12 @@ public class SSLClientAuthClientConnectionManagerTest extends AbstractSSLClientC
 		} catch (Exception e) {
 			throw new RuntimeException("Unable to create the SSL Engine", e);
 		}
-		ServerSocket socket = ((JdkSslContext)sslContext).context().getServerSocketFactory()
-				.createServerSocket(0, 1, InetAddress.getLoopbackAddress());
+		ServerSocket socket = ((JdkSslContext) sslContext).context()
+			.getServerSocketFactory()
+			.createServerSocket(0, 1, InetAddress.getLoopbackAddress());
 
-		((SSLServerSocket)socket).setNeedClientAuth(true);
-		((SSLServerSocket)socket).setWantClientAuth(true);
+		((SSLServerSocket) socket).setNeedClientAuth(true);
+		((SSLServerSocket) socket).setWantClientAuth(true);
 
 		return socket;
 	}

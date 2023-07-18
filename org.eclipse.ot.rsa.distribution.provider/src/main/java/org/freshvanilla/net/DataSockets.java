@@ -34,114 +34,113 @@ import org.freshvanilla.utils.NamedThreadFactory;
 
 public class DataSockets {
 
-    private static final AtomicReference<ScheduledExecutorService> MANAGER = new AtomicReference<>();
-    private static final Map<DataSocket, String> DATA_SOCKETS = new ConcurrentHashMap<>();
+	private static final AtomicReference<ScheduledExecutorService>	MANAGER			= new AtomicReference<>();
+	private static final Map<DataSocket, String>					DATA_SOCKETS	= new ConcurrentHashMap<>();
 
-    static final long CHECK_PERIOD_MS = 1000;
+	static final long												CHECK_PERIOD_MS	= 1000;
 
-    private DataSockets() {
-        // forbidden
-    }
+	private DataSockets() {
+		// forbidden
+	}
 
-    public static void registerDataSocket(DataSocket ds) {
-        synchronized (MANAGER) {
-            ScheduledExecutorService service = MANAGER.get();
-            if (service == null || service.isShutdown()) {
-                ThreadFactory tf = new NamedThreadFactory("data-socket-manager", Thread.NORM_PRIORITY, true);
-                service = Executors.newSingleThreadScheduledExecutor(tf);
-                MANAGER.set(service);
+	public static void registerDataSocket(DataSocket ds) {
+		synchronized (MANAGER) {
+			ScheduledExecutorService service = MANAGER.get();
+			if (service == null || service.isShutdown()) {
+				ThreadFactory tf = new NamedThreadFactory("data-socket-manager", Thread.NORM_PRIORITY, true);
+				service = Executors.newSingleThreadScheduledExecutor(tf);
+				MANAGER.set(service);
 
-                Runnable checker = new Runnable() {
-                    @Override
+				Runnable checker = new Runnable() {
+					@Override
 					public void run() {
-                        long now = System.currentTimeMillis();
-                        for (Entry<DataSocket, String> e : DATA_SOCKETS.entrySet()) {
-                            DataSocket ds = e.getKey();
-                            if (ds != null) {
-                                ds.timedCheck(now);
-                                if (ds.isClosed()) {
-                                    DATA_SOCKETS.remove(ds);
-                                }
-                            }
-                        }
-                    }
-                };
+						long now = System.currentTimeMillis();
+						for (Entry<DataSocket, String> e : DATA_SOCKETS.entrySet()) {
+							DataSocket ds = e.getKey();
+							if (ds != null) {
+								ds.timedCheck(now);
+								if (ds.isClosed()) {
+									DATA_SOCKETS.remove(ds);
+								}
+							}
+						}
+					}
+				};
 
-                service.scheduleAtFixedRate(checker, CHECK_PERIOD_MS, CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
-            }
-        }
+				service.scheduleAtFixedRate(checker, CHECK_PERIOD_MS, CHECK_PERIOD_MS, TimeUnit.MILLISECONDS);
+			}
+		}
 
-        DATA_SOCKETS.put(ds, "");
-    }
+		DATA_SOCKETS.put(ds, "");
+	}
 
-    public static void unregisterDataSocket(DataSocket ds) {
-        DATA_SOCKETS.remove(ds);
-        synchronized (MANAGER) {
-            if (DATA_SOCKETS.isEmpty()) {
-                reset();
-            }
-        }
-    }
+	public static void unregisterDataSocket(DataSocket ds) {
+		DATA_SOCKETS.remove(ds);
+		synchronized (MANAGER) {
+			if (DATA_SOCKETS.isEmpty()) {
+				reset();
+			}
+		}
+	}
 
-    public static void reset() {
-        ScheduledExecutorService service = MANAGER.getAndSet(null);
-        if (service != null) {
-            service.shutdownNow();
-        }
+	public static void reset() {
+		ScheduledExecutorService service = MANAGER.getAndSet(null);
+		if (service != null) {
+			service.shutdownNow();
+		}
 
-        for (DataSocket dataSocket : DATA_SOCKETS.keySet()) {
-            dataSocket.close();
-        }
+		for (DataSocket dataSocket : DATA_SOCKETS.keySet()) {
+			dataSocket.close();
+		}
 
-        DATA_SOCKETS.clear();
-    }
+		DATA_SOCKETS.clear();
+	}
 
-    public static void appendStackTrace(DataSocket ds, Throwable t) {
-        try {
-            Field stackTraceField = Throwable.class.getDeclaredField("stackTrace");
-            stackTraceField.setAccessible(true);
+	public static void appendStackTrace(DataSocket ds, Throwable t) {
+		try {
+			Field stackTraceField = Throwable.class.getDeclaredField("stackTrace");
+			stackTraceField.setAccessible(true);
 
-            List<StackTraceElement> original = Arrays.asList(t.getStackTrace());
-            int pos;
+			List<StackTraceElement> original = Arrays.asList(t.getStackTrace());
+			int pos;
 
-            for (pos = original.size() - 1; pos > 0; pos--) {
-                if ("invoke0".equals(original.get(pos).getMethodName())) {
-                    break;
-                }
-            }
+			for (pos = original.size() - 1; pos > 0; pos--) {
+				if ("invoke0".equals(original.get(pos)
+					.getMethodName())) {
+					break;
+				}
+			}
 
-            if (pos <= 0) {
-                pos = original.size() - 6;
-            }
+			if (pos <= 0) {
+				pos = original.size() - 6;
+			}
 
-            // protect against missing/mangled remote stack traces
-            if (pos < 0) {
-                pos = 0;
-            }
+			// protect against missing/mangled remote stack traces
+			if (pos < 0) {
+				pos = 0;
+			}
 
-            List<StackTraceElement> extended = new ArrayList<>(original.subList(0, pos));
+			List<StackTraceElement> extended = new ArrayList<>(original.subList(0, pos));
 
-            InetSocketAddress address = ds.getAddress();
+			InetSocketAddress address = ds.getAddress();
 
-            if (address != null) {
-                String hostName = address.getHostName();
-                if ("0.0.0.0".equals(hostName)) {
-                    hostName = "localhost";
-                }
+			if (address != null) {
+				String hostName = address.getHostName();
+				if ("0.0.0.0".equals(hostName)) {
+					hostName = "localhost";
+				}
 
-                extended.add(new StackTraceElement("~ call to server ~", "call", hostName, address.getPort()));
-            }
+				extended.add(new StackTraceElement("~ call to server ~", "call", hostName, address.getPort()));
+			}
 
-            List<StackTraceElement> here = Arrays.asList(new Throwable().getStackTrace());
-            extended.addAll(here.subList(3, here.size()));
-            stackTraceField.set(t, extended.toArray(new StackTraceElement[extended.size()]));
-        }
-        catch (NoSuchFieldException nsf) {
-            throw new AssertionError(nsf);
-        }
-        catch (IllegalAccessException iae) {
-            throw new AssertionError(iae);
-        }
-    }
+			List<StackTraceElement> here = Arrays.asList(new Throwable().getStackTrace());
+			extended.addAll(here.subList(3, here.size()));
+			stackTraceField.set(t, extended.toArray(new StackTraceElement[extended.size()]));
+		} catch (NoSuchFieldException nsf) {
+			throw new AssertionError(nsf);
+		} catch (IllegalAccessException iae) {
+			throw new AssertionError(iae);
+		}
+	}
 
 }

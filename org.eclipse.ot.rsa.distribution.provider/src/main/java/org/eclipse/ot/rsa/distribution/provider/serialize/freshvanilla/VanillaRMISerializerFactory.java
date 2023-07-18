@@ -21,7 +21,6 @@ public class VanillaRMISerializerFactory implements SerializerFactory {
 
 	@Override
 	public Serializer create(Bundle classSpace) {
-		return new VanillaRMISerializer(new MetaClasses(new MetaClassesClassLoader(
-						classSpace)));
+		return new VanillaRMISerializer(new MetaClasses(new MetaClassesClassLoader(classSpace)));
 	}
 }

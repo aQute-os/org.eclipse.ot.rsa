@@ -11,6 +11,7 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType.FIRST_CONTACT_REQUEST;
 
 import io.netty.buffer.ByteBuf;

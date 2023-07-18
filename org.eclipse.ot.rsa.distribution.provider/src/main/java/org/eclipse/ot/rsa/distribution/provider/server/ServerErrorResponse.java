@@ -27,7 +27,7 @@ public class ServerErrorResponse extends AbstractRSAMessage<ServerMessageType> {
 	}
 
 	private static ServerMessageType check(ServerMessageType type) {
-		if(!type.isError()) {
+		if (!type.isError()) {
 			throw new IllegalArgumentException("The type is not an error");
 		}
 		return type;

@@ -14,7 +14,6 @@ package org.eclipse.ot.rsa.example.api;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
- *
  * @author mark
  * @since 08.11.2021
  */

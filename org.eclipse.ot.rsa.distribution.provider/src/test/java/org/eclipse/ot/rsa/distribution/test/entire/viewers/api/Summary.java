@@ -29,10 +29,10 @@ public class Summary extends Viewer {
 
 	@Override
 	public <T extends AD> T build(T def, Type type) throws Exception {
-		if ( ! (type instanceof Class))
+		if (!(type instanceof Class))
 			throw new IllegalArgumentException("Summaries require a simple struct type");
 
-		Class<?>clazz = (Class<?>) type;
+		Class<?> clazz = (Class<?>) type;
 
 		def.basicType = BasicType.struct;
 		def.viewer = "summary";

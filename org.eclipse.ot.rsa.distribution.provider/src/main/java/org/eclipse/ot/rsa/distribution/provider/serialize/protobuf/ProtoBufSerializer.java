@@ -43,33 +43,33 @@ import io.netty.buffer.ByteBufOutputStream;
 
 public class ProtoBufSerializer implements Serializer {
 
-	private static final byte NULL_TAG = 0x00;
-	private static final byte BOOLEAN_TAG = 0x01;
-	private static final byte BYTE_TAG = 0x02;
-	private static final byte SHORT_TAG = 0x03;
-	private static final byte CHARACTER_TAG = 0x04;
-	private static final byte INTEGER_TAG = 0x05;
-	private static final byte FLOAT_TAG = 0x06;
-	private static final byte LONG_TAG = 0x07;
-	private static final byte DOUBLE_TAG = 0x08;
-	private static final byte STRING_TAG = 0x09;
-	private static final byte BOOLEAN_ARRAY_TAG = 0x0A;
-	private static final byte BYTE_ARRAY_TAG = 0x0B;
-	private static final byte SHORT_ARRAY_TAG = 0x0C;
-	private static final byte CHAR_ARRAY_TAG = 0x0D;
-	private static final byte INT_ARRAY_TAG = 0x0E;
-	private static final byte FLOAT_ARRAY_TAG = 0x0F;
-	private static final byte LONG_ARRAY_TAG = 0x10;
-	private static final byte DOUBLE_ARRAY_TAG = 0x11;
-	private static final byte STRING_ARRAY_TAG = 0x12;
-	private static final byte ARRAY_TAG = 0x13;
-	private static final byte LIST_TAG = 0x14;
-	private static final byte SET_TAG = 0x15;
-	private static final byte SORTED_SET_TAG = 0x16;
-	private static final byte MAP_TAG = 0x17;
-	private static final byte SORTED_MAP_TAG = 0x18;
-	private static final byte PROTOBUF_OBJECT_TAG = 0x19;
-	private static final byte JAVA_OBJECT_TAG = 0x1A;
+	private static final byte	NULL_TAG			= 0x00;
+	private static final byte	BOOLEAN_TAG			= 0x01;
+	private static final byte	BYTE_TAG			= 0x02;
+	private static final byte	SHORT_TAG			= 0x03;
+	private static final byte	CHARACTER_TAG		= 0x04;
+	private static final byte	INTEGER_TAG			= 0x05;
+	private static final byte	FLOAT_TAG			= 0x06;
+	private static final byte	LONG_TAG			= 0x07;
+	private static final byte	DOUBLE_TAG			= 0x08;
+	private static final byte	STRING_TAG			= 0x09;
+	private static final byte	BOOLEAN_ARRAY_TAG	= 0x0A;
+	private static final byte	BYTE_ARRAY_TAG		= 0x0B;
+	private static final byte	SHORT_ARRAY_TAG		= 0x0C;
+	private static final byte	CHAR_ARRAY_TAG		= 0x0D;
+	private static final byte	INT_ARRAY_TAG		= 0x0E;
+	private static final byte	FLOAT_ARRAY_TAG		= 0x0F;
+	private static final byte	LONG_ARRAY_TAG		= 0x10;
+	private static final byte	DOUBLE_ARRAY_TAG	= 0x11;
+	private static final byte	STRING_ARRAY_TAG	= 0x12;
+	private static final byte	ARRAY_TAG			= 0x13;
+	private static final byte	LIST_TAG			= 0x14;
+	private static final byte	SET_TAG				= 0x15;
+	private static final byte	SORTED_SET_TAG		= 0x16;
+	private static final byte	MAP_TAG				= 0x17;
+	private static final byte	SORTED_MAP_TAG		= 0x18;
+	private static final byte	PROTOBUF_OBJECT_TAG	= 0x19;
+	private static final byte	JAVA_OBJECT_TAG		= 0x1A;
 
 	private interface SimpleTypeSerializer {
 		public void serialize(ByteBufOutputStream os, Object o) throws IOException;
@@ -80,98 +80,98 @@ public class ProtoBufSerializer implements Serializer {
 	static {
 		Map<Class<?>, SimpleTypeSerializer> map = new HashMap<>();
 
-		map.put(null, (os,o) -> os.write(NULL_TAG));
-		map.put(Boolean.class, (os,o) -> {
-				os.write(BOOLEAN_TAG);
-				os.write(((Boolean)o) ? 1 : 0);
-			});
-		map.put(Byte.class, (os,o) -> {
-				os.write(BYTE_TAG);
-				os.write((Byte)o);
-			});
-		map.put(Short.class, (os,o) -> {
-				os.write(SHORT_TAG);
-				os.writeShort((Short)o);
-			});
-		map.put(Character.class, (os,o) -> {
-				os.write(CHARACTER_TAG);
-				os.writeChar((Character)o);
-			});
-		map.put(Integer.class, (os,o) -> {
-				os.write(INTEGER_TAG);
-				os.writeInt((Integer)o);
-			});
-		map.put(Float.class, (os,o) -> {
-				os.write(FLOAT_TAG);
-				os.writeFloat((Float)o);
-			});
-		map.put(Long.class, (os,o) -> {
-				os.write(LONG_TAG);
-				os.writeLong((Long)o);
-			});
-		map.put(Double.class, (os,o) ->  {
-				os.write(DOUBLE_TAG);
-				os.writeDouble((Double)o);
-			});
-		map.put(String.class, (os,o) -> {
-				os.write(STRING_TAG);
-				os.writeUTF(o.toString());
-			});
+		map.put(null, (os, o) -> os.write(NULL_TAG));
+		map.put(Boolean.class, (os, o) -> {
+			os.write(BOOLEAN_TAG);
+			os.write(((Boolean) o) ? 1 : 0);
+		});
+		map.put(Byte.class, (os, o) -> {
+			os.write(BYTE_TAG);
+			os.write((Byte) o);
+		});
+		map.put(Short.class, (os, o) -> {
+			os.write(SHORT_TAG);
+			os.writeShort((Short) o);
+		});
+		map.put(Character.class, (os, o) -> {
+			os.write(CHARACTER_TAG);
+			os.writeChar((Character) o);
+		});
+		map.put(Integer.class, (os, o) -> {
+			os.write(INTEGER_TAG);
+			os.writeInt((Integer) o);
+		});
+		map.put(Float.class, (os, o) -> {
+			os.write(FLOAT_TAG);
+			os.writeFloat((Float) o);
+		});
+		map.put(Long.class, (os, o) -> {
+			os.write(LONG_TAG);
+			os.writeLong((Long) o);
+		});
+		map.put(Double.class, (os, o) -> {
+			os.write(DOUBLE_TAG);
+			os.writeDouble((Double) o);
+		});
+		map.put(String.class, (os, o) -> {
+			os.write(STRING_TAG);
+			os.writeUTF(o.toString());
+		});
 
-		map.put(boolean[].class, (os,o) ->  {
-				os.write(BOOLEAN_ARRAY_TAG);
-				os.write(((boolean[])o).length);
-				for(boolean b : (boolean[])o)
-					os.write(b ? 1 : 0);
-			});
-		map.put(byte[].class, (os,o) ->  {
-				os.write(BYTE_ARRAY_TAG);
-				os.write(((byte[])o).length);
-				for(byte b : (byte[])o)
-					os.write(b);
-			});
-		map.put(short[].class, (os,o) ->  {
-				os.write(SHORT_ARRAY_TAG);
-				os.write(((short[])o).length);
-				for(short s : (short[])o)
-					os.writeShort(s);
-			});
-		map.put(char[].class, (os,o) -> {
-				os.write(CHAR_ARRAY_TAG);
-				os.write(((char[])o).length);
-				for(char c : (char[])o)
-					os.writeChar(c);
-			});
-		map.put(int[].class, (os,o) -> {
-				os.write(INT_ARRAY_TAG);
-				os.write(((int[])o).length);
-				for(int i : (int[])o)
-					os.writeInt(i);
-			});
-		map.put(float[].class, (os,o) -> {
-				os.write(FLOAT_ARRAY_TAG);
-				os.write(((float[])o).length);
-				for(float f : (float[])o)
-					os.writeFloat(f);
-			});
-		map.put(long[].class, (os,o) -> {
-				os.write(LONG_ARRAY_TAG);
-				os.write(((long[])o).length);
-				for(long l : (long[])o)
-					os.writeLong(l);
-			});
-		map.put(double[].class, (os,o) -> {
-				os.write(DOUBLE_ARRAY_TAG);
-				os.write(((double[])o).length);
-				for(double d : (double[])o)
-					os.writeDouble(d);
-			});
-		map.put(String[].class, (os,o) -> {
-				os.write(STRING_ARRAY_TAG);
-				os.write(((String[])o).length);
-				for(String s : (String[])o)
-					os.writeUTF(s);
-			});
+		map.put(boolean[].class, (os, o) -> {
+			os.write(BOOLEAN_ARRAY_TAG);
+			os.write(((boolean[]) o).length);
+			for (boolean b : (boolean[]) o)
+				os.write(b ? 1 : 0);
+		});
+		map.put(byte[].class, (os, o) -> {
+			os.write(BYTE_ARRAY_TAG);
+			os.write(((byte[]) o).length);
+			for (byte b : (byte[]) o)
+				os.write(b);
+		});
+		map.put(short[].class, (os, o) -> {
+			os.write(SHORT_ARRAY_TAG);
+			os.write(((short[]) o).length);
+			for (short s : (short[]) o)
+				os.writeShort(s);
+		});
+		map.put(char[].class, (os, o) -> {
+			os.write(CHAR_ARRAY_TAG);
+			os.write(((char[]) o).length);
+			for (char c : (char[]) o)
+				os.writeChar(c);
+		});
+		map.put(int[].class, (os, o) -> {
+			os.write(INT_ARRAY_TAG);
+			os.write(((int[]) o).length);
+			for (int i : (int[]) o)
+				os.writeInt(i);
+		});
+		map.put(float[].class, (os, o) -> {
+			os.write(FLOAT_ARRAY_TAG);
+			os.write(((float[]) o).length);
+			for (float f : (float[]) o)
+				os.writeFloat(f);
+		});
+		map.put(long[].class, (os, o) -> {
+			os.write(LONG_ARRAY_TAG);
+			os.write(((long[]) o).length);
+			for (long l : (long[]) o)
+				os.writeLong(l);
+		});
+		map.put(double[].class, (os, o) -> {
+			os.write(DOUBLE_ARRAY_TAG);
+			os.write(((double[]) o).length);
+			for (double d : (double[]) o)
+				os.writeDouble(d);
+		});
+		map.put(String[].class, (os, o) -> {
+			os.write(STRING_ARRAY_TAG);
+			os.write(((String[]) o).length);
+			for (String s : (String[]) o)
+				os.writeUTF(s);
+		});
 
 		SERIALIZERS = Collections.unmodifiableMap(map);
 	}
@@ -186,7 +186,7 @@ public class ProtoBufSerializer implements Serializer {
 	public void serializeArgs(ByteBuf buffer, Object[] o) throws IOException {
 		ByteBufOutputStream bbos = new ByteBufOutputStream(buffer);
 		bbos.writeInt(o.length);
-		for(Object x : o)
+		for (Object x : o)
 			serialzeWithProtoBuf(bbos, x);
 	}
 
@@ -198,7 +198,7 @@ public class ProtoBufSerializer implements Serializer {
 	@Override
 	public Object[] deserializeArgs(ByteBuf buffer) throws ClassNotFoundException, IOException {
 		Object[] o = new Object[buffer.readInt()];
-		for(int i = 0; i < o.length ; i++)
+		for (int i = 0; i < o.length; i++)
 			o[i] = deserializeWithProtoBuf(new ByteBufInputStream(buffer), classSpace);
 		return o;
 	}
@@ -208,48 +208,48 @@ public class ProtoBufSerializer implements Serializer {
 		return deserializeWithProtoBuf(new ByteBufInputStream(buffer), classSpace);
 	}
 
-	public static void serialzeWithProtoBuf(ByteBufOutputStream bbos,
-			Object e) throws IOException {
+	public static void serialzeWithProtoBuf(ByteBufOutputStream bbos, Object e) throws IOException {
 
 		Class<? extends Object> classType = e.getClass();
 
 		SimpleTypeSerializer s = SERIALIZERS.get(classType);
 
-		if(s != null) {
+		if (s != null) {
 			s.serialize(bbos, e);
 			return;
 		} else {
-			if(classType.isArray()) {
+			if (classType.isArray()) {
 				int length = Array.getLength(e);
 
 				bbos.write(ARRAY_TAG);
-				bbos.writeUTF(classType.getComponentType().getName());
+				bbos.writeUTF(classType.getComponentType()
+					.getName());
 				bbos.writeInt(length);
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					serialzeWithProtoBuf(bbos, Array.get(e, i));
 				}
 				return;
 			} else if (Collection.class.isAssignableFrom(classType)) {
-				if(e instanceof SortedSet) {
+				if (e instanceof SortedSet) {
 					bbos.write(SORTED_SET_TAG);
-				} else if(e instanceof Set) {
+				} else if (e instanceof Set) {
 					bbos.write(SET_TAG);
 				} else {
 					bbos.write(LIST_TAG);
 				}
-				bbos.writeInt(((Collection<?>)e).size());
-				for(Object entry : (Collection<?>)e) {
+				bbos.writeInt(((Collection<?>) e).size());
+				for (Object entry : (Collection<?>) e) {
 					serialzeWithProtoBuf(bbos, entry);
 				}
 			} else if (Map.class.isAssignableFrom(classType)) {
-				if(e instanceof SortedMap) {
+				if (e instanceof SortedMap) {
 					bbos.write(SORTED_MAP_TAG);
 				} else {
 					bbos.write(MAP_TAG);
 				}
 
-				bbos.writeInt(((Map<?,?>)e).size());
-				for(Entry<?,?> entry : ((Map<?,?>)e).entrySet()) {
+				bbos.writeInt(((Map<?, ?>) e).size());
+				for (Entry<?, ?> entry : ((Map<?, ?>) e).entrySet()) {
 					serialzeWithProtoBuf(bbos, entry.getKey());
 					serialzeWithProtoBuf(bbos, entry.getValue());
 				}
@@ -260,7 +260,8 @@ public class ProtoBufSerializer implements Serializer {
 					bbos.writeUTF(classType.getName());
 					m.invoke(e, bbos);
 				} catch (Exception e1) {
-					//Fall back to normal Java org.eclipse.ot.rsa.distribution.test.dosgi.dsw.net.serialization
+					// Fall back to normal Java
+					// org.eclipse.ot.rsa.distribution.test.dosgi.dsw.net.serialization
 					bbos.write(JAVA_OBJECT_TAG);
 					JavaSerializer.serialzeWithJava(bbos, e);
 				}
@@ -270,7 +271,7 @@ public class ProtoBufSerializer implements Serializer {
 
 	public static Object deserializeWithProtoBuf(ByteBufInputStream bbis, Bundle classSpace) throws IOException {
 
-		switch(bbis.read()) {
+		switch (bbis.read()) {
 			case NULL_TAG :
 				return null;
 			case BOOLEAN_TAG :
@@ -294,7 +295,7 @@ public class ProtoBufSerializer implements Serializer {
 			case BOOLEAN_ARRAY_TAG : {
 				int length = bbis.readInt();
 				boolean[] array = new boolean[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readByte() == 1;
 				}
 				return array;
@@ -302,7 +303,7 @@ public class ProtoBufSerializer implements Serializer {
 			case BYTE_ARRAY_TAG : {
 				int length = bbis.readInt();
 				byte[] array = new byte[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readByte();
 				}
 				return array;
@@ -310,7 +311,7 @@ public class ProtoBufSerializer implements Serializer {
 			case SHORT_ARRAY_TAG : {
 				int length = bbis.readInt();
 				short[] array = new short[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readShort();
 				}
 				return array;
@@ -318,7 +319,7 @@ public class ProtoBufSerializer implements Serializer {
 			case CHAR_ARRAY_TAG : {
 				int length = bbis.readInt();
 				char[] array = new char[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readChar();
 				}
 				return array;
@@ -326,7 +327,7 @@ public class ProtoBufSerializer implements Serializer {
 			case INT_ARRAY_TAG : {
 				int length = bbis.readInt();
 				int[] array = new int[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readInt();
 				}
 				return array;
@@ -334,7 +335,7 @@ public class ProtoBufSerializer implements Serializer {
 			case FLOAT_ARRAY_TAG : {
 				int length = bbis.readInt();
 				float[] array = new float[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readFloat();
 				}
 				return array;
@@ -342,7 +343,7 @@ public class ProtoBufSerializer implements Serializer {
 			case LONG_ARRAY_TAG : {
 				int length = bbis.readInt();
 				long[] array = new long[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readLong();
 				}
 				return array;
@@ -350,7 +351,7 @@ public class ProtoBufSerializer implements Serializer {
 			case DOUBLE_ARRAY_TAG : {
 				int length = bbis.readInt();
 				double[] array = new double[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readDouble();
 				}
 				return array;
@@ -358,7 +359,7 @@ public class ProtoBufSerializer implements Serializer {
 			case STRING_ARRAY_TAG : {
 				int length = bbis.readInt();
 				String[] array = new String[length];
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					array[i] = bbis.readUTF();
 				}
 				return array;
@@ -373,13 +374,14 @@ public class ProtoBufSerializer implements Serializer {
 						componentType = classSpace.loadClass(type);
 					} catch (ClassNotFoundException cnfe) {
 						try {
-							return ProtoBufSerializer.class.getClassLoader().loadClass(type);
+							return ProtoBufSerializer.class.getClassLoader()
+								.loadClass(type);
 						} catch (ClassNotFoundException cnfe2) {
 							throw cnfe;
 						}
 					}
 					Object array = Array.newInstance(componentType, length);
-					for(int i = 0; i < length; i++) {
+					for (int i = 0; i < length; i++) {
 						Array.set(array, i, deserializeWithProtoBuf(bbis, classSpace));
 					}
 					return array;
@@ -390,7 +392,7 @@ public class ProtoBufSerializer implements Serializer {
 			case LIST_TAG : {
 				int length = bbis.readInt();
 				List<Object> list = new ArrayList<>(length);
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					list.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return list;
@@ -398,7 +400,7 @@ public class ProtoBufSerializer implements Serializer {
 			case SET_TAG : {
 				int length = bbis.readInt();
 				Set<Object> set = new HashSet<>(length);
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					set.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return set;
@@ -406,7 +408,7 @@ public class ProtoBufSerializer implements Serializer {
 			case SORTED_SET_TAG : {
 				int length = bbis.readInt();
 				SortedSet<Object> set = new TreeSet<>();
-				for(int i = 0; i < length; i++) {
+				for (int i = 0; i < length; i++) {
 					set.add(deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return set;
@@ -414,18 +416,16 @@ public class ProtoBufSerializer implements Serializer {
 			case MAP_TAG : {
 				int length = bbis.readInt();
 				Map<Object, Object> map = new HashMap<>(length);
-				for(int i = 0; i < length; i++) {
-					map.put(deserializeWithProtoBuf(bbis, classSpace),
-							deserializeWithProtoBuf(bbis, classSpace));
+				for (int i = 0; i < length; i++) {
+					map.put(deserializeWithProtoBuf(bbis, classSpace), deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return map;
 			}
 			case SORTED_MAP_TAG : {
 				int length = bbis.readInt();
 				SortedMap<Object, Object> map = new TreeMap<>();
-				for(int i = 0; i < length; i++) {
-					map.put(deserializeWithProtoBuf(bbis, classSpace),
-							deserializeWithProtoBuf(bbis, classSpace));
+				for (int i = 0; i < length; i++) {
+					map.put(deserializeWithProtoBuf(bbis, classSpace), deserializeWithProtoBuf(bbis, classSpace));
 				}
 				return map;
 			}
@@ -437,7 +437,8 @@ public class ProtoBufSerializer implements Serializer {
 						cls = classSpace.loadClass(type);
 					} catch (ClassNotFoundException cnfe) {
 						try {
-							return ProtoBufSerializer.class.getClassLoader().loadClass(type);
+							return ProtoBufSerializer.class.getClassLoader()
+								.loadClass(type);
 						} catch (ClassNotFoundException cnfe2) {
 							throw cnfe;
 						}
@@ -455,12 +456,13 @@ public class ProtoBufSerializer implements Serializer {
 					ois = new ObjectInputStream(bbis) {
 						@Override
 						protected Class<?> resolveClass(ObjectStreamClass arg0)
-								throws IOException, ClassNotFoundException {
+							throws IOException, ClassNotFoundException {
 							try {
 								return classSpace.loadClass(arg0.getName());
 							} catch (ClassNotFoundException cnfe) {
 								try {
-									return ProtoBufSerializer.class.getClassLoader().loadClass(arg0.getName());
+									return ProtoBufSerializer.class.getClassLoader()
+										.loadClass(arg0.getName());
 								} catch (ClassNotFoundException cnfe2) {
 									throw cnfe;
 								}
@@ -471,7 +473,7 @@ public class ProtoBufSerializer implements Serializer {
 				} catch (Exception e) {
 					throw new IOException("Unable to deserialize", e);
 				} finally {
-					if(ois != null) {
+					if (ois != null) {
 						ois.close();
 					}
 				}

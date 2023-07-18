@@ -25,7 +25,7 @@ class PromiseReturnHandler extends BasicReturnHandler {
 	private final Function<Object, Future<Object>> toNettyFuture;
 
 	public PromiseReturnHandler(UUID serviceId, Serializer serializer, Future<?> completeFuture,
-			Function<Object, Future<Object>> toNettyFuture) {
+		Function<Object, Future<Object>> toNettyFuture) {
 		super(serviceId, serializer, completeFuture);
 		this.toNettyFuture = toNettyFuture;
 	}
@@ -37,7 +37,7 @@ class PromiseReturnHandler extends BasicReturnHandler {
 	}
 
 	private void asyncResponse(Channel channel, int callId, Future<? super Object> f) {
-		if(f.isSuccess()) {
+		if (f.isSuccess()) {
 			sendReturn(channel, callId, true, f.getNow());
 		} else {
 			sendReturn(channel, callId, false, f.cause());

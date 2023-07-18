@@ -11,6 +11,7 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -30,50 +31,49 @@ import org.slf4j.LoggerFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 
-
 public class Snapshot {
 
-	private static final Logger logger = LoggerFactory.getLogger(Snapshot.class);
+	private static final Logger			logger	= LoggerFactory.getLogger(Snapshot.class);
 
 	/**
 	 * The id of this node
 	 */
-	private final UUID id;
+	private final UUID					id;
 
 	/**
 	 * The address of this node
 	 */
-	private final InetSocketAddress address;
+	private final InetSocketAddress		address;
 
 	/**
 	 * The TCP port of this node
 	 */
-	private final int tcpPort;
+	private final int					tcpPort;
 
 	/**
 	 * The current state counter for the node represented by this snapshot
 	 */
-	private final short stateSequenceNumber;
+	private final short					stateSequenceNumber;
 
 	/**
 	 * The low three bytes of the system clock when this snapshot was taken
 	 */
-	private final int snapshotTimestamp;
+	private final int					snapshotTimestamp;
 
 	/**
 	 * What is the type of the message from this node?
 	 */
-	private final SnapshotType snapshotType;
+	private final SnapshotType			snapshotType;
 
 	/**
 	 * What is the payload - a zero length array for a heartbeat message.
 	 */
-	private final Map<String, byte[]> data;
+	private final Map<String, byte[]>	data;
 
-	private final int hopsToLive;
+	private final int					hopsToLive;
 
-	public Snapshot(UUID id, int tcpPort, short stateSequenceNumber,
-			SnapshotType type, Map<String, byte[]> data, int hopsToLive) {
+	public Snapshot(UUID id, int tcpPort, short stateSequenceNumber, SnapshotType type, Map<String, byte[]> data,
+		int hopsToLive) {
 		this.id = id;
 		this.address = null;
 		this.tcpPort = tcpPort;
@@ -81,7 +81,7 @@ public class Snapshot {
 		this.snapshotTimestamp = (int) ((0xFFFFFF & NANOSECONDS.toMillis(System.nanoTime())) << 8);
 		this.snapshotType = type;
 		this.data = data == null ? emptyMap() : data;
-		this.hopsToLive = Math.max(0, Math.min(255,hopsToLive));
+		this.hopsToLive = Math.max(0, Math.min(255, hopsToLive));
 	}
 
 	public Snapshot(Snapshot s, InetSocketAddress socketAddress) {
@@ -106,15 +106,16 @@ public class Snapshot {
 			stateSequenceNumber = input.readShort();
 			snapshotTimestamp = input.readUnsignedMedium() << 8;
 
-			if(snapshotType != SnapshotType.HEADER) {
+			if (snapshotType != SnapshotType.HEADER) {
 				InetAddress inetAddress = IP_TYPE.fromDataInput(input);
 				address = inetAddress == null ? null : new InetSocketAddress(inetAddress, input.readUnsignedShort());
 				tcpPort = input.readUnsignedShort();
 				data = new HashMap<>();
-				if(snapshotType == SnapshotType.PAYLOAD_UPDATE) {
+				if (snapshotType == SnapshotType.PAYLOAD_UPDATE) {
 					int size = input.readUnsignedShort();
-					for(int i = 0; i < size; i++) {
-						String key = input.readCharSequence(input.readUnsignedShort(), UTF_8).toString();
+					for (int i = 0; i < size; i++) {
+						String key = input.readCharSequence(input.readUnsignedShort(), UTF_8)
+							.toString();
 						byte[] value = new byte[input.readUnsignedShort()];
 						input.readBytes(value);
 						data.put(key, value);
@@ -134,8 +135,8 @@ public class Snapshot {
 		}
 	}
 
-	public Snapshot(UUID id, InetSocketAddress address, int tcpPort, short stateSequenceNumber,
-			int snapshotTime, SnapshotType type, Map<String, byte[]> data, int hopsToLive) {
+	public Snapshot(UUID id, InetSocketAddress address, int tcpPort, short stateSequenceNumber, int snapshotTime,
+		SnapshotType type, Map<String, byte[]> data, int hopsToLive) {
 		this.id = id;
 		this.address = address;
 		this.tcpPort = tcpPort;
@@ -157,19 +158,20 @@ public class Snapshot {
 
 			output.writeMedium(snapshotTimestamp >> 8);
 
-			if(snapshotType != SnapshotType.HEADER) {
+			if (snapshotType != SnapshotType.HEADER) {
 				IP_TYPE type = IP_TYPE.fromInetSocketAddress(address);
 				type.writeOut(address, output);
 
 				output.writeShort(tcpPort);
 
-				if(snapshotType == SnapshotType.PAYLOAD_UPDATE) {
+				if (snapshotType == SnapshotType.PAYLOAD_UPDATE) {
 					output.writeShort(data.size());
-					for(Entry<String, byte[]> e : data.entrySet()) {
+					for (Entry<String, byte[]> e : data.entrySet()) {
 						AbstractGossipMessage.writeUTF8(output, e.getKey());
 						byte[] value = e.getValue();
-						if(value.length > 0x0FFF) {
-							throw new IllegalArgumentException("The stored value for key " + e.getKey() + " is too large");
+						if (value.length > 0x0FFF) {
+							throw new IllegalArgumentException(
+								"The stored value for key " + e.getKey() + " is too large");
 						}
 						output.writeShort(value.length);
 						output.writeBytes(value);
@@ -248,34 +250,35 @@ public class Snapshot {
 	@Override
 	public String toString() {
 		return "Snapshot [id=" + id + ", address=" + address + ", tcpPort=" + tcpPort + ", stateSequenceNumber="
-				+ stateSequenceNumber + ", snapshotTimestamp=" + snapshotTimestamp + ", snapshotType=" + snapshotType
-				+ ", data=" + data + ", hopsToLive=" + hopsToLive + "]";
+			+ stateSequenceNumber + ", snapshotTimestamp=" + snapshotTimestamp + ", snapshotType=" + snapshotType
+			+ ", data=" + data + ", hopsToLive=" + hopsToLive + "]";
 	}
 
 	/**
 	 * UUID + sequence + type + timestamp
 	 */
-	private static final int FIXED_OVERHEAD_HEADER = 16 + 2 + + 1 + 3;
+	private static final int	FIXED_OVERHEAD_HEADER		= 16 + 2 + +1 + 3;
 	/**
 	 * HEADER + assumed IPV6 + udp port + tcp port + hops
 	 */
-	private static final int FIXED_OVERHEAD_HEARTBEAT = FIXED_OVERHEAD_HEADER + 16 + 2 + 2 + 1;
+	private static final int	FIXED_OVERHEAD_HEARTBEAT	= FIXED_OVERHEAD_HEADER + 16 + 2 + 2 + 1;
 
 	public int guessSize() {
 		switch (snapshotType) {
-		case HEADER:
-			return FIXED_OVERHEAD_HEADER;
-		case HEARTBEAT:
-			return FIXED_OVERHEAD_HEARTBEAT;
-		default:
-			int extra = 0;
-			if(data != null) {
-				extra = data.entrySet().stream()
-					.mapToInt(e -> ByteBufUtil.utf8MaxBytes(e.getKey()) + 2 + e.getValue().length)
-					.sum();
-			}
+			case HEADER :
+				return FIXED_OVERHEAD_HEADER;
+			case HEARTBEAT :
+				return FIXED_OVERHEAD_HEARTBEAT;
+			default :
+				int extra = 0;
+				if (data != null) {
+					extra = data.entrySet()
+						.stream()
+						.mapToInt(e -> ByteBufUtil.utf8MaxBytes(e.getKey()) + 2 + e.getValue().length)
+						.sum();
+				}
 
-			return FIXED_OVERHEAD_HEARTBEAT + extra;
+				return FIXED_OVERHEAD_HEARTBEAT + extra;
 		}
 	}
 }

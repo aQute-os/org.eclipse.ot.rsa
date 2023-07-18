@@ -26,8 +26,8 @@ import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
 /**
- * A specialisation of a {@link RemoteServiceAdmin} which is able to
- * work across multiple frameworks.
+ * A specialisation of a {@link RemoteServiceAdmin} which is able to work across
+ * multiple frameworks.
  */
 @ProviderType
 public interface MultiFrameworkRemoteServiceAdmin extends RemoteServiceAdmin {
@@ -36,7 +36,6 @@ public interface MultiFrameworkRemoteServiceAdmin extends RemoteServiceAdmin {
 	 * Import the named endpoint into a specific framework
 	 *
 	 * @see #importService(EndpointDescription)
-	 *
 	 * @param framework - the target framework
 	 * @param e - the endpoint to import
 	 * @return An ImportRegistration representing the imported service
@@ -47,11 +46,12 @@ public interface MultiFrameworkRemoteServiceAdmin extends RemoteServiceAdmin {
 	 * Export the supplied service from its framework framework
 	 *
 	 * @see #exportService(ServiceReference, Map)
-	 *
 	 * @param framework - the target framework
 	 * @param ref - the service to export
-	 * @param props - additional properties with which this service should be exported
-	 * @return A collection of ExportRegistrations representing the endpoints for this exported service
+	 * @param props - additional properties with which this service should be
+	 *            exported
+	 * @return A collection of ExportRegistrations representing the endpoints
+	 *         for this exported service
 	 */
 	Collection<ExportRegistration> exportService(Framework framework, ServiceReference<?> ref, Map<String, ?> props);
 
@@ -74,8 +74,8 @@ public interface MultiFrameworkRemoteServiceAdmin extends RemoteServiceAdmin {
 	/**
 	 * Get all of the exported services for all frameworks
 	 *
-	 * @return The ExportReferences advertised by this {@link RemoteServiceAdmin}
-	 * across all frameworks
+	 * @return The ExportReferences advertised by this
+	 *         {@link RemoteServiceAdmin} across all frameworks
 	 */
 	Collection<ExportReference> getAllExportedServices();
 
@@ -83,7 +83,7 @@ public interface MultiFrameworkRemoteServiceAdmin extends RemoteServiceAdmin {
 	 * Get all of the imported services for all frameworks
 	 *
 	 * @return The ImportReferences owned by this {@link RemoteServiceAdmin}
-	 * across all frameworks
+	 *         across all frameworks
 	 */
 	Collection<ImportReference> getAllImportedEndpoints();
 }

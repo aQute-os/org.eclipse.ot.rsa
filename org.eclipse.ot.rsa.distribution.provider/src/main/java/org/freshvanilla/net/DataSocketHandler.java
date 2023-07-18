@@ -19,9 +19,9 @@ package org.freshvanilla.net;
 import org.freshvanilla.utils.SimpleResource;
 
 public interface DataSocketHandler extends SimpleResource {
-    public void onConnection();
+	public void onConnection();
 
-    public void onMessage() throws Exception;
+	public void onMessage() throws Exception;
 
-    public void onDisconnection();
+	public void onDisconnection();
 }

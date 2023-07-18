@@ -22,18 +22,17 @@ import org.eclipse.ot.rsa.cluster.gossip.api.GossipComms;
 
 public class ClusterNetworkInformationImpl implements ClusterNetworkInformation {
 
-	private final InetAddress fibreAddress;
+	private final InetAddress	fibreAddress;
 
-	private final String clusterName;
+	private final String		clusterName;
 
-	private final GossipComms comms;
+	private final GossipComms	comms;
 
-	private final boolean firewalled;
+	private final boolean		firewalled;
 
-	private final UUID id;
+	private final UUID			id;
 
-	public ClusterNetworkInformationImpl(InetAddress fibreAddress, String clusterName,
-			GossipComms comms, UUID id) {
+	public ClusterNetworkInformationImpl(InetAddress fibreAddress, String clusterName, GossipComms comms, UUID id) {
 		this.fibreAddress = fibreAddress;
 		this.clusterName = clusterName;
 		this.comms = comms;

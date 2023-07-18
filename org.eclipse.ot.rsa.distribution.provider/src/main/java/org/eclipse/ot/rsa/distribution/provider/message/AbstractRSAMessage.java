@@ -20,12 +20,11 @@ import io.netty.channel.ChannelPromise;
 
 public abstract class AbstractRSAMessage<M extends MessageType> {
 
-	private final M type;
+	private final M		type;
 
-	private final UUID serviceId;
+	private final UUID	serviceId;
 
-	private final int callId;
-
+	private final int	callId;
 
 	public AbstractRSAMessage(M type, UUID serviceId, int callId) {
 		this.type = type;
@@ -48,8 +47,7 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 	public abstract void write(ByteBuf buffer, ChannelPromise promise) throws IOException;
 
 	protected final void writeHeader(ByteBuf buffer) {
-		buffer
-			.writeByte(type.getVersion())
+		buffer.writeByte(type.getVersion())
 			.writeMedium(0)
 			.writeByte(type.getCommand())
 			.writeLong(serviceId.getMostSignificantBits())
@@ -68,11 +66,9 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 
 	private void lengthError(final int length) {
 		if (length < 0) {
-			throw new IllegalArgumentException(
-					"Adjusted frame length (" + length + ") is less than zero");
+			throw new IllegalArgumentException("Adjusted frame length (" + length + ") is less than zero");
 		} else if (length >= 16777216) {
-			throw new IllegalArgumentException(
-					"length does not fit into a medium integer: " + length);
+			throw new IllegalArgumentException("length does not fit into a medium integer: " + length);
 		}
 	}
 
@@ -81,9 +77,9 @@ public abstract class AbstractRSAMessage<M extends MessageType> {
 	}
 
 	public static final class CacheKey {
-		private final UUID serviceId;
+		private final UUID	serviceId;
 
-		private final int callId;
+		private final int	callId;
 
 		public CacheKey(UUID serviceId, int callId) {
 			this.serviceId = serviceId;

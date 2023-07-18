@@ -18,23 +18,16 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.ADA;
 /**
  * Identifies an asset, like a machine, a CPU, a VM, etc. An asset has a name, a
  * version, and a vendor.
- *
  */
 public class Asset extends struct {
 	private static final long	serialVersionUID	= 1L;
 
-	@ADA(
-		name = " ",
-		description = "Name of this asset")
-	public String	name;
+	@ADA(name = " ", description = "Name of this asset")
+	public String				name;
 
-	@ADA(
-		name = "Version",
-		description = "Version of this asset")
-	public String	version;
+	@ADA(name = "Version", description = "Version of this asset")
+	public String				version;
 
-	@ADA(
-		name = "Vendor",
-		description = "Vendor of this asset")
-	public String	vendor;
+	@ADA(name = "Vendor", description = "Vendor of this asset")
+	public String				vendor;
 }

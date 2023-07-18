@@ -12,7 +12,6 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,23 +53,23 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ClientInvocationTest {
 
-	private final UUID serviceId = UUID.randomUUID();
+	private final UUID		serviceId	= UUID.randomUUID();
 
-	private final int callId = 42;
+	private final int		callId		= 42;
 
-	private final Long result = 1234L;
+	private final Long		result		= 1234L;
 
 	@Mock
-	Channel channel;
+	Channel					channel;
 
-	ChannelPromise promise;
-	ChannelPromise promise2;
+	ChannelPromise			promise;
+	ChannelPromise			promise2;
 
-	Serializer serializer;
+	Serializer				serializer;
 
-	Deferred<Long> deferred = new Deferred<>();
+	Deferred<Long>			deferred	= new Deferred<>();
 
-	CompletableFuture<Long> cf = new CompletableFuture<>();
+	CompletableFuture<Long>	cf			= new CompletableFuture<>();
 
 	@BeforeEach
 	public void setUp() {
@@ -82,10 +81,10 @@ public class ClientInvocationTest {
 
 	@Test
 	public void testSimpleInvocationCommsSuccess() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {result}, new int[0], new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			result
+		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -100,20 +99,23 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {result}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			result
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
 
 		promise.trySuccess();
 
-		assertFalse(ci.getResult().isDone());
+		assertFalse(ci.getResult()
+			.isDone());
 	}
 
 	@Test
 	public void testSimpleInvocationCommsFail() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {result}, new int[0], new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			result
+		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -128,21 +130,25 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {result}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			result
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
 
 		promise.tryFailure(new IOException("bang!"));
 
-		assertTrue(ci.getResult().isDone());
-		assertEquals(ServiceException.REMOTE, ((ServiceException)ci.getResult().cause()).getType());
+		assertTrue(ci.getResult()
+			.isDone());
+		assertEquals(ServiceException.REMOTE, ((ServiceException) ci.getResult()
+			.cause()).getType());
 	}
 
 	@Test
 	public void testFireAndForgetInvocationCommsSuccess() throws Exception {
-		ClientInvocation ci = new ClientInvocation(false, serviceId, 1, callId,
-				new Object[] {result}, new int[0], new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
+		ClientInvocation ci = new ClientInvocation(false, serviceId, 1, callId, new Object[] {
+			result
+		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -157,20 +163,25 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {result}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			result
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
 
 		promise.trySuccess();
 
-		assertFalse(ci.getResult().isDone());
+		assertFalse(ci.getResult()
+			.isDone());
 	}
 
 	@Test
 	public void testSimpleInvocationPromiseArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {deferred.getPromise()}, new int[] {0}, new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			deferred.getPromise()
+		}, new int[] {
+			0
+		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -185,9 +196,10 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {null}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			null
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
-
 
 		deferred.resolve(result);
 
@@ -197,9 +209,11 @@ public class ClientInvocationTest {
 
 		ArgumentCaptor<AsyncArgumentCompletion> captor = ArgumentCaptor.forClass(AsyncArgumentCompletion.class);
 
-		// This timeout should not be needed (all the work happens on immediate executors)
+		// This timeout should not be needed (all the work happens on immediate
+		// executors)
 		// but mockito spuriously fails when running the full suite...
-		Mockito.verify(channel, Mockito.timeout(50)).writeAndFlush(captor.capture());
+		Mockito.verify(channel, Mockito.timeout(50))
+			.writeAndFlush(captor.capture());
 
 		AsyncArgumentCompletion completion = captor.getValue();
 
@@ -225,10 +239,12 @@ public class ClientInvocationTest {
 
 	@Test
 	public void testSimpleInvocationFailedPromiseArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {deferred.getPromise()}, new int[] {0}, new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			deferred.getPromise()
+		}, new int[] {
+			0
+		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -243,9 +259,10 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {null}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			null
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
-
 
 		IOException failure = new IOException("failed");
 		deferred.fail(failure);
@@ -255,7 +272,8 @@ public class ClientInvocationTest {
 		promise.trySuccess();
 
 		ArgumentCaptor<AsyncArgumentCompletion> captor = ArgumentCaptor.forClass(AsyncArgumentCompletion.class);
-		Mockito.verify(channel, Mockito.timeout(100)).writeAndFlush(captor.capture());
+		Mockito.verify(channel, Mockito.timeout(100))
+			.writeAndFlush(captor.capture());
 
 		AsyncArgumentCompletion completion = captor.getValue();
 
@@ -275,16 +293,18 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(0, buffer.readUnsignedByte());
-		assertEquals("failed", ((Exception)serializer.deserializeReturn(buffer)).getMessage());
+		assertEquals("failed", ((Exception) serializer.deserializeReturn(buffer)).getMessage());
 		assertFalse(buffer.isReadable());
 	}
 
 	@Test
 	public void testSimpleInvocationFastPathPromiseArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {deferred.getPromise()}, new int[] {0}, new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			deferred.getPromise()
+		}, new int[] {
+			0
+		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		deferred.resolve(result);
 
@@ -303,8 +323,8 @@ public class ClientInvocationTest {
 		assertEquals(1, buffer.readUnsignedShort());
 
 		Object[] deserializeArgs = serializer.deserializeArgs(buffer);
-		assertEquals(CompletedPromise.State.SUCCEEDED, ((CompletedPromise)deserializeArgs[0]).state);
-		assertEquals(result, ((CompletedPromise)deserializeArgs[0]).value);
+		assertEquals(CompletedPromise.State.SUCCEEDED, ((CompletedPromise) deserializeArgs[0]).state);
+		assertEquals(result, ((CompletedPromise) deserializeArgs[0]).value);
 
 		assertFalse(buffer.isReadable());
 
@@ -317,47 +337,15 @@ public class ClientInvocationTest {
 
 	@Test
 	public void testSimpleInvocationFastPathPromiseArg2() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {deferred.getPromise()}, new int[] {0}, new int[0], serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			deferred.getPromise()
+		}, new int[] {
+			0
+		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		IOException failure = new IOException("failed");
 		deferred.fail(failure);
-
-		ByteBuf buffer = Unpooled.buffer();
-		ci.write(buffer, promise);
-
-		Mockito.verifyNoInteractions(channel);
-
-		assertEquals(Protocol_V1.VERSION, buffer.readByte());
-				int length = buffer.readUnsignedMedium();
-		assertEquals(buffer.readableBytes(), length);
-		assertEquals(Protocol_V1.CALL_WITH_RETURN, buffer.readByte());
-		assertEquals(serviceId.getMostSignificantBits(), buffer.readLong());
-		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
-		assertEquals(callId, buffer.readInt());
-		assertEquals(1, buffer.readUnsignedShort());
-
-		Object[] deserializeArgs = serializer.deserializeArgs(buffer);
-		assertEquals(CompletedPromise.State.FAILED, ((CompletedPromise)deserializeArgs[0]).state);
-		assertEquals("failed", ((Exception)((CompletedPromise)deserializeArgs[0]).value).getMessage());
-
-		assertFalse(buffer.isReadable());
-
-		Mockito.verifyNoInteractions(channel);
-
-		promise.trySuccess();
-
-		Mockito.verifyNoInteractions(channel);
-	}
-
-	@Test
-	public void testSimpleInvocationCompletableFutureArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {cf}, new int[0], new int[] {0}, serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -372,9 +360,46 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {null}, serializer.deserializeArgs(buffer));
+
+		Object[] deserializeArgs = serializer.deserializeArgs(buffer);
+		assertEquals(CompletedPromise.State.FAILED, ((CompletedPromise) deserializeArgs[0]).state);
+		assertEquals("failed", ((Exception) ((CompletedPromise) deserializeArgs[0]).value).getMessage());
+
 		assertFalse(buffer.isReadable());
 
+		Mockito.verifyNoInteractions(channel);
+
+		promise.trySuccess();
+
+		Mockito.verifyNoInteractions(channel);
+	}
+
+	@Test
+	public void testSimpleInvocationCompletableFutureArg() throws Exception {
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			cf
+		}, new int[0], new int[] {
+			0
+		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+
+		ByteBuf buffer = Unpooled.buffer();
+		ci.write(buffer, promise);
+
+		Mockito.verifyNoInteractions(channel);
+
+		assertEquals(Protocol_V1.VERSION, buffer.readByte());
+		int length = buffer.readUnsignedMedium();
+		assertEquals(buffer.readableBytes(), length);
+		assertEquals(Protocol_V1.CALL_WITH_RETURN, buffer.readByte());
+		assertEquals(serviceId.getMostSignificantBits(), buffer.readLong());
+		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
+		assertEquals(callId, buffer.readInt());
+		assertEquals(1, buffer.readUnsignedShort());
+		assertArrayEquals(new Object[] {
+			null
+		}, serializer.deserializeArgs(buffer));
+		assertFalse(buffer.isReadable());
 
 		cf.complete(result);
 
@@ -383,7 +408,8 @@ public class ClientInvocationTest {
 		promise.trySuccess();
 
 		ArgumentCaptor<AsyncArgumentCompletion> captor = ArgumentCaptor.forClass(AsyncArgumentCompletion.class);
-		Mockito.verify(channel).writeAndFlush(captor.capture());
+		Mockito.verify(channel)
+			.writeAndFlush(captor.capture());
 
 		AsyncArgumentCompletion completion = captor.getValue();
 
@@ -409,10 +435,12 @@ public class ClientInvocationTest {
 
 	@Test
 	public void testSimpleInvocationFailedCompletableFutureArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {cf}, new int[0], new int[] {0}, serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			cf
+		}, new int[0], new int[] {
+			0
+		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
 		ci.write(buffer, promise);
@@ -427,9 +455,10 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(1, buffer.readUnsignedShort());
-		assertArrayEquals(new Object[] {null}, serializer.deserializeArgs(buffer));
+		assertArrayEquals(new Object[] {
+			null
+		}, serializer.deserializeArgs(buffer));
 		assertFalse(buffer.isReadable());
-
 
 		IOException failure = new IOException("failed");
 		cf.completeExceptionally(failure);
@@ -439,7 +468,8 @@ public class ClientInvocationTest {
 		promise.trySuccess();
 
 		ArgumentCaptor<AsyncArgumentCompletion> captor = ArgumentCaptor.forClass(AsyncArgumentCompletion.class);
-		Mockito.verify(channel).writeAndFlush(captor.capture());
+		Mockito.verify(channel)
+			.writeAndFlush(captor.capture());
 
 		AsyncArgumentCompletion completion = captor.getValue();
 
@@ -459,16 +489,18 @@ public class ClientInvocationTest {
 		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
 		assertEquals(callId, buffer.readInt());
 		assertEquals(0, buffer.readUnsignedByte());
-		assertEquals("failed", ((Exception)serializer.deserializeReturn(buffer)).getMessage());
+		assertEquals("failed", ((Exception) serializer.deserializeReturn(buffer)).getMessage());
 		assertFalse(buffer.isReadable());
 	}
 
 	@Test
 	public void testSimpleInvocationFastPathCompletableFutureArg() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {cf}, new int[0], new int[] {0}, serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			cf
+		}, new int[0], new int[] {
+			0
+		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		cf.complete(result);
 
@@ -487,8 +519,8 @@ public class ClientInvocationTest {
 		assertEquals(1, buffer.readUnsignedShort());
 
 		Object[] deserializeArgs = serializer.deserializeArgs(buffer);
-		assertEquals(CompletedPromise.State.SUCCEEDED, ((CompletedPromise)deserializeArgs[0]).state);
-		assertEquals(result, ((CompletedPromise)deserializeArgs[0]).value);
+		assertEquals(CompletedPromise.State.SUCCEEDED, ((CompletedPromise) deserializeArgs[0]).state);
+		assertEquals(result, ((CompletedPromise) deserializeArgs[0]).value);
 
 		assertFalse(buffer.isReadable());
 
@@ -501,10 +533,12 @@ public class ClientInvocationTest {
 
 	@Test
 	public void testSimpleInvocationFastPathCompletableFutureArg2() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId,
-				new Object[] {cf}, new int[0], new int[] {0}, serializer,
-				PromiseFactory.toNettyFutureAdapter(Promise.class),
-				ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
+			cf
+		}, new int[0], new int[] {
+			0
+		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		IOException failure = new IOException("failed");
 		cf.completeExceptionally(failure);
@@ -524,8 +558,8 @@ public class ClientInvocationTest {
 		assertEquals(1, buffer.readUnsignedShort());
 
 		Object[] deserializeArgs = serializer.deserializeArgs(buffer);
-		assertEquals(CompletedPromise.State.FAILED, ((CompletedPromise)deserializeArgs[0]).state);
-		assertEquals("failed", ((Exception)((CompletedPromise)deserializeArgs[0]).value).getMessage());
+		assertEquals(CompletedPromise.State.FAILED, ((CompletedPromise) deserializeArgs[0]).state);
+		assertEquals("failed", ((Exception) ((CompletedPromise) deserializeArgs[0]).value).getMessage());
 
 		assertFalse(buffer.isReadable());
 

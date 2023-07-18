@@ -15,10 +15,10 @@ package org.eclipse.ot.rsa.distribution.config;
 import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
-
 @ObjectClassDefinition(factoryPid = TransportConfig.PID)
 public @interface TransportConfig {
 	String PID = RSAConstants.DISTRIBUTION_TRANSPORT_PID;
+
 	boolean allow_insecure_transports() default true;
 
 	String[] client_protocols() default {

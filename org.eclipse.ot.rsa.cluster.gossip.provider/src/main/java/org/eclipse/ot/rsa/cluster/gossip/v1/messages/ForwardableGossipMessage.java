@@ -11,6 +11,7 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType.FORWARDABLE;
 
@@ -19,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.netty.buffer.ByteBuf;
-
 
 public class ForwardableGossipMessage extends AbstractGossipMessage {
 
@@ -34,7 +34,7 @@ public class ForwardableGossipMessage extends AbstractGossipMessage {
 			final int size = input.readUnsignedByte();
 
 			forwards = new ArrayList<>(size);
-			for(int i=0; i < size; i++) {
+			for (int i = 0; i < size; i++) {
 				forwards.add(new Snapshot(input));
 			}
 		} catch (Exception e) {
@@ -60,7 +60,9 @@ public class ForwardableGossipMessage extends AbstractGossipMessage {
 	}
 
 	public List<Snapshot> getAllSnapshots(InetSocketAddress sentFrom) {
-		List<Snapshot> toReturn = forwards.stream().map(Snapshot::new).collect(toList());
+		List<Snapshot> toReturn = forwards.stream()
+			.map(Snapshot::new)
+			.collect(toList());
 		toReturn.add(getUpdate(sentFrom));
 		return toReturn;
 	}

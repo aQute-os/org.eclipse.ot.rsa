@@ -27,26 +27,26 @@ class JavaCompletionStageReturnHandler extends BasicReturnHandler {
 	private EventExecutorGroup executor;
 
 	public JavaCompletionStageReturnHandler(UUID serviceId, Serializer serializer, Future<?> completeFuture,
-			EventExecutorGroup executor) {
+		EventExecutorGroup executor) {
 		super(serviceId, serializer, completeFuture);
 		this.executor = executor;
 	}
 
 	@Override
 	public Future<?> success(Channel channel, int callId, Object returnValue) {
-		Promise<Object> p = executor.next().newPromise();
-		((CompletionStage<?>) returnValue).whenComplete(
-				(r,t) -> asyncResponse(channel, callId, r, t, p));
+		Promise<Object> p = executor.next()
+			.newPromise();
+		((CompletionStage<?>) returnValue).whenComplete((r, t) -> asyncResponse(channel, callId, r, t, p));
 		p.addListener(f -> {
-				if(f.isCancelled() && returnValue instanceof java.util.concurrent.Future) {
-					((java.util.concurrent.Future<?>) returnValue).cancel(true);
-				}
-			});
+			if (f.isCancelled() && returnValue instanceof java.util.concurrent.Future) {
+				((java.util.concurrent.Future<?>) returnValue).cancel(true);
+			}
+		});
 		return p;
 	}
 
 	private void asyncResponse(Channel channel, int callId, Object r, Throwable t, Promise<Object> p) {
-		if(t == null) {
+		if (t == null) {
 			sendReturn(channel, callId, true, r);
 		} else {
 			sendReturn(channel, callId, false, t);

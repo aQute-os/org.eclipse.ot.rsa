@@ -1,49 +1,49 @@
 package org.freshvanilla.lang.misc;
 
 class UnsafeShortFieldAccessor implements FieldAccessor<Short> {
-    private final long offset;
+	private final long offset;
 
-    UnsafeShortFieldAccessor(long offset) {
-        this.offset = offset;
-    }
+	UnsafeShortFieldAccessor(long offset) {
+		this.offset = offset;
+	}
 
-    @Override
+	@Override
 	public <Pojo> Short getField(Pojo pojo) {
-        return Unsafe.unsafe.getShort(pojo, offset);
-    }
+		return Unsafe.unsafe.getShort(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> boolean getBoolean(Pojo pojo) {
-        return Unsafe.unsafe.getShort(pojo, offset) != 0;
-    }
+		return Unsafe.unsafe.getShort(pojo, offset) != 0;
+	}
 
-    @Override
+	@Override
 	public <Pojo> long getNum(Pojo pojo) {
-        return Unsafe.unsafe.getShort(pojo, offset);
-    }
+		return Unsafe.unsafe.getShort(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> double getDouble(Pojo pojo) {
-        return Unsafe.unsafe.getShort(pojo, offset);
-    }
+		return Unsafe.unsafe.getShort(pojo, offset);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setField(Pojo pojo, Short value) {
-        Unsafe.unsafe.putShort(pojo, offset, value);
-    }
+		Unsafe.unsafe.putShort(pojo, offset, value);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setBoolean(Pojo pojo, boolean value) {
-        Unsafe.unsafe.putShort(pojo, offset, (short)(value ? 1 : 0));
-    }
+		Unsafe.unsafe.putShort(pojo, offset, (short) (value ? 1 : 0));
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setNum(Pojo pojo, long value) {
-        Unsafe.unsafe.putShort(pojo, offset, (short)value);
-    }
+		Unsafe.unsafe.putShort(pojo, offset, (short) value);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setDouble(Pojo pojo, double value) {
-        Unsafe.unsafe.putShort(pojo, offset, (short)value);
-    }
+		Unsafe.unsafe.putShort(pojo, offset, (short) value);
+	}
 }

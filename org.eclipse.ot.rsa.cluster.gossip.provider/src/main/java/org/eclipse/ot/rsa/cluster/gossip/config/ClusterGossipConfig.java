@@ -25,28 +25,33 @@ public @interface ClusterGossipConfig {
 
 	String bind_address() default "0.0.0.0";
 
-	@AttributeDefinition(min="50")
+	@AttributeDefinition(min = "50")
 	int gossip_interval() default 300;
-	@AttributeDefinition(min="1", max="6")
+
+	@AttributeDefinition(min = "1", max = "6")
 	int gossip_fanout() default 2;
-	@AttributeDefinition(min="1", max="5")
+
+	@AttributeDefinition(min = "1", max = "5")
 	int gossip_hops() default 3;
-	@AttributeDefinition(min="1")
+
+	@AttributeDefinition(min = "1")
 	int gossip_broadcast_rounds() default 20;
 
-	@AttributeDefinition(min="0")
+	@AttributeDefinition(min = "0")
 	long sync_interval() default 20000;
-	@AttributeDefinition(min="0")
+
+	@AttributeDefinition(min = "0")
 	long sync_retry() default 1000;
 
-
 	String[] initial_peers();
+
 	String cluster_name();
 
 	String tls_target() default "";
 
-	@AttributeDefinition(min="0")
+	@AttributeDefinition(min = "0")
 	int silent_node_probe_timeout() default 12000;
-	@AttributeDefinition(min="0")
+
+	@AttributeDefinition(min = "0")
 	int silent_node_eviction_timeout() default 15000;
 }

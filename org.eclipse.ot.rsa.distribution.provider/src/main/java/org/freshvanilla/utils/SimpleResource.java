@@ -19,8 +19,8 @@ package org.freshvanilla.utils;
 import java.io.Closeable;
 
 public interface SimpleResource extends Closeable, Named {
-    public boolean isClosed();
+	public boolean isClosed();
 
-    @Override
+	@Override
 	public void close();
 }

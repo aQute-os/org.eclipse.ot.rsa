@@ -23,45 +23,46 @@ import io.netty.util.ResourceLeakDetector;
 
 public class TestResourceLeakDetector<T> extends ResourceLeakDetector<T> {
 
-    private static final List<String> leaks = new Vector<>();
+	private static final List<String>	leaks					= new Vector<>();
 
-    private static final Set<String> resourceTypesToIgnore = new HashSet<>();
+	private static final Set<String>	resourceTypesToIgnore	= new HashSet<>();
 
-    public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval) {
-        super(resourceType, samplingInterval);
-    }
-    public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval, long l) {
-        super(resourceType, samplingInterval);
-    }
+	public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval) {
+		super(resourceType, samplingInterval);
+	}
 
-    @Override
-    protected void reportTracedLeak(String resourceType, String records) {
+	public TestResourceLeakDetector(Class<T> resourceType, int samplingInterval, long l) {
+		super(resourceType, samplingInterval);
+	}
 
-    	if(!resourceTypesToIgnore.contains(resourceType)) {
-    		leaks.add("\nRecord:\n" + resourceType + "\n" + records + "\n");
-    	}
-        super.reportTracedLeak(resourceType, records);
-    }
+	@Override
+	protected void reportTracedLeak(String resourceType, String records) {
 
-    @Override
-    protected void reportUntracedLeak(String resourceType) {
-    	if(!resourceTypesToIgnore.contains(resourceType)) {
-    		leaks.add("\nRecord:\n" + resourceType + "\n");
-    	}
-        super.reportUntracedLeak(resourceType);
-    }
+		if (!resourceTypesToIgnore.contains(resourceType)) {
+			leaks.add("\nRecord:\n" + resourceType + "\n" + records + "\n");
+		}
+		super.reportTracedLeak(resourceType, records);
+	}
 
-    public static void assertNoLeaks() {
-        System.gc();
-        assertTrue(leaks.isEmpty(), ()->leaks.toString());
-        leaks.clear();
-    }
+	@Override
+	protected void reportUntracedLeak(String resourceType) {
+		if (!resourceTypesToIgnore.contains(resourceType)) {
+			leaks.add("\nRecord:\n" + resourceType + "\n");
+		}
+		super.reportUntracedLeak(resourceType);
+	}
 
-    public static void addResourceTypeToIgnore(Class<?> clazz) {
-    	resourceTypesToIgnore.add(clazz.getSimpleName());
-    }
+	public static void assertNoLeaks() {
+		System.gc();
+		assertTrue(leaks.isEmpty(), () -> leaks.toString());
+		leaks.clear();
+	}
 
-    public static void clearIgnoredResourceTypes() {
-    	resourceTypesToIgnore.clear();
-    }
+	public static void addResourceTypeToIgnore(Class<?> clazz) {
+		resourceTypesToIgnore.add(clazz.getSimpleName());
+	}
+
+	public static void clearIgnoredResourceTypes() {
+		resourceTypesToIgnore.clear();
+	}
 }

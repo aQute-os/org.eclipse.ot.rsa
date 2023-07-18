@@ -21,9 +21,9 @@ import io.netty.util.concurrent.Future;
 
 class BasicReturnHandler implements ReturnHandler {
 
-	protected final UUID serviceId;
-	protected final Serializer serializer;
-	private Future<?> completeFuture;
+	protected final UUID		serviceId;
+	protected final Serializer	serializer;
+	private Future<?>			completeFuture;
 
 	public BasicReturnHandler(UUID serviceId, Serializer serializer, Future<?> completeFuture) {
 		this.serviceId = serviceId;
@@ -44,8 +44,7 @@ class BasicReturnHandler implements ReturnHandler {
 	}
 
 	protected void sendReturn(Channel channel, int callId, boolean successful, Object o) {
-		channel.writeAndFlush(
-				new MethodCompleteResponse(successful, serviceId, callId, serializer, o),
-				channel.voidPromise());
+		channel.writeAndFlush(new MethodCompleteResponse(successful, serviceId, callId, serializer, o),
+			channel.voidPromise());
 	}
 }

@@ -27,7 +27,7 @@ public class RSAExecutorGroup extends MultithreadEventExecutorGroup {
 
 	public RSAExecutorGroup(int nThreads, ThreadFactory threadFactory, int maxQueueDepth) {
 		super(nThreads, new ThreadPoolExecutor(nThreads, nThreads, 0, TimeUnit.SECONDS,
-				maxQueueDepth < 0 ? new LinkedBlockingQueue<>() : new ArrayBlockingQueue<>(maxQueueDepth)));
+			maxQueueDepth < 0 ? new LinkedBlockingQueue<>() : new ArrayBlockingQueue<>(maxQueueDepth)));
 	}
 
 	@Override

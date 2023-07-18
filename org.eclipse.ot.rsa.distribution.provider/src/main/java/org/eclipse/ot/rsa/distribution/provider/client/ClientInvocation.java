@@ -23,8 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise;
-import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise.State;
+import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.osgi.framework.ServiceException;
 
 import io.netty.buffer.ByteBuf;
@@ -37,28 +37,28 @@ import io.netty.util.concurrent.Promise;
 
 public class ClientInvocation extends AbstractClientInvocationWithResult {
 
-	private static final Object[] EMPTY_ARGS = new Object[0];
+	private static final Object[]					EMPTY_ARGS	= new Object[0];
 
-	private final int methodId;
+	private final int								methodId;
 
-	private final Object[] args;
+	private final Object[]							args;
 
-	private final int[] promiseArgs;
+	private final int[]								promiseArgs;
 
-	private final int[] completableFutureArgs;
+	private final int[]								completableFutureArgs;
 
-	private final Function<Object, Future<Object>> toNettyPromiseAdapter;
+	private final Function<Object, Future<Object>>	toNettyPromiseAdapter;
 
-	private final Promise<Object> result;
+	private final Promise<Object>					result;
 
-	private final AtomicLong timeout;
+	private final AtomicLong						timeout;
 
-	private final String methodName;
+	private final String							methodName;
 
-	public ClientInvocation(boolean withReturn, UUID serviceId, int methodId, int callId,
-			Object[] args, int[] promiseArgs, int[] completableFutureArgs,
-			Serializer serializer, Function<Object, Future<Object>> toNettyPromiseAdapter,
-			Promise<Object> result, AtomicLong timeout, String methodName) {
+	public ClientInvocation(boolean withReturn, UUID serviceId, int methodId, int callId, Object[] args,
+		int[] promiseArgs, int[] completableFutureArgs, Serializer serializer,
+		Function<Object, Future<Object>> toNettyPromiseAdapter, Promise<Object> result, AtomicLong timeout,
+		String methodName) {
 		super(withReturn ? WITH_RETURN : FIRE_AND_FORGET, serviceId, callId, serializer);
 
 		this.methodId = methodId;
@@ -72,9 +72,8 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 	}
 
 	public ClientInvocation fromTemplate(boolean withReturn, int callId, Object[] args, Promise<Object> result) {
-		return new ClientInvocation(withReturn, getServiceId(), getMethodId(), callId, args,
-				promiseArgs, completableFutureArgs, getSerializer(), toNettyPromiseAdapter,
-				result, timeout, methodName);
+		return new ClientInvocation(withReturn, getServiceId(), getMethodId(), callId, args, promiseArgs,
+			completableFutureArgs, getSerializer(), toNettyPromiseAdapter, result, timeout, methodName);
 	}
 
 	public final Promise<Object> getResult() {
@@ -122,8 +121,7 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 		try {
 			o = (Throwable) getSerializer().deserializeReturn(b);
 		} catch (Exception e) {
-			o = new ServiceException(
-					"Failed to deserialize the remote return value", ServiceException.REMOTE, e);
+			o = new ServiceException("Failed to deserialize the remote return value", ServiceException.REMOTE, e);
 		}
 
 		fail(o);
@@ -136,8 +134,8 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 		try {
 			o = getSerializer().deserializeReturn(b);
 		} catch (Exception e) {
-			result.tryFailure(new ServiceException(
-					"Failed to deserialize the remote return value", ServiceException.REMOTE, e));
+			result.tryFailure(
+				new ServiceException("Failed to deserialize the remote return value", ServiceException.REMOTE, e));
 			return;
 		}
 
@@ -162,29 +160,30 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 		writeLength(buffer);
 
 		promise.addListener(f -> {
-				if(f.isSuccess()) {
-					result.addListener(r -> {
-						if(r.isCancelled()) {
-							Channel channel = ((ChannelPromise)f).channel();
-							channel.writeAndFlush(new InvocationCancellation(
-								getServiceId(), getCallId(), true), channel.voidPromise());
-						}
-					});
-				} else {
-					result.tryFailure(new ServiceException("Unable to invoke the remote service " +
-							getServiceId() + " due to a communications failure" , REMOTE, f.cause()));
-				}
-			});
+			if (f.isSuccess()) {
+				result.addListener(r -> {
+					if (r.isCancelled()) {
+						Channel channel = ((ChannelPromise) f).channel();
+						channel.writeAndFlush(new InvocationCancellation(getServiceId(), getCallId(), true),
+							channel.voidPromise());
+					}
+				});
+			} else {
+				result.tryFailure(new ServiceException(
+					"Unable to invoke the remote service " + getServiceId() + " due to a communications failure",
+					REMOTE, f.cause()));
+			}
+		});
 	}
 
 	private Object[] getTransformedArgs(ChannelPromise promise) {
 
-		for(int i : completableFutureArgs) {
-			Future<Object> adaptedArg = adaptCompletionStage((CompletionStage<?>)args[i]);
+		for (int i : completableFutureArgs) {
+			Future<Object> adaptedArg = adaptCompletionStage((CompletionStage<?>) args[i]);
 			args[i] = transformAsyncArg(promise, adaptedArg, i);
 		}
 
-		for(int i : promiseArgs) {
+		for (int i : promiseArgs) {
 			Future<Object> adaptedArg = toNettyPromiseAdapter.apply(args[i]);
 			args[i] = transformAsyncArg(promise, adaptedArg, i);
 		}
@@ -196,40 +195,40 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 
 		Promise<Object> p = ImmediateEventExecutor.INSTANCE.newPromise();
 
-		cf.whenComplete((s,t) -> {
-				if(t != null) {
-					p.setFailure(t);
-				} else {
-					p.setSuccess(s);
-				}
-			});
+		cf.whenComplete((s, t) -> {
+			if (t != null) {
+				p.setFailure(t);
+			} else {
+				p.setSuccess(s);
+			}
+		});
 
 		return p;
 	}
 
-	private Object transformAsyncArg(ChannelPromise promise,
-			Future<Object> arg, int i) {
+	private Object transformAsyncArg(ChannelPromise promise, Future<Object> arg, int i) {
 		Object toReturn = null;
-		if(arg.isDone()) {
+		if (arg.isDone()) {
 			toReturn = fastPath(arg);
 		} else {
 			promise.addListener(x -> {
-					// TODO log this, and only run on success!
-					if(x.isSuccess()) {
-						arg.addListener(f -> {
-							boolean success = f.isSuccess();
-							promise.channel().writeAndFlush(new AsyncArgumentCompletion(success, this,
-									i, success ? f.getNow() : f.cause()));
-						});
-					}
-				});
+				// TODO log this, and only run on success!
+				if (x.isSuccess()) {
+					arg.addListener(f -> {
+						boolean success = f.isSuccess();
+						promise.channel()
+							.writeAndFlush(
+								new AsyncArgumentCompletion(success, this, i, success ? f.getNow() : f.cause()));
+					});
+				}
+			});
 		}
 		return toReturn;
 	}
 
 	private Object fastPath(Future<Object> arg) {
 		CompletedPromise cp = new CompletedPromise();
-		if(arg.isSuccess()) {
+		if (arg.isSuccess()) {
 			cp.state = State.SUCCEEDED;
 			cp.value = arg.getNow();
 		} else {

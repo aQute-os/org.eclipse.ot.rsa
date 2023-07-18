@@ -39,14 +39,14 @@ import io.netty.channel.ChannelPromise;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class MessagesTest {
 
-	private static final String TEST_MESSAGE = "Test Message";
+	private static final String	TEST_MESSAGE	= "Test Message";
 
-	private final UUID serviceId = UUID.randomUUID();
+	private final UUID			serviceId		= UUID.randomUUID();
 
-	private final int callId = 42;
+	private final int			callId			= 42;
 
 	@Mock
-	ChannelPromise promise;
+	ChannelPromise				promise;
 
 	@Test
 	public void testServerError() throws IOException {
@@ -70,8 +70,7 @@ public class MessagesTest {
 
 	@Test
 	public void testServerErrorWithMessage() throws IOException {
-		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId,
-				TEST_MESSAGE);
+		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId, TEST_MESSAGE);
 
 		ByteBuf buffer = Unpooled.buffer();
 

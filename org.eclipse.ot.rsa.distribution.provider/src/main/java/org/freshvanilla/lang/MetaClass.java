@@ -17,15 +17,15 @@
 package org.freshvanilla.lang;
 
 public interface MetaClass<T> {
-    public Class<T> getType();
+	public Class<T> getType();
 
-    public String nameWithParameters();
+	public String nameWithParameters();
 
-    public MetaField<T, ?>[] fields();
+	public MetaField<T, ?>[] fields();
 
-    public T newInstance() throws InstantiationException;
+	public T newInstance() throws InstantiationException;
 
-    public boolean definesEquals();
+	public boolean definesEquals();
 
-    public Class<?> getComponentType();
+	public Class<?> getComponentType();
 }

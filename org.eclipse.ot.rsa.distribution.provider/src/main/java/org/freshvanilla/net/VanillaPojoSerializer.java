@@ -27,63 +27,62 @@ import io.netty.buffer.ByteBuf;
 
 public class VanillaPojoSerializer implements PojoSerializer {
 
-    protected final MetaClasses _metaClasses;
+	protected final MetaClasses _metaClasses;
 
-    public VanillaPojoSerializer(MetaClasses metaclasses) {
-        super();
-        _metaClasses = metaclasses;
-    }
+	public VanillaPojoSerializer(MetaClasses metaclasses) {
+		super();
+		_metaClasses = metaclasses;
+	}
 
-    @Override
+	@Override
 	public <Pojo> boolean canSerialize(Pojo pojo) {
-        Class<?> clazz = pojo.getClass();
-        if(clazz.isArray() || clazz.isEnum() || clazz.isPrimitive()) {
-        	return false;
-        }
+		Class<?> clazz = pojo.getClass();
+		if (clazz.isArray() || clazz.isEnum() || clazz.isPrimitive()) {
+			return false;
+		}
 		final String className = clazz.getName();
-        return !className.startsWith("java") && !className.startsWith("com.sun.");
-    }
+		return !className.startsWith("java") && !className.startsWith("com.sun.");
+	}
 
-    @Override
+	@Override
 	@SuppressWarnings("unchecked")
-    public <Pojo> void serialize(ByteBuf wb, WireFormat wf, Pojo pojo) throws IOException {
-        MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass((Class<Pojo>)pojo.getClass());
-        wf.writeTag(wb, clazz.nameWithParameters());
+	public <Pojo> void serialize(ByteBuf wb, WireFormat wf, Pojo pojo) throws IOException {
+		MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass((Class<Pojo>) pojo.getClass());
+		wf.writeTag(wb, clazz.nameWithParameters());
 
-        for (MetaField<Pojo, ?> field : clazz.fields()) {
-            wf.writeField(wb, field, pojo);
-        }
-    }
+		for (MetaField<Pojo, ?> field : clazz.fields()) {
+			wf.writeField(wb, field, pojo);
+		}
+	}
 
-    @Override
+	@Override
 	public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException {
-        String classWithParameters = (String)wf.readObject(rb);
-        MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
+		String classWithParameters = (String) wf.readObject(rb);
+		MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
 
-        if (clazz == null) {
-            throw new ClassNotFoundException(classWithParameters);
-        }
+		if (clazz == null) {
+			throw new ClassNotFoundException(classWithParameters);
+		}
 
-        return deserialize(rb, wf, clazz);
-    }
+		return deserialize(rb, wf, clazz);
+	}
 
 	protected <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf, MetaClass<Pojo> clazz)
-			throws NotSerializableException, ClassNotFoundException, IOException {
+		throws NotSerializableException, ClassNotFoundException, IOException {
 		Pojo pojo;
 
-        try {
-            pojo = clazz.newInstance();
-            wf.registerPojo(pojo);
-        }
-        catch (InstantiationException e) {
-            throw new NotSerializableException("Exception attempting to create " + clazz + ' ' + e);
-        }
+		try {
+			pojo = clazz.newInstance();
+			wf.registerPojo(pojo);
+		} catch (InstantiationException e) {
+			throw new NotSerializableException("Exception attempting to create " + clazz + ' ' + e);
+		}
 
-        for (MetaField<Pojo, ?> field : clazz.fields()) {
-            wf.readField(rb, field, pojo);
-        }
+		for (MetaField<Pojo, ?> field : clazz.fields()) {
+			wf.readField(rb, field, pojo);
+		}
 
-        return pojo;
+		return pojo;
 	}
 
 }

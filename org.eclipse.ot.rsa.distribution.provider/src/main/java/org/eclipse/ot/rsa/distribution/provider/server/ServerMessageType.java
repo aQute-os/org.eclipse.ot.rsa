@@ -46,9 +46,9 @@ public enum ServerMessageType implements MessageType {
 	STREAM_CLOSE(Protocol_V2.VERSION, SERVER_CLOSE_EVENT, false),
 	STREAM_ERROR(Protocol_V2.VERSION, SERVER_ERROR_EVENT, true);
 
-	private final byte version;
-	private final byte command;
-	private final boolean isError;
+	private final byte		version;
+	private final byte		command;
+	private final boolean	isError;
 
 	private ServerMessageType(byte version, byte command, boolean isError) {
 		this.version = version;

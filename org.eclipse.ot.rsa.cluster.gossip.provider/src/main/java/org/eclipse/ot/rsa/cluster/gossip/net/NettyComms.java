@@ -65,46 +65,45 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 
 public class NettyComms implements GossipComms {
 
-	private static final Logger logger = LoggerFactory.getLogger(NettyComms.class);
+	private static final Logger			logger				= LoggerFactory.getLogger(NettyComms.class);
 
-	private final UUID id;
-	private final ParemusNettyTLS ssl;
+	private final UUID					id;
+	private final ParemusNettyTLS		ssl;
 
-	private final Gossip gossip;
+	private final Gossip				gossip;
 
-	private final InetAddress bindAddress;
+	private final InetAddress			bindAddress;
 
-	private final EventLoopGroup eventLoop;
-	private final DatagramChannel udpChannel;
+	private final EventLoopGroup		eventLoop;
+	private final DatagramChannel		udpChannel;
 	@SuppressWarnings("unused")
-	private final ServerSocketChannel tcpServerChannel;
-	private final Bootstrap tcpClientChannel;
+	private final ServerSocketChannel	tcpServerChannel;
+	private final Bootstrap				tcpClientChannel;
 
-	private final AtomicBoolean open = new AtomicBoolean(true);
-	private final AtomicLong exchangeIdGenerator = new AtomicLong();
+	private final AtomicBoolean			open				= new AtomicBoolean(true);
+	private final AtomicLong			exchangeIdGenerator	= new AtomicLong();
 
-	private final int networkMTU;
-
+	private final int					networkMTU;
 
 	public NettyComms(String cluster, UUID id, ClusterGossipConfig config, ParemusNettyTLS ssl, Gossip gossip)
-			throws IOException, ConfigurationException, InterruptedException {
+		throws IOException, ConfigurationException, InterruptedException {
 		this.id = id;
 		this.ssl = ssl;
 		this.gossip = gossip;
 
 		this.bindAddress = InetAddress.getByName(config.bind_address());
 		int discoveredMTU = -1;
-		if(bindAddress.isAnyLocalAddress()) {
+		if (bindAddress.isAnyLocalAddress()) {
 			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-			while(interfaces.hasMoreElements()) {
+			while (interfaces.hasMoreElements()) {
 				NetworkInterface ni = interfaces.nextElement();
-				if(discoveredMTU < 0 || discoveredMTU > ni.getMTU()) {
+				if (discoveredMTU < 0 || discoveredMTU > ni.getMTU()) {
 					discoveredMTU = ni.getMTU();
 				}
 			}
 		} else {
 			NetworkInterface networkInterface = NetworkInterface.getByInetAddress(bindAddress);
-			if(networkInterface != null) {
+			if (networkInterface != null) {
 				discoveredMTU = networkInterface.getMTU();
 			}
 		}
@@ -123,53 +122,63 @@ public class NettyComms implements GossipComms {
 				@Override
 				protected void initChannel(Channel ch) throws Exception {
 					ChannelHandler dtlsHandler = ssl.getDTLSHandler();
-					if(dtlsHandler != null) {
-						ch.pipeline().addLast(dtlsHandler);
+					if (dtlsHandler != null) {
+						ch.pipeline()
+							.addLast(dtlsHandler);
 					}
-					ch.pipeline().addLast(new GossipHandler(gossip));
+					ch.pipeline()
+						.addLast(new GossipHandler(gossip));
 				}
 			})
-			.bind(bindAddress, config.udp_port()).sync().channel();
+			.bind(bindAddress, config.udp_port())
+			.sync()
+			.channel();
 
 		tcpClientChannel = new Bootstrap().channel(NioSocketChannel.class)
-				.group(eventLoop)
-				.handler(new ChannelInitializer<Channel>() {
-					@Override
-					protected void initChannel(Channel ch) throws Exception {
-						SslHandler sslHandler = ssl.getTLSClientHandler();
-						if(sslHandler != null) {
-							ch.pipeline().addLast(sslHandler);
-						}
+			.group(eventLoop)
+			.handler(new ChannelInitializer<Channel>() {
+				@Override
+				protected void initChannel(Channel ch) throws Exception {
+					SslHandler sslHandler = ssl.getTLSClientHandler();
+					if (sslHandler != null) {
+						ch.pipeline()
+							.addLast(sslHandler);
 					}
-				});
+				}
+			});
 
 		tcpServerChannel = (ServerSocketChannel) new ServerBootstrap().channel(NioServerSocketChannel.class)
-				.group(eventLoop)
-				.childHandler(new ChannelInitializer<Channel>() {
-					@Override
-					protected void initChannel(Channel ch) throws Exception {
-						SslHandler sslHandler = ssl.getTLSServerHandler();
-						if(sslHandler != null) {
-							ch.pipeline().addLast(sslHandler);
-						}
-						ch.pipeline().addLast(new IncomingTCPReplicator(ch, id, gossip));
+			.group(eventLoop)
+			.childHandler(new ChannelInitializer<Channel>() {
+				@Override
+				protected void initChannel(Channel ch) throws Exception {
+					SslHandler sslHandler = ssl.getTLSServerHandler();
+					if (sslHandler != null) {
+						ch.pipeline()
+							.addLast(sslHandler);
 					}
-				})
-				.bind(bindAddress, config.tcp_port()).sync().channel();
+					ch.pipeline()
+						.addLast(new IncomingTCPReplicator(ch, id, gossip));
+				}
+			})
+			.bind(bindAddress, config.tcp_port())
+			.sync()
+			.channel();
 
-
-		if(logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 			logger.debug("Gossip communications for {} in cluster {} reserving UDP port {} and TCP port {}",
-					new Object[] {id, cluster, config.udp_port(), config.tcp_port()});
+				new Object[] {
+					id, cluster, config.udp_port(), config.tcp_port()
+				});
 		}
 
 	}
 
 	@Override
 	public List<Future<?>> destroy() {
-		if ( !open.getAndSet(false))
+		if (!open.getAndSet(false))
 			return Collections.emptyList();
-		List<Future<?>> l= new ArrayList<>();
+		List<Future<?>> l = new ArrayList<>();
 		l.add(udpChannel.close());
 		l.add(tcpServerChannel.close());
 		l.add(eventLoop.shutdownGracefully(200, 500, TimeUnit.MILLISECONDS));
@@ -178,56 +187,64 @@ public class NettyComms implements GossipComms {
 
 	private Instant lastReportedLargeMessage;
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#publish(byte[], java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#publish(byte
+	 * [], java.util.Collection)
 	 */
 	@Override
 	public void publish(GossipMessage message, Collection<InetSocketAddress> participants) {
-		if(!open.get() || participants.isEmpty()) {
+		if (!open.get() || participants.isEmpty()) {
 			return;
 		}
 
-		ByteBuf buf = udpChannel.alloc().ioBuffer(message.estimateSize() + 3);
-        try {
-        	buf.writeByte(2);
-        	buf.writeByte(1);
-			buf.writeByte(message.getType().ordinal());
+		ByteBuf buf = udpChannel.alloc()
+			.ioBuffer(message.estimateSize() + 3);
+		try {
+			buf.writeByte(2);
+			buf.writeByte(1);
+			buf.writeByte(message.getType()
+				.ordinal());
 			message.writeOut(buf);
 
-			if(logger.isInfoEnabled()) {
+			if (logger.isInfoEnabled()) {
 				int size = buf.readableBytes();
-				if(size > networkMTU) {
+				if (size > networkMTU) {
 					Instant now = Instant.now();
 					boolean log;
 					synchronized (this) {
-						if(lastReportedLargeMessage == null ||
-								now.isAfter(lastReportedLargeMessage.plus(5, ChronoUnit.MINUTES))) {
+						if (lastReportedLargeMessage == null
+							|| now.isAfter(lastReportedLargeMessage.plus(5, ChronoUnit.MINUTES))) {
 							lastReportedLargeMessage = now;
 							log = true;
 						} else {
 							log = false;
 						}
 					}
-					if(log) {
-						logger.info("A large gossip message ({} bytes) is being sent, this often indicates that a message is being forwarded too many times. This message will be suppressed for the next 5 minutes", size);
+					if (log) {
+						logger.info(
+							"A large gossip message ({} bytes) is being sent, this often indicates that a message is being forwarded too many times. This message will be suppressed for the next 5 minutes",
+							size);
 					}
 				}
 			}
 
-			participants.stream().forEach(p -> safeSend(p, buf));
-        } catch (Exception e) {
+			participants.stream()
+				.forEach(p -> safeSend(p, buf));
+		} catch (Exception e) {
 			logger.error("Unable to send a gossipmessage", e);
 		} finally {
-        	buf.release();
-        }
+			buf.release();
+		}
 	}
 
 	private void safeSend(InetSocketAddress p, ByteBuf data) {
 		ChannelPromise writePromise;
-		if(logger.isDebugEnabled()) {
+		if (logger.isDebugEnabled()) {
 			writePromise = udpChannel.newPromise();
 			writePromise.addListener(f -> {
-				if(!f.isSuccess()) {
+				if (!f.isSuccess()) {
 					logger.debug("Unable to send a message to {}", p);
 				}
 			});
@@ -238,13 +255,16 @@ public class NettyComms implements GossipComms {
 		udpChannel.writeAndFlush(new DatagramPacket(data.retainedDuplicate(), p), writePromise);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#replicate(org.eclipse.ot.rsa.cluster.gossip.api.manager.provider.MemberInfo, java.util.Collection)
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * org.eclipse.ot.rsa.cluster.gossip.api.gossip.net.GossipComms#replicate(
+	 * org.eclipse.ot.rsa.cluster.gossip.api.manager.provider.MemberInfo,
+	 * java.util.Collection)
 	 */
 	@Override
-	public Future<Void> replicate(MemberInfo member,
-			Collection<Snapshot> snapshots) {
-		if(!open.get()) {
+	public Future<Void> replicate(MemberInfo member, Collection<Snapshot> snapshots) {
+		if (!open.get()) {
 			IllegalStateException failure = new IllegalStateException("Communications have been shut down");
 			logger.error("Unable to synchronize members", failure);
 			return GlobalEventExecutor.INSTANCE.newFailedFuture(failure);
@@ -252,13 +272,16 @@ public class NettyComms implements GossipComms {
 
 		ChannelFuture connect = tcpClientChannel.connect(member.getTcpAddress());
 
-		SslHandler sslHandler = connect.channel().pipeline().get(SslHandler.class);
+		SslHandler sslHandler = connect.channel()
+			.pipeline()
+			.get(SslHandler.class);
 
-		OutgoingTCPReplicator replicator = new OutgoingTCPReplicator(connect.channel(), id,
-				gossip, member.getId(), exchangeIdGenerator.get(), snapshots,
-				sslHandler == null ? connect : sslHandler.handshakeFuture());
+		OutgoingTCPReplicator replicator = new OutgoingTCPReplicator(connect.channel(), id, gossip, member.getId(),
+			exchangeIdGenerator.get(), snapshots, sslHandler == null ? connect : sslHandler.handshakeFuture());
 
-		connect.channel().pipeline().addLast(replicator);
+		connect.channel()
+			.pipeline()
+			.addLast(replicator);
 
 		return replicator.getSyncCompletionFuture();
 	}
@@ -288,17 +311,17 @@ public class NettyComms implements GossipComms {
 				ByteBuf content = dp.content();
 
 				InetSocketAddress sender = dp.sender();
-				if(logger.isTraceEnabled()) {
+				if (logger.isTraceEnabled()) {
 					logger.trace("Received Gossip from {}", sender);
 				}
 
 				byte header = content.readByte();
-				if(header != 2) {
+				if (header != 2) {
 					logger.warn("Received an invalid gossip message from {}", sender);
 				} else {
 
 					int version = content.readUnsignedByte();
-					if(version != 1) {
+					if (version != 1) {
 						logger.error("The version {} from {} is not supported.", version, sender);
 						return;
 					}

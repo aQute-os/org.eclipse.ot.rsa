@@ -21,25 +21,25 @@ import io.netty.buffer.ByteBuf;
 
 public interface DtlsEngine {
 
-    DtlsEngineResult generateDataToSend(ByteBuf input, ByteBuf output) throws SSLException;
+	DtlsEngineResult generateDataToSend(ByteBuf input, ByteBuf output) throws SSLException;
 
-    DtlsEngineResult handleReceivedData(ByteBuf input, ByteBuf output) throws SSLException;
+	DtlsEngineResult handleReceivedData(ByteBuf input, ByteBuf output) throws SSLException;
 
-    Runnable getTaskToRun();
+	Runnable getTaskToRun();
 
-    void closeOutbound();
+	void closeOutbound();
 
-    SSLParameters getSSLparameters();
+	SSLParameters getSSLparameters();
 
-    int getMaxSendOutputBufferSize();
+	int getMaxSendOutputBufferSize();
 
-    int getMaxReceiveOutputBufferSize();
+	int getMaxReceiveOutputBufferSize();
 
-    void setClient(boolean isClient);
+	void setClient(boolean isClient);
 
-    boolean isClient();
+	boolean isClient();
 
-    OperationRequired getOperationRequired();
+	OperationRequired getOperationRequired();
 
-    void startHandshaking() throws SSLException;
+	void startHandshaking() throws SSLException;
 }

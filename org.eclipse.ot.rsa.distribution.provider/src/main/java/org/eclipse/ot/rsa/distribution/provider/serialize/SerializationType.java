@@ -25,7 +25,7 @@ public enum SerializationType {
 
 	final static Logger				logger	= LoggerFactory.getLogger(SerializationType.class);
 
-	private final SerializerFactory factory;
+	private final SerializerFactory	factory;
 
 	SerializationType(SerializerFactory factory) {
 		this.factory = factory;

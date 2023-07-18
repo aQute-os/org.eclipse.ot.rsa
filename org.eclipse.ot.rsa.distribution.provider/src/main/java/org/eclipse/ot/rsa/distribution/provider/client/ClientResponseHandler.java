@@ -45,12 +45,13 @@ import io.netty.util.Timer;
 
 public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClientResponseHandler.class);
+	private static final Logger													LOG				= LoggerFactory
+		.getLogger(ClientResponseHandler.class);
 
-	private final ConcurrentMap<CacheKey, AbstractClientInvocationWithResult> pendingCalls = new ConcurrentHashMap<>();
+	private final ConcurrentMap<CacheKey, AbstractClientInvocationWithResult>	pendingCalls	= new ConcurrentHashMap<>();
 
-	private final ClientConnectionManager ccm;
-	private final Timer timer;
+	private final ClientConnectionManager										ccm;
+	private final Timer															timer;
 
 	public ClientResponseHandler(ClientConnectionManager ccm, Timer timer) {
 		this.ccm = ccm;
@@ -63,18 +64,18 @@ public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 		pendingCalls.put(key, invocation);
 
 		long timeout = invocation.getTimeout();
-		if(timeout > 0) {
+		if (timeout > 0) {
 			Timeout pendingTimeout = timer.newTimeout(t -> {
 				pendingCalls.remove(key);
-				invocation.fail(new ServiceException(
-								"There was no response from the remote service " + invocation.getServiceId(), +REMOTE,
-								new TimeoutException("The invocation timed out with no response.")));
+				invocation.fail(
+					new ServiceException("There was no response from the remote service " + invocation.getServiceId(),
+						+REMOTE, new TimeoutException("The invocation timed out with no response.")));
 			}, timeout, TimeUnit.MILLISECONDS);
 
 			invocation.addCompletionListener(f -> {
-					if(!pendingTimeout.isExpired())
-						pendingTimeout.cancel();
-				});
+				if (!pendingTimeout.isExpired())
+					pendingTimeout.cancel();
+			});
 		}
 	}
 
@@ -94,15 +95,15 @@ public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 
 			CacheKey key = new CacheKey(serviceId, callId);
 
-			AbstractClientInvocationWithResult ci = command == SERVER_DATA_EVENT ?
-					pendingCalls.get(key) : pendingCalls.remove(key);
+			AbstractClientInvocationWithResult ci = command == SERVER_DATA_EVENT ? pendingCalls.get(key)
+				: pendingCalls.remove(key);
 
-			if(ci == null) {
+			if (ci == null) {
 				return;
 			}
 
 			try {
-				switch(command) {
+				switch (command) {
 					case SUCCESS_RESPONSE :
 					case SERVER_DATA_EVENT :
 						ci.data(buf);
@@ -115,42 +116,61 @@ public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 						ci.fail((Throwable) null);
 						break;
 					case FAILURE_NO_SERVICE :
-						ServiceException serviceException = new ServiceException("The service could not be found", REMOTE,
-								new MissingServiceException());
+						ServiceException serviceException = new ServiceException("The service could not be found",
+							REMOTE, new MissingServiceException());
 						ci.fail(serviceException);
 						ccm.notifyFailedService(ctx.channel(), serviceId, serviceException);
 						break;
 					case FAILURE_NO_METHOD :
-						ServiceException serviceException2 = new ServiceException("The service method could not be found", REMOTE,
-									new MissingMethodException(((ClientInvocation)ci).getMethodName()));
+						ServiceException serviceException2 = new ServiceException(
+							"The service method could not be found", REMOTE,
+							new MissingMethodException(((ClientInvocation) ci).getMethodName()));
 						ci.fail(serviceException2);
 						ccm.notifyFailedService(ctx.channel(), serviceId, serviceException2);
 						break;
-					case FAILURE_TO_DESERIALIZE:
-						ci.fail(new ServiceException("The remote invocation failed because the server could not deserialise the method arguments", REMOTE,
-								new IllegalArgumentException(buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8).toString())));
+					case FAILURE_TO_DESERIALIZE :
+						ci.fail(new ServiceException(
+							"The remote invocation failed because the server could not deserialise the method arguments",
+							REMOTE,
+							new IllegalArgumentException(
+								buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8)
+									.toString())));
 						break;
-					case FAILURE_TO_SERIALIZE_SUCCESS:
-						ci.fail(new ServiceException("The remote invocation succeeded but the server could not serialise the method return value", REMOTE,
-								new IllegalArgumentException(buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8).toString())));
+					case FAILURE_TO_SERIALIZE_SUCCESS :
+						ci.fail(new ServiceException(
+							"The remote invocation succeeded but the server could not serialise the method return value",
+							REMOTE,
+							new IllegalArgumentException(
+								buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8)
+									.toString())));
 						break;
-					case FAILURE_TO_SERIALIZE_FAILURE:
-						ci.fail(new ServiceException("The remote invocation failed and the server could not serialise the failure reason", REMOTE,
-								new IllegalArgumentException(buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8).toString())));
+					case FAILURE_TO_SERIALIZE_FAILURE :
+						ci.fail(new ServiceException(
+							"The remote invocation failed and the server could not serialise the failure reason",
+							REMOTE,
+							new IllegalArgumentException(
+								buf.readCharSequence(buf.readUnsignedShort(), StandardCharsets.UTF_8)
+									.toString())));
 						break;
 					default :
-						if(ci instanceof ClientInvocation) {
-							LOG.error("There was a serious error trying to interpret a remote invocation response for service {} method {}. The response code {} was unrecognised.",
-								new Object[] {serviceId, ((ClientInvocation)ci).getMethodName(), command});
+						if (ci instanceof ClientInvocation) {
+							LOG.error(
+								"There was a serious error trying to interpret a remote invocation response for service {} method {}. The response code {} was unrecognised.",
+								new Object[] {
+									serviceId, ((ClientInvocation) ci).getMethodName(), command
+								});
 						} else {
-							LOG.error("There was a serious error trying to interpret a remote invocation response for a streaming result {}. The response code {} was unrecognised.",
-									new Object[] {serviceId, command});
+							LOG.error(
+								"There was a serious error trying to interpret a remote invocation response for a streaming result {}. The response code {} was unrecognised.",
+								new Object[] {
+									serviceId, command
+								});
 						}
 						ci.fail(new UnknownResponseTypeException(command));
 				}
 			} catch (Exception e) {
 				LOG.error("There was a serious error trying to interpret a remote invocation response for service "
-						+ serviceId, e);
+					+ serviceId, e);
 				ci.fail(e);
 			}
 		} finally {
@@ -161,8 +181,9 @@ public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 		Exception e = new ServiceException("The remote connection was lost", ServiceException.REMOTE,
-				new IOException());
-		pendingCalls.values().stream()
+			new IOException());
+		pendingCalls.values()
+			.stream()
 			.forEach(f -> f.fail(e));
 	}
 }

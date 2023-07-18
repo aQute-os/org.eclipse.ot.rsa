@@ -14,23 +14,23 @@ package org.eclipse.ot.rsa.tls.netty.provider.dtls.adapter;
 
 public interface DtlsEngineResult {
 
-    OperationResult getOperationResult();
+	OperationResult getOperationResult();
 
-    OperationRequired getOperationRequired();
+	OperationRequired getOperationRequired();
 
-    public enum OperationResult {
-        INSUFFICIENT_INPUT,
-        TOO_MUCH_OUTPUT,
-        OK,
-        ENGINE_CLOSED;
-    }
+	public enum OperationResult {
+		INSUFFICIENT_INPUT,
+		TOO_MUCH_OUTPUT,
+		OK,
+		ENGINE_CLOSED;
+	}
 
-    public enum OperationRequired {
-        NONE,
-        RUN_TASK,
-        DATA_TO_SEND,
-        AWAITING_DATA,
-        PENDING_RECEIVED_DATA;
-    }
+	public enum OperationRequired {
+		NONE,
+		RUN_TASK,
+		DATA_TO_SEND,
+		AWAITING_DATA,
+		PENDING_RECEIVED_DATA;
+	}
 
 }

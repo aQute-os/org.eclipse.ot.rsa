@@ -22,6 +22,8 @@ import io.netty.util.concurrent.Future;
 
 public interface InternalClusterListener {
 	void localUpdate(Snapshot s);
+
 	List<Future<?>> destroy();
+
 	void darkNodes(Collection<MemberInfo> darkNodes);
 }

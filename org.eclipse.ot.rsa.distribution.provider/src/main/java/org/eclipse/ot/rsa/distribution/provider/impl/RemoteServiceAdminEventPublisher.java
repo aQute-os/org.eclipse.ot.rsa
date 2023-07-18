@@ -79,7 +79,7 @@ public class RemoteServiceAdminEventPublisher {
 		}
 	}
 
-	private static final Logger																LOG			= LoggerFactory
+	private static final Logger																LOG	= LoggerFactory
 		.getLogger(RemoteServiceAdminEventPublisher.class);
 
 	private final BundleContext																_bundleContext;

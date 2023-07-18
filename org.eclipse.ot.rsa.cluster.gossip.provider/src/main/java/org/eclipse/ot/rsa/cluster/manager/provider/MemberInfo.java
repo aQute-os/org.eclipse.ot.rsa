@@ -48,32 +48,33 @@ import org.slf4j.LoggerFactory;
 
 public class MemberInfo {
 
-	private static final Logger logger = LoggerFactory.getLogger(MemberInfo.class);
+	private static final Logger			logger		= LoggerFactory.getLogger(MemberInfo.class);
 
-	private final UUID id;
-	private final String cluster;
-	private final ClusterInformation ci;
+	private final UUID					id;
+	private final String				cluster;
+	private final ClusterInformation	ci;
 
-	private InetAddress address;
-	private int udpPort;
-	private int tcpPort;
+	private InetAddress					address;
+	private int							udpPort;
+	private int							tcpPort;
 
-	private short stateSequenceNumber;
-	private int messageTimeStamp;
+	private short						stateSequenceNumber;
+	private int							messageTimeStamp;
 
-	private Map<String, byte[]> data;
+	private Map<String, byte[]>			data;
 
-	private long lastUpdatedTimestamp;
+	private long						lastUpdatedTimestamp;
 
-	private int unreachableCount;
+	private int							unreachableCount;
 
-	private boolean initialised = false;
+	private boolean						initialised	= false;
 
-	private boolean closed;
+	private boolean						closed;
 
-	private Collection<ClusterListener> listeners = new HashSet<>();
+	private Collection<ClusterListener>	listeners	= new HashSet<>();
 
-	public MemberInfo(ClusterGossipConfig config, Snapshot s, ClusterInformation ci, Collection<? extends ClusterListener> listeners) {
+	public MemberInfo(ClusterGossipConfig config, Snapshot s, ClusterInformation ci,
+		Collection<? extends ClusterListener> listeners) {
 		this.ci = ci;
 		this.id = s.getId();
 		this.cluster = config.cluster_name();
@@ -107,42 +108,46 @@ public class MemberInfo {
 	}
 
 	public synchronized Map<String, byte[]> getData() {
-		if(closed) return Collections.emptyMap();
+		if (closed)
+			return Collections.emptyMap();
 		return data;
 	}
 
 	public synchronized void updateListeners(Collection<? extends ClusterListener> listeners) {
-		if(closed) return;
+		if (closed)
+			return;
 
-		if(initialised) {
-			listeners.stream().filter(l -> !this.listeners.contains(l)).forEach(
-					(l) -> l.clusterEvent(ci, ADDED, id, data.keySet(), emptySet(), emptySet()));
+		if (initialised) {
+			listeners.stream()
+				.filter(l -> !this.listeners.contains(l))
+				.forEach((l) -> l.clusterEvent(ci, ADDED, id, data.keySet(), emptySet(), emptySet()));
 		}
 
 		this.listeners = new HashSet<>(listeners);
 	}
 
 	public synchronized Update update(Snapshot s) {
-		if(closed) {
-			if(logger.isDebugEnabled()) {
+		if (closed) {
+			if (logger.isDebugEnabled()) {
 				logger.debug("Ignoring snapshot for {} as the member is closed", s.getId());
 			}
 			return CONSUME;
 		}
 
-		if(address == null) {
-			if(s.getAddress() != null) {
+		if (address == null) {
+			if (s.getAddress() != null) {
 				address = s.getAddress();
 			} else {
 				logger.debug("Ignoring update for member {} because its address has not yet been determined.", id);
 				return CONSUME;
 			}
-		} else if(s.getAddress() != null && !address.equals(s.getAddress())) {
-			logger.warn("The Snapshot tried to change the address for node {} from {} to {}",
-					new Object[] {id, address, s.getAddress()});
+		} else if (s.getAddress() != null && !address.equals(s.getAddress())) {
+			logger.warn("The Snapshot tried to change the address for node {} from {} to {}", new Object[] {
+				id, address, s.getAddress()
+			});
 		}
 
-		if(!initialised) {
+		if (!initialised) {
 			return initialise(s);
 		}
 
@@ -150,44 +155,53 @@ public class MemberInfo {
 		int seqDelta = s.getStateSequenceNumber() - stateSequenceNumber;
 		int timeDelta = s.getSnapshotTimestamp() - messageTimeStamp;
 
-		if(seqDelta < 0 || timeDelta < 0) {
-			//An old message
-			if(logger.isDebugEnabled()) {
-				logger.debug("Ignoring snapshot {} in cluster {} with deltas as it is old. The sequence delta was {} and the time delta was {}",
-						new Object[] {s, cluster, seqDelta, timeDelta });
+		if (seqDelta < 0 || timeDelta < 0) {
+			// An old message
+			if (logger.isDebugEnabled()) {
+				logger.debug(
+					"Ignoring snapshot {} in cluster {} with deltas as it is old. The sequence delta was {} and the time delta was {}",
+					new Object[] {
+						s, cluster, seqDelta, timeDelta
+					});
 			}
 			return FORWARD_LOCAL;
 		} else {
 			unreachableCount = 0;
 		}
 
-		if(s.getMessageType() != HEADER) {
-			if(s.getUdpPort() != -1 && udpPort != s.getUdpPort()) {
-				logger.warn("The Snapshot is changing the UDP port for node {} in cluster {} from {} to {}. If this occurs frequently then there is a problem with the node",
-						new Object[] {id, cluster, udpPort, s.getUdpPort()});
+		if (s.getMessageType() != HEADER) {
+			if (s.getUdpPort() != -1 && udpPort != s.getUdpPort()) {
+				logger.warn(
+					"The Snapshot is changing the UDP port for node {} in cluster {} from {} to {}. If this occurs frequently then there is a problem with the node",
+					new Object[] {
+						id, cluster, udpPort, s.getUdpPort()
+					});
 				udpPort = s.getUdpPort();
 			}
-			if(tcpPort != s.getTcpPort()) {
-				logger.warn("The Snapshot is changing the TCP port for node {} in cluster {} from {} to {}. If this occurs frequently then there is a problem with the node",
-						new Object[] {id, cluster, tcpPort, s.getTcpPort()});
+			if (tcpPort != s.getTcpPort()) {
+				logger.warn(
+					"The Snapshot is changing the TCP port for node {} in cluster {} from {} to {}. If this occurs frequently then there is a problem with the node",
+					new Object[] {
+						id, cluster, tcpPort, s.getTcpPort()
+					});
 				tcpPort = s.getTcpPort();
 			}
 		}
-		if(seqDelta == 0) {
-			if(logger.isTraceEnabled()) {
+		if (seqDelta == 0) {
+			if (logger.isTraceEnabled()) {
 				logger.trace("The member {} of cluster {} has received an updated heartbeat", id, cluster);
 			}
 
 			messageTimeStamp = s.getSnapshotTimestamp();
 			lastUpdatedTimestamp = now;
 			return FORWARD;
-		} else if (s.getMessageType() != PAYLOAD_UPDATE){
-			if(logger.isTraceEnabled()) {
+		} else if (s.getMessageType() != PAYLOAD_UPDATE) {
+			if (logger.isTraceEnabled()) {
 				logger.trace("The member {} of cluster {} has missed a payload update", id, cluster);
 			}
 			return RESYNC;
 		} else {
-			if(logger.isTraceEnabled()) {
+			if (logger.isTraceEnabled()) {
 				logger.trace("The member {} of cluster {} has an updated payload", id, cluster);
 			}
 			stateSequenceNumber = s.getStateSequenceNumber();
@@ -195,30 +209,40 @@ public class MemberInfo {
 			Map<String, byte[]> snapshotData = s.getData();
 			lastUpdatedTimestamp = now;
 
-			Set<String> added = snapshotData.entrySet().stream().filter(
-					(e) -> !data.containsKey(e.getKey())).map(Entry::getKey).collect(toSet());
+			Set<String> added = snapshotData.entrySet()
+				.stream()
+				.filter((e) -> !data.containsKey(e.getKey()))
+				.map(Entry::getKey)
+				.collect(toSet());
 
-			Set<String> removed = data.entrySet().stream().filter(
-					(e) -> !snapshotData.containsKey(e.getKey())).map(Entry::getKey).collect(toSet());
+			Set<String> removed = data.entrySet()
+				.stream()
+				.filter((e) -> !snapshotData.containsKey(e.getKey()))
+				.map(Entry::getKey)
+				.collect(toSet());
 
-			Set<String> updated = snapshotData.entrySet().stream().filter(
-					(e) -> data.containsKey(e.getKey()) && !Arrays.equals(e.getValue(), data.get(e.getKey())))
-					.map(Entry::getKey).collect(toSet());
+			Set<String> updated = snapshotData.entrySet()
+				.stream()
+				.filter((e) -> data.containsKey(e.getKey()) && !Arrays.equals(e.getValue(), data.get(e.getKey())))
+				.map(Entry::getKey)
+				.collect(toSet());
 
 			data = new HashMap<>(snapshotData);
-			listeners.stream().forEach((c) -> c.clusterEvent(ci, UPDATED, id, added, removed, updated));
+			listeners.stream()
+				.forEach((c) -> c.clusterEvent(ci, UPDATED, id, added, removed, updated));
 			return FORWARD;
 		}
 	}
 
 	private Update initialise(Snapshot s) {
-		if(s.getMessageType() != PAYLOAD_UPDATE) {
-			if(logger.isDebugEnabled()) {
-				logger.debug("Received a first update that was a heartbeat - requesting resynchronization with {}", s.getId());
+		if (s.getMessageType() != PAYLOAD_UPDATE) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Received a first update that was a heartbeat - requesting resynchronization with {}",
+					s.getId());
 			}
 			return RESYNC;
 		} else {
-			if(logger.isDebugEnabled()) {
+			if (logger.isDebugEnabled()) {
 				logger.debug("Initialising member {} with snapshot {}", s.getId(), s);
 			}
 			stateSequenceNumber = s.getStateSequenceNumber();
@@ -231,19 +255,20 @@ public class MemberInfo {
 			udpPort = s.getUdpPort();
 			tcpPort = s.getTcpPort();
 
-			listeners.stream().forEach((l) -> l.clusterEvent(ci, ADDED, id, data.keySet(), emptySet(), emptySet()));
+			listeners.stream()
+				.forEach((l) -> l.clusterEvent(ci, ADDED, id, data.keySet(), emptySet(), emptySet()));
 			return FORWARD;
 		}
 	}
 
 	public synchronized Snapshot toSnapshot() {
-		return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort, stateSequenceNumber,
-				messageTimeStamp, PAYLOAD_UPDATE, data, 1);
+		return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort, stateSequenceNumber, messageTimeStamp,
+			PAYLOAD_UPDATE, data, 1);
 	}
 
 	public synchronized Snapshot toSnapshot(int hops) {
-		return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort, stateSequenceNumber,
-				messageTimeStamp, PAYLOAD_UPDATE, data, hops);
+		return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort, stateSequenceNumber, messageTimeStamp,
+			PAYLOAD_UPDATE, data, hops);
 	}
 
 	public synchronized Snapshot toSnapshot(SnapshotType type) {
@@ -251,21 +276,23 @@ public class MemberInfo {
 	}
 
 	public synchronized Snapshot toSnapshot(SnapshotType type, int hops) {
-		switch(type) {
-			case PAYLOAD_UPDATE: return toSnapshot(hops);
-			case HEARTBEAT: return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort,
-					stateSequenceNumber, messageTimeStamp, HEARTBEAT, null, hops);
-			case HEADER: return new Snapshot(id, null, -1,
-					stateSequenceNumber, messageTimeStamp, HEADER, null, hops);
-			default:
+		switch (type) {
+			case PAYLOAD_UPDATE :
+				return toSnapshot(hops);
+			case HEARTBEAT :
+				return new Snapshot(id, new InetSocketAddress(address, udpPort), tcpPort, stateSequenceNumber,
+					messageTimeStamp, HEARTBEAT, null, hops);
+			case HEADER :
+				return new Snapshot(id, null, -1, stateSequenceNumber, messageTimeStamp, HEADER, null, hops);
+			default :
 				throw new IllegalArgumentException("Unknown snapshot type");
 		}
 	}
 
 	public synchronized void markUnreachable() {
 		unreachableCount++;
-		//TODO configure
-		if(unreachableCount > 5) {
+		// TODO configure
+		if (unreachableCount > 5) {
 			close();
 		}
 	}
@@ -277,9 +304,10 @@ public class MemberInfo {
 	public synchronized void close() {
 		closed = true;
 		lastUpdatedTimestamp = NANOSECONDS.toMillis(System.nanoTime());
-		if(initialised) {
-			listeners.stream().forEach((l) -> l.clusterEvent(ci, REMOVED, id, emptySet(),
-				data == null ? emptySet() : data.keySet(), emptySet()));
+		if (initialised) {
+			listeners.stream()
+				.forEach((l) -> l.clusterEvent(ci, REMOVED, id, emptySet(), data == null ? emptySet() : data.keySet(),
+					emptySet()));
 		}
 	}
 

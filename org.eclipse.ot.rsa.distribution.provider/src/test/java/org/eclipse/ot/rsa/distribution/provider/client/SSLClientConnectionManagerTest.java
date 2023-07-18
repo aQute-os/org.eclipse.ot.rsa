@@ -29,7 +29,7 @@ public class SSLClientConnectionManagerTest extends AbstractSSLClientConnectionM
 	protected Map<String, Object> getConfig() {
 		Map<String, Object> config = new HashMap<>();
 		config.put("client.protocols", "TCP_TLS");
-        config.put("allow.insecure.transports", false);
+		config.put("allow.insecure.transports", false);
 		return config;
 	}
 
@@ -48,11 +48,12 @@ public class SSLClientConnectionManagerTest extends AbstractSSLClientConnectionM
 		} catch (Exception e) {
 			throw new RuntimeException("Unable to create the SSL Engine", e);
 		}
-		ServerSocket socket = ((JdkSslContext)sslContext).context().getServerSocketFactory()
-				.createServerSocket(0, 1, InetAddress.getLoopbackAddress());
+		ServerSocket socket = ((JdkSslContext) sslContext).context()
+			.getServerSocketFactory()
+			.createServerSocket(0, 1, InetAddress.getLoopbackAddress());
 
-		((SSLServerSocket)socket).setNeedClientAuth(false);
-		((SSLServerSocket)socket).setWantClientAuth(false);
+		((SSLServerSocket) socket).setNeedClientAuth(false);
+		((SSLServerSocket) socket).setWantClientAuth(false);
 
 		return socket;
 	}

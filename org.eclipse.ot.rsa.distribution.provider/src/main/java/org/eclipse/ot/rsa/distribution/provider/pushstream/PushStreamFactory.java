@@ -46,39 +46,42 @@ import io.netty.util.concurrent.Future;
 
 public class PushStreamFactory {
 
-	private static final String PUSH_STREAM_TYPE = "org.osgi.util.pushstream.PushStream";
-	private static final String PUSH_STREAM_PROVIDER_TYPE = "org.osgi.util.pushstream.PushStreamProvider";
-	private static final String PUSH_STREAM_BUILDER_TYPE = "org.osgi.util.pushstream.PushStreamBuilder";
-	private static final String PUSH_EVENT_SOURCE_TYPE = "org.osgi.util.pushstream.PushEventSource";
+	private static final String	PUSH_STREAM_TYPE			= "org.osgi.util.pushstream.PushStream";
+	private static final String	PUSH_STREAM_PROVIDER_TYPE	= "org.osgi.util.pushstream.PushStreamProvider";
+	private static final String	PUSH_STREAM_BUILDER_TYPE	= "org.osgi.util.pushstream.PushStreamBuilder";
+	private static final String	PUSH_EVENT_SOURCE_TYPE		= "org.osgi.util.pushstream.PushEventSource";
 
 	public interface OnConnect<T> {
-	    void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture, ToLongFunction<T> pushData, Consumer<Exception> pushClose);
+		void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture, ToLongFunction<T> pushData,
+			Consumer<Exception> pushClose);
 	}
 
 	public interface DataStreamFactory {
-		DataStream apply(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal,
-				Object connectTo);
+		DataStream apply(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal, Object connectTo);
 	}
 
 	public interface DataStream {
 		void open();
+
 		void asyncBackPressure(long bp);
+
 		void close();
+
 		Future<Void> closeFuture();
 	}
 
-	public static Function<Future<?>,Object> pushStreamHandler(Class<?> pushStream,
-			EventExecutorGroup executor, OnConnect<Object> onConnect,
-			Consumer<CacheKey> onClose) throws Exception {
+	public static Function<Future<?>, Object> pushStreamHandler(Class<?> pushStream, EventExecutorGroup executor,
+		OnConnect<Object> onConnect, Consumer<CacheKey> onClose) throws Exception {
 
 		Class<?> providerClass = pushStream.getClassLoader()
-				.loadClass(PUSH_STREAM_PROVIDER_TYPE);
+			.loadClass(PUSH_STREAM_PROVIDER_TYPE);
 		Class<?> pushEventSourceClass = pushStream.getClassLoader()
-				.loadClass(PUSH_EVENT_SOURCE_TYPE);
+			.loadClass(PUSH_EVENT_SOURCE_TYPE);
 		Class<?> builderClass = pushStream.getClassLoader()
-				.loadClass(PUSH_STREAM_BUILDER_TYPE);
+			.loadClass(PUSH_STREAM_BUILDER_TYPE);
 
-		Object provider = providerClass.getConstructor().newInstance();
+		Object provider = providerClass.getConstructor()
+			.newInstance();
 
 		Method buildStream = providerClass.getMethod("buildStream", pushEventSourceClass);
 		Method withExecutor = builderClass.getMethod("withExecutor", Executor.class);
@@ -86,18 +89,20 @@ public class PushStreamFactory {
 		Method unbuffered = builderClass.getMethod("unbuffered");
 		Method build = builderClass.getMethod("build");
 
-		BiFunction<CacheKey, EventExecutor, Object> eventSource = createPushEventSource(
-				pushEventSourceClass, onConnect, onClose);
+		BiFunction<CacheKey, EventExecutor, Object> eventSource = createPushEventSource(pushEventSourceClass, onConnect,
+			onClose);
 
 		return f -> {
 			CacheKey id;
 			try {
-				Object[] value = (Object[]) f.sync().getNow();
+				Object[] value = (Object[]) f.sync()
+					.getNow();
 				id = new CacheKey((UUID) value[0], (Integer) value[1]);
 			} catch (InterruptedException ie) {
-				Thread.currentThread().interrupt();
+				Thread.currentThread()
+					.interrupt();
 				throw new ServiceException("Interrupted while waiting for a remote service response",
-						ServiceException.REMOTE, ie);
+					ServiceException.REMOTE, ie);
 			}
 
 			try {
@@ -108,32 +113,32 @@ public class PushStreamFactory {
 				builder = unbuffered.invoke(builder);
 				return build.invoke(builder);
 			} catch (InvocationTargetException ite) {
-				throw new ServiceException("A problem occurred building a PushStream",
-						ServiceException.REMOTE, ite.getCause());
+				throw new ServiceException("A problem occurred building a PushStream", ServiceException.REMOTE,
+					ite.getCause());
 			} catch (IllegalAccessException iae) {
-				throw new ServiceException("A problem occurred building a PushStream",
-						ServiceException.REMOTE, iae);
+				throw new ServiceException("A problem occurred building a PushStream", ServiceException.REMOTE, iae);
 			}
 		};
 
 	}
 
-	public static Function<Future<?>,Object> pushEventSourceHandler(Class<?> pushEventSource,
-			EventExecutorGroup executor, OnConnect<Object> onConnect,
-			Consumer<CacheKey> onClose) throws Exception {
+	public static Function<Future<?>, Object> pushEventSourceHandler(Class<?> pushEventSource,
+		EventExecutorGroup executor, OnConnect<Object> onConnect, Consumer<CacheKey> onClose) throws Exception {
 
-		BiFunction<CacheKey, EventExecutor, Object> eventSource = createPushEventSource(
-				pushEventSource, onConnect, onClose);
+		BiFunction<CacheKey, EventExecutor, Object> eventSource = createPushEventSource(pushEventSource, onConnect,
+			onClose);
 
 		return f -> {
 			CacheKey id;
 			try {
-				Object[] value = (Object[]) f.sync().getNow();
+				Object[] value = (Object[]) f.sync()
+					.getNow();
 				id = new CacheKey((UUID) value[0], (Integer) value[1]);
 			} catch (InterruptedException ie) {
-				Thread.currentThread().interrupt();
+				Thread.currentThread()
+					.interrupt();
 				throw new ServiceException("Interrupted while waiting for a remote service response",
-						ServiceException.REMOTE, ie);
+					ServiceException.REMOTE, ie);
 			}
 			EventExecutor e = executor.next();
 			return eventSource.apply(id, e);
@@ -142,7 +147,7 @@ public class PushStreamFactory {
 	}
 
 	private static BiFunction<CacheKey, EventExecutor, Object> createPushEventSource(Class<?> pushEventSourceClass,
-			OnConnect<Object> onConnect, Consumer<CacheKey> onClose) throws Exception {
+		OnConnect<Object> onConnect, Consumer<CacheKey> onClose) throws Exception {
 		return new CustomPushEventSourceFactory(pushEventSourceClass, onConnect, onClose);
 	}
 
@@ -151,25 +156,24 @@ public class PushStreamFactory {
 		private static final String			CUSTOM_IMPL_NAME		= PushEventSourceImpl.class.getName();
 		private static final String			CUSTOM_RESOURCE_NAME	= resourceName(CUSTOM_IMPL_NAME);
 
-		private final OnConnect<Object> onConnect;
-		private final Consumer<CacheKey> onClose;
+		private final OnConnect<Object>		onConnect;
+		private final Consumer<CacheKey>	onClose;
 
-		private final Constructor<?> pesConstructor;
+		private final Constructor<?>		pesConstructor;
 
 		public CustomPushEventSourceFactory(Class<?> pushEventSourceClass, OnConnect<Object> onConnect,
-				Consumer<CacheKey> onClose) throws Exception {
+			Consumer<CacheKey> onClose) throws Exception {
 			this.onConnect = onConnect;
 			this.onClose = onClose;
 
 			ClassLoader customImplLoader = getCustomImplLoader(pushEventSourceClass,
-					singletonMap(CUSTOM_IMPL_NAME, CUSTOM_RESOURCE_NAME), "io.netty.util.concurrent",
+				singletonMap(CUSTOM_IMPL_NAME, CUSTOM_RESOURCE_NAME), "io.netty.util.concurrent",
 				AbstractRSAMessage.CacheKey.class.getName(), PushStreamFactory.OnConnect.class.getName());
 
 			pesConstructor = customImplLoader.loadClass(CUSTOM_IMPL_NAME)
 				.getConstructor(CacheKey.class, OnConnect.class, Consumer.class, EventExecutor.class);
 			pesConstructor.setAccessible(true);
 		}
-
 
 		@Override
 		public Object apply(CacheKey key, EventExecutor executor) {
@@ -186,7 +190,7 @@ public class PushStreamFactory {
 	}
 
 	private static ClassLoader getCustomImplLoader(Class<?> pushEventSourceClass,
-			Map<String,String> customImplToCustomResource, String safePackage, String... safeClasses) {
+		Map<String, String> customImplToCustomResource, String safePackage, String... safeClasses) {
 
 		ClassLoader factoryLoader = PushStreamFactory.class.getClassLoader();
 
@@ -194,17 +198,17 @@ public class PushStreamFactory {
 
 			@Override
 			protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-				if(name.startsWith(safePackage) || Arrays.stream(safeClasses)
-						.anyMatch(s -> name.equals(s))) {
+				if (name.startsWith(safePackage) || Arrays.stream(safeClasses)
+					.anyMatch(s -> name.equals(s))) {
 					return factoryLoader.loadClass(name);
 				}
 
 				String resource = null;
-				if(customImplToCustomResource.containsKey(name)) {
+				if (customImplToCustomResource.containsKey(name)) {
 					resource = customImplToCustomResource.get(name);
 				}
 
-				if(resource != null) {
+				if (resource != null) {
 					return doLoad(name, resource);
 				}
 
@@ -213,16 +217,16 @@ public class PushStreamFactory {
 
 			private Class<?> doLoad(String name, String resource) throws ClassNotFoundException {
 				try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						InputStream is = factoryLoader.getResourceAsStream(resource)) {
+					InputStream is = factoryLoader.getResourceAsStream(resource)) {
 
 					byte[] b = new byte[4096];
 					int r;
-					while((r = is.read(b)) > -1) {
+					while ((r = is.read(b)) > -1) {
 						baos.write(b, 0, r);
 					}
 
 					return defineClass(name, baos.toByteArray(), 0, baos.size(),
-							PromiseFactory.class.getProtectionDomain());
+						PromiseFactory.class.getProtectionDomain());
 				} catch (IOException ioe) {
 					// TODO log this
 					throw new ClassNotFoundException(name, ioe);
@@ -234,8 +238,8 @@ public class PushStreamFactory {
 		return customImplLoader;
 	}
 
-	private static final String PUSHSTREAM_CONNECTOR_CUSTOM_IMPL_NAME =
-		PushStreamPushEventConsumerImpl.class.getName();
+	private static final String	PUSHSTREAM_CONNECTOR_CUSTOM_IMPL_NAME		= PushStreamPushEventConsumerImpl.class
+		.getName();
 	private static final String	PUSHSTREAM_CONNECTOR_CUSTOM_RESOURCE_NAME	= resourceName(
 		PUSHSTREAM_CONNECTOR_CUSTOM_IMPL_NAME);
 
@@ -251,8 +255,8 @@ public class PushStreamFactory {
 		return new StreamConsumerFactory(pushStream, map, PUSHSTREAM_CONNECTOR_CUSTOM_IMPL_NAME, timer);
 	}
 
-	private static final String PUSH_EVENT_SOURCE_CONNECTOR_CUSTOM_IMPL_NAME =
-		PushEventSourcePushEventConsumerImpl.class.getName();
+	private static final String	PUSH_EVENT_SOURCE_CONNECTOR_CUSTOM_IMPL_NAME		= PushEventSourcePushEventConsumerImpl.class
+		.getName();
 	private static final String	PUSH_EVENT_SOURCE_CONNECTOR_CUSTOM_RESOURCE_NAME	= resourceName(
 		PUSH_EVENT_SOURCE_CONNECTOR_CUSTOM_IMPL_NAME);
 
@@ -265,18 +269,15 @@ public class PushStreamFactory {
 
 	private static class StreamConsumerFactory implements DataStreamFactory {
 
-
-		private final Constructor<?> constructor;
-		private final Timer timer;
+		private final Constructor<?>	constructor;
+		private final Timer				timer;
 
 		public StreamConsumerFactory(Class<?> connectorTargetType, Map<String, String> resourceMappings,
-				String connectorClassName, Timer timer) throws Exception {
+			String connectorClassName, Timer timer) throws Exception {
 
 			this.timer = timer;
-			ClassLoader customImplLoader = getCustomImplLoader(connectorTargetType,
-					resourceMappings, "io.netty.util",
-				PushStreamFactory.DataStream.class.getName(),
-					ServiceException.class.getName());
+			ClassLoader customImplLoader = getCustomImplLoader(connectorTargetType, resourceMappings, "io.netty.util",
+				PushStreamFactory.DataStream.class.getName(), ServiceException.class.getName());
 
 			constructor = customImplLoader.loadClass(connectorClassName)
 				.getConstructor(ToLongFunction.class, Consumer.class, connectorTargetType, Timer.class);
@@ -284,8 +285,7 @@ public class PushStreamFactory {
 		}
 
 		@Override
-		public DataStream apply(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal,
-				Object toConnectTo) {
+		public DataStream apply(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal, Object toConnectTo) {
 			try {
 				return (DataStream) constructor.newInstance(onData, onTerminal, toConnectTo, timer);
 			} catch (InvocationTargetException e) {
@@ -311,7 +311,8 @@ public class PushStreamFactory {
 
 		do {
 			result = concat(of(type), stream(type.getInterfaces())).filter(c -> toCheck.equals(c.getName()))
-					.findFirst().orElse(null);
+				.findFirst()
+				.orElse(null);
 		} while (result == null && (type = type.getSuperclass()) != null);
 
 		return result;

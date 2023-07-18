@@ -29,16 +29,14 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 public class BeginStreamingInvocation extends AbstractClientInvocationWithResult {
 
-	private final EventExecutor executor;
-	private final Consumer<Object> dataConsumer;
-	private final Consumer<Exception> closeConsumer;
+	private final EventExecutor			executor;
+	private final Consumer<Object>		dataConsumer;
+	private final Consumer<Exception>	closeConsumer;
 
-	private final Future<?> close;
+	private final Future<?>				close;
 
-
-	public BeginStreamingInvocation(UUID serviceId, int callId, Serializer serializer,
-			EventExecutor executor, Consumer<Object> dataConsumer,
-			Consumer<Exception> closeConsumer, Future<?> close) {
+	public BeginStreamingInvocation(UUID serviceId, int callId, Serializer serializer, EventExecutor executor,
+		Consumer<Object> dataConsumer, Consumer<Exception> closeConsumer, Future<?> close) {
 		super(STREAMING_RESPONSE_OPEN, serviceId, callId, serializer);
 		this.executor = executor;
 		this.dataConsumer = dataConsumer;
@@ -61,7 +59,7 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 
 	@Override
 	public void fail(Throwable t) {
-		if(executor.inEventLoop()) {
+		if (executor.inEventLoop()) {
 			internalError(t);
 		} else {
 			try {
@@ -73,15 +71,16 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 	}
 
 	private void internalError(Throwable t) {
-		Exception toSend = t == null ? null : t instanceof Exception ? (Exception) t :
-			new ServiceException("An incompatible Exception type was receieved", ServiceException.REMOTE, t);
+		Exception toSend = t == null ? null
+			: t instanceof Exception ? (Exception) t
+				: new ServiceException("An incompatible Exception type was receieved", ServiceException.REMOTE, t);
 		closeConsumer.accept(toSend);
 	}
 
 	private void streamError(Throwable t, Exception e) {
 		e.addSuppressed(t);
-		closeConsumer.accept(new ServiceException("An error occurred with the data stream",
-				ServiceException.REMOTE, e));
+		closeConsumer
+			.accept(new ServiceException("An error occurred with the data stream", ServiceException.REMOTE, e));
 	}
 
 	@Override
@@ -91,8 +90,7 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 		try {
 			o = (Throwable) getSerializer().deserializeReturn(b);
 		} catch (Exception e) {
-			o = new ServiceException(
-					"Failed to deserialize the remote exception value", ServiceException.REMOTE, e);
+			o = new ServiceException("Failed to deserialize the remote exception value", ServiceException.REMOTE, e);
 		}
 
 		fail(o);
@@ -103,21 +101,21 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 		try {
 			internalData(getSerializer().deserializeReturn(b));
 		} catch (Exception e) {
-			internalError(new ServiceException(
-					"Failed to deserialize the remote return value", ServiceException.REMOTE, e));
+			internalError(
+				new ServiceException("Failed to deserialize the remote return value", ServiceException.REMOTE, e));
 			return;
 		}
 	}
 
 	private void internalData(Object o) {
-		if(executor.inEventLoop()) {
+		if (executor.inEventLoop()) {
 			dataConsumer.accept(o);
 		} else {
 			try {
 				executor.execute(() -> dataConsumer.accept(o));
 			} catch (Exception e) {
-				internalError(new ServiceException(
-						"Failed to deserialize the remote return value", ServiceException.REMOTE, e));
+				internalError(
+					new ServiceException("Failed to deserialize the remote return value", ServiceException.REMOTE, e));
 			}
 		}
 	}
@@ -132,10 +130,11 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 		writeHeader(buffer);
 		writeLength(buffer);
 		promise.addListener(f -> {
-				if(!f.isSuccess()) {
-					closeConsumer.accept(new ServiceException("Unable to open the remote stream " +
-							getServiceId() + " due to a communications failure" , REMOTE, f.cause()));
-				}
-			});
+			if (!f.isSuccess()) {
+				closeConsumer.accept(new ServiceException(
+					"Unable to open the remote stream " + getServiceId() + " due to a communications failure", REMOTE,
+					f.cause()));
+			}
+		});
 	}
 }

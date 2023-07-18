@@ -17,25 +17,25 @@
 package org.freshvanilla.lang;
 
 public interface MetaField<D, T> {
-    public String getName();
+	public String getName();
 
-    public boolean isPrimitive();
+	public boolean isPrimitive();
 
-    public Class<T> getType();
+	public Class<T> getType();
 
-    public void set(D pojo, T value);
+	public void set(D pojo, T value);
 
-    public T get(D pojo);
+	public T get(D pojo);
 
-    public void setBoolean(D pojo, boolean flag);
+	public void setBoolean(D pojo, boolean flag);
 
-    public boolean getBoolean(D pojo);
+	public boolean getBoolean(D pojo);
 
-    public void setNum(D pojo, long value);
+	public void setNum(D pojo, long value);
 
-    public long getNum(D pojo);
+	public long getNum(D pojo);
 
-    public void setDouble(D pojo, double value);
+	public void setDouble(D pojo, double value);
 
-    public double getDouble(D pojo);
+	public double getDouble(D pojo);
 }

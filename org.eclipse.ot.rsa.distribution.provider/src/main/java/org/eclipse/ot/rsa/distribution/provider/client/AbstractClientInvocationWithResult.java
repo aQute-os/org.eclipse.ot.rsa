@@ -24,7 +24,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 public abstract class AbstractClientInvocationWithResult extends AbstractPayloadMessage<ClientMessageType> {
 
 	public AbstractClientInvocationWithResult(ClientMessageType calltype, UUID serviceId, int callId,
-			Serializer serializer) {
+		Serializer serializer) {
 		super(calltype, serviceId, callId, serializer);
 	}
 

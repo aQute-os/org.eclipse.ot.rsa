@@ -21,6 +21,6 @@ import io.netty.util.concurrent.Future;
 
 public interface InternalDTLSHandler extends DTLSHandler, ChannelInboundHandler, ChannelOutboundHandler {
 
-    public Future<Void> close(ChannelHandlerContext ctx, boolean sendData);
+	public Future<Void> close(ChannelHandlerContext ctx, boolean sendData);
 
 }

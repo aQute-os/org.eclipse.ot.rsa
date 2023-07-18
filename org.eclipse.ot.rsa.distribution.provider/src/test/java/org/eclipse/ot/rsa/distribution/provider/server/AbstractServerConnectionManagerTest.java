@@ -54,8 +54,8 @@ import java.util.concurrent.Executors;
 
 import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise;
-import org.eclipse.ot.rsa.distribution.provider.serialize.SerializationType;
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise.State;
+import org.eclipse.ot.rsa.distribution.provider.serialize.SerializationType;
 import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.eclipse.ot.rsa.distribution.provider.test.AbstractLeakCheckingTest;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V2;
@@ -88,26 +88,26 @@ import io.netty.util.Timer;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCheckingTest {
 
-	private static final String TEST_STRING = "Hello World!";
+	private static final String			TEST_STRING	= "Hello World!";
 
-	protected static final UUID SERVICE_ID = new UUID(123, 456);
+	protected static final UUID			SERVICE_ID	= new UUID(123, 456);
 	@Mock
-	protected ParemusNettyTLS tls;
+	protected ParemusNettyTLS			tls;
 	@Mock
-	protected Bundle hostBundle;
+	protected Bundle					hostBundle;
 
-	protected ServerTestService serviceObject;
-	protected ServerTestService mockServiceObject;
+	protected ServerTestService			serviceObject;
+	protected ServerTestService			mockServiceObject;
 
-	protected Serializer serializer;
+	protected Serializer				serializer;
 
-	protected ServerConnectionManager scm;
-	protected RemotingProvider rp;
-	protected URI serviceUri;
-	protected EventLoopGroup ioWorker;
-	protected DefaultEventLoop worker;
-	protected Timer timer;
-	protected Method[] methodMappings;
+	protected ServerConnectionManager	scm;
+	protected RemotingProvider			rp;
+	protected URI						serviceUri;
+	protected EventLoopGroup			ioWorker;
+	protected DefaultEventLoop			worker;
+	protected Timer						timer;
+	protected Method[]					methodMappings;
 
 	@BeforeEach
 	public final void setUp() throws Exception {
@@ -119,14 +119,16 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		timer = new HashedWheelTimer();
 
 		scm = new ServerConnectionManager(Converters.standardConverter()
-				.convert(getConfig()).to(TransportConfig.class), tls, PooledByteBufAllocator.DEFAULT, ioWorker, timer);
-		rp = scm.getConfiguredProviders().get(0);
+			.convert(getConfig())
+			.to(TransportConfig.class), tls, PooledByteBufAllocator.DEFAULT, ioWorker, timer);
+		rp = scm.getConfiguredProviders()
+			.get(0);
 
-		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
+		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory()
+			.create(hostBundle));
 
 		serviceObject = new ServerTestServiceImpl(TEST_STRING);
 		mockServiceObject = Mockito.spy(serviceObject);
-
 
 		methodMappings = new Method[5];
 		methodMappings[0] = CharSequence.class.getMethod("length");
@@ -135,9 +137,12 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		methodMappings[3] = ServerTestService.class.getMethod("streamOfCharacters", int.class);
 		methodMappings[4] = ServerTestService.class.getMethod("reusableStreamOfCharacters", int.class);
 
-		ServiceInvoker invoker = new ServiceInvoker(rp, SERVICE_ID, serializer, serviceObject, methodMappings, worker, timer);
+		ServiceInvoker invoker = new ServiceInvoker(rp, SERVICE_ID, serializer, serviceObject, methodMappings, worker,
+			timer);
 
-		serviceUri = rp.registerService(SERVICE_ID, invoker).iterator().next();
+		serviceUri = rp.registerService(SERVICE_ID, invoker)
+			.iterator()
+			.next();
 	}
 
 	@AfterEach
@@ -155,15 +160,13 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 	private Map<String, Object> getConfig() {
 		Map<String, Object> config = new HashMap<>();
 		config.put("server.bind.address", "127.0.0.1");
-		config.putAll(
-				getExtraConfig());
+		config.putAll(getExtraConfig());
 		return config;
 	}
 
 	protected void childSetUp() throws Exception {}
 
 	protected abstract Map<String, Object> getExtraConfig();
-
 
 	protected abstract ByteChannel getCommsChannel(URI uri);
 
@@ -174,25 +177,25 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)0);
-		buffer.put((byte)0);
+		buffer.putShort((short) 0);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
 
- 		ByteBuffer returned = doRead(channel);
+		ByteBuffer returned = doRead(channel);
 
- 		assertEquals(SUCCESS_RESPONSE, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		assertEquals(serviceObject.length(), returned.get());
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		assertEquals(serviceObject.length(), returned.get());
 	}
 
 	@Test
@@ -202,15 +205,15 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)9);
-		buffer.put((byte)0);
+		buffer.putShort((short) 9);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -229,15 +232,15 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(654);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
-		buffer.put((byte)0);
+		buffer.putShort((short) 1);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -256,28 +259,30 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short) 1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			1, 11
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
 		sendData(channel, buffer);
 
- 		ByteBuffer returned = doRead(channel);
+		ByteBuffer returned = doRead(channel);
 
- 		assertEquals(SUCCESS_RESPONSE, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
 
- 		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
+		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
 	}
 
 	@Test
@@ -287,16 +292,18 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short) 1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {-1, 11});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			-1, 11
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -309,8 +316,9 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(789, returned.getInt());
 
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
-		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
+		// We have to get the cause as the mock service throws
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass()
+			.getName());
 	}
 
 	@Test
@@ -320,15 +328,15 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
-		buffer.put((byte)42);
+		buffer.putShort((short) 1);
+		buffer.put((byte) 42);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -343,22 +351,26 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 	@Test
 	public void testFailureToSerializeSuccess() throws IOException, ClassNotFoundException {
 
-		Mockito.doThrow(IOException.class).when(serializer).serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
+		Mockito.doThrow(IOException.class)
+			.when(serializer)
+			.serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
 
 		ByteChannel channel = getCommsChannel(serviceUri);
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short) 1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			1, 11
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -377,22 +389,26 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 	@Test
 	public void testFailureToSerializeFailure() throws IOException, ClassNotFoundException {
 
-		Mockito.doThrow(IOException.class).when(serializer).serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
+		Mockito.doThrow(IOException.class)
+			.when(serializer)
+			.serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
 
 		ByteChannel channel = getCommsChannel(serviceUri);
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short) 1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {-1, 11});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			-1, 11
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -412,28 +428,31 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 	public void testComplexCallFireAndForget() throws IOException, ClassNotFoundException {
 
 		rp.registerService(SERVICE_ID,
-				new ServiceInvoker(rp, SERVICE_ID, serializer, mockServiceObject, methodMappings, worker, timer));
+			new ServiceInvoker(rp, SERVICE_ID, serializer, mockServiceObject, methodMappings, worker, timer));
 
 		ByteChannel channel = getCommsChannel(serviceUri);
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITHOUT_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)1);
+		buffer.putShort((short) 1);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {1, 11});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			1, 11
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
 		sendData(channel, buffer);
 
- 		Mockito.verify(mockServiceObject, timeout(1000)).subSequence(1, 11);
+		Mockito.verify(mockServiceObject, timeout(1000))
+			.subSequence(1, 11);
 	}
 
 	public interface TestService {
@@ -446,32 +465,36 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		TestService serviceToUse = mock(TestService.class);
 		when(serviceToUse.length()).thenReturn(resolved(42));
 		methodMappings = new Method[1];
-		methodMappings[0] = serviceToUse.getClass().getMethod("length");
+		methodMappings[0] = serviceToUse.getClass()
+			.getMethod("length");
 
-		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID,
-				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
+		ByteChannel channel = getCommsChannel(rp
+			.registerService(SERVICE_ID,
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer))
+			.iterator()
+			.next());
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)0);
-		buffer.put((byte)0);
+		buffer.putShort((short) 0);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
 
- 		ByteBuffer returned = doRead(channel);
+		ByteBuffer returned = doRead(channel);
 
- 		assertEquals(SUCCESS_RESPONSE, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		assertEquals(42, returned.get());
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		assertEquals(42, returned.get());
 	}
 
 	@Test
@@ -480,22 +503,26 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		TestService serviceToUse = mock(TestService.class);
 		when(serviceToUse.length()).thenReturn(failed(new StringIndexOutOfBoundsException()));
 		methodMappings = new Method[1];
-		methodMappings[0] = serviceToUse.getClass().getMethod("length");
+		methodMappings[0] = serviceToUse.getClass()
+			.getMethod("length");
 
-		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID,
-				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
+		ByteChannel channel = getCommsChannel(rp
+			.registerService(SERVICE_ID,
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer))
+			.iterator()
+			.next());
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)0);
-		buffer.put((byte)0);
+		buffer.putShort((short) 0);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -507,8 +534,9 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(789, returned.getInt());
 
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
-		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
+		// We have to get the cause as the mock service throws
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass()
+			.getName());
 	}
 
 	@Test
@@ -517,36 +545,43 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		ClassLoader classLoader = getSeparateClassLoader();
 		Class<?> testServiceClass = classLoader.loadClass(TestService.class.getName());
 
-		Object serviceToUse = Proxy.newProxyInstance(classLoader, new Class[] {testServiceClass},
-				(o,m,a) -> {
-					if(m.getName().equals("length")) {
-						return classLoader.loadClass(Promises.class.getName())
-								.getMethod("resolved", Object.class).invoke(null, 42);
-					} else {
-						throw new UnsupportedOperationException(m.toGenericString());
-					}
+		Object serviceToUse = Proxy.newProxyInstance(classLoader, new Class[] {
+			testServiceClass
+		}, (o, m, a) -> {
+			if (m.getName()
+				.equals("length")) {
+				return classLoader.loadClass(Promises.class.getName())
+					.getMethod("resolved", Object.class)
+					.invoke(null, 42);
+			} else {
+				throw new UnsupportedOperationException(m.toGenericString());
+			}
 
-				});
+		});
 
-		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
+		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory()
+			.create(hostBundle));
 
 		methodMappings = new Method[1];
 		methodMappings[0] = testServiceClass.getMethod("length");
 
-		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID,
-				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
+		ByteChannel channel = getCommsChannel(rp
+			.registerService(SERVICE_ID,
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer))
+			.iterator()
+			.next());
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)0);
-		buffer.put((byte)0);
+		buffer.putShort((short) 0);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -565,35 +600,42 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		ClassLoader classLoader = getSeparateClassLoader();
 		Class<?> testServiceClass = classLoader.loadClass(TestService.class.getName());
 
-		Object serviceToUse = Proxy.newProxyInstance(classLoader, new Class[] {testServiceClass},
-				(o,m,a) -> {
-					if(m.getName().equals("length")) {
-						return classLoader.loadClass(Promises.class.getName())
-								.getMethod("failed", Throwable.class).invoke(null, new StringIndexOutOfBoundsException());
-					} else {
-						throw new UnsupportedOperationException(m.toGenericString());
-					}
+		Object serviceToUse = Proxy.newProxyInstance(classLoader, new Class[] {
+			testServiceClass
+		}, (o, m, a) -> {
+			if (m.getName()
+				.equals("length")) {
+				return classLoader.loadClass(Promises.class.getName())
+					.getMethod("failed", Throwable.class)
+					.invoke(null, new StringIndexOutOfBoundsException());
+			} else {
+				throw new UnsupportedOperationException(m.toGenericString());
+			}
 
-				});
+		});
 
-		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory().create(hostBundle));
+		serializer = Mockito.spy(SerializationType.FAST_BINARY.getFactory()
+			.create(hostBundle));
 		methodMappings = new Method[1];
 		methodMappings[0] = testServiceClass.getMethod("length");
 
-		ByteChannel channel = getCommsChannel(rp.registerService(SERVICE_ID,
-				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer)).iterator().next());
+		ByteChannel channel = getCommsChannel(rp
+			.registerService(SERVICE_ID,
+				new ServiceInvoker(rp, SERVICE_ID, serializer, serviceToUse, methodMappings, worker, timer))
+			.iterator()
+			.next());
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)0);
-		buffer.put((byte)0);
+		buffer.putShort((short) 0);
+		buffer.put((byte) 0);
 		buffer.flip();
 
 		sendData(channel, buffer);
@@ -605,8 +647,9 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(789, returned.getInt());
 
 		Exception failure = (Exception) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
-		//We have to get the cause as the mock service throws
-		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass().getName());
+		// We have to get the cause as the mock service throws
+		assertTrue(failure instanceof StringIndexOutOfBoundsException, failure.getClass()
+			.getName());
 	}
 
 	@Test
@@ -624,28 +667,29 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(256);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short) 2);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()),
-				new Object[] {start, end});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			start, end
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
 		sendData(channel, buffer);
 
- 		ByteBuffer returned = doRead(channel);
+		ByteBuffer returned = doRead(channel);
 
- 		assertEquals(SUCCESS_RESPONSE, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		assertEquals("ello World", serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
 	}
 
 	@Test
@@ -655,17 +699,18 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
 		buffer.putLong(456);
 		buffer.putInt(789);
-		buffer.putShort((short)2);
+		buffer.putShort((short) 2);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()),
-				new Object[] {null, null});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			null, null
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -681,8 +726,8 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		buffer = ByteBuffer.allocate(64);
 		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(Protocol_V2.ASYNC_METHOD_PARAM_DATA);
 		buffer.putLong(123);
@@ -703,8 +748,8 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		buffer = ByteBuffer.allocate(64);
 		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(Protocol_V2.ASYNC_METHOD_PARAM_DATA);
 		buffer.putLong(123);
@@ -726,7 +771,7 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 	@Test
 	public void testSimpleCallReturnsPushStream() throws Exception {
-		doTestSimpleCallReturnsStream((short)3);
+		doTestSimpleCallReturnsStream((short) 3);
 	}
 
 	private void doTestSimpleCallReturnsStream(short method) throws Exception {
@@ -735,8 +780,8 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
@@ -744,68 +789,9 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		buffer.putInt(789);
 		buffer.putShort(method);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {32});
-		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
-		buffer.flip();
-
-		sendData(channel, buffer);
-
- 		ByteBuffer returned = doRead(channel);
-
- 		assertEquals(SUCCESS_RESPONSE, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		Object[] result = (Object[]) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
- 		assertEquals(SERVICE_ID, result[0]);
- 		assertEquals(789, result[1]);
-
-
- 		buffer = ByteBuffer.allocate(64);
-		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
-		}
-		buffer.put(Protocol_V2.CLIENT_OPEN);
-		buffer.putLong(123);
-		buffer.putLong(456);
-		buffer.putInt(789);
-		buffer.flip();
-
-		sendData(channel, buffer);
-
-
-		for(Character c : TEST_STRING.toCharArray()) {
-			checkData(channel, c);
-		}
-
- 		returned = doRead(channel, (byte) 2);
-
- 		assertEquals(Protocol_V2.SERVER_CLOSE_EVENT, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
-	}
-
-	@Test
-	public void testSimpleCallReturnsPushStreamEarlyCloseFromClient() throws Exception {
-		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short)3);
-	}
-
-	private void doTestSimpleCallReturnsStreamEarlyCloseFromClient(short method) throws Exception {
-
-		ByteChannel channel = getCommsChannel(serviceUri);
-
-		ByteBuffer buffer = ByteBuffer.allocate(64);
-		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
-		}
-		buffer.put(CALL_WITH_RETURN);
-		buffer.putLong(123);
-		buffer.putLong(456);
-		buffer.putInt(789);
-		buffer.putShort(method);
-		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {32});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			32
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -820,11 +806,10 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(SERVICE_ID, result[0]);
 		assertEquals(789, result[1]);
 
-
 		buffer = ByteBuffer.allocate(64);
 		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(Protocol_V2.CLIENT_OPEN);
 		buffer.putLong(123);
@@ -834,15 +819,76 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		sendData(channel, buffer);
 
+		for (Character c : TEST_STRING.toCharArray()) {
+			checkData(channel, c);
+		}
 
-		for(Character c : TEST_STRING.substring(0, 5).toCharArray()) {
+		returned = doRead(channel, (byte) 2);
+
+		assertEquals(Protocol_V2.SERVER_CLOSE_EVENT, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+	}
+
+	@Test
+	public void testSimpleCallReturnsPushStreamEarlyCloseFromClient() throws Exception {
+		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short) 3);
+	}
+
+	private void doTestSimpleCallReturnsStreamEarlyCloseFromClient(short method) throws Exception {
+
+		ByteChannel channel = getCommsChannel(serviceUri);
+
+		ByteBuffer buffer = ByteBuffer.allocate(64);
+		buffer.put(VERSION);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
+		}
+		buffer.put(CALL_WITH_RETURN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.putShort(method);
+		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			32
+		});
+		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
+		buffer.flip();
+
+		sendData(channel, buffer);
+
+		ByteBuffer returned = doRead(channel);
+
+		assertEquals(SUCCESS_RESPONSE, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		Object[] result = (Object[]) serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
+		assertEquals(SERVICE_ID, result[0]);
+		assertEquals(789, result[1]);
+
+		buffer = ByteBuffer.allocate(64);
+		buffer.put(Protocol_V2.VERSION);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
+		}
+		buffer.put(Protocol_V2.CLIENT_OPEN);
+		buffer.putLong(123);
+		buffer.putLong(456);
+		buffer.putInt(789);
+		buffer.flip();
+
+		sendData(channel, buffer);
+
+		for (Character c : TEST_STRING.substring(0, 5)
+			.toCharArray()) {
 			checkData(channel, c);
 		}
 
 		buffer = ByteBuffer.allocate(64);
 		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(Protocol_V2.CLIENT_CLOSE);
 		buffer.putLong(123);
@@ -862,7 +908,7 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 	@Test
 	public void testSimpleCallReturnsPushStreamEarlyCloseWithError() throws Exception {
-		doTestSimpleCallReturnsStreamEarlyCloseWithError((short)3);
+		doTestSimpleCallReturnsStreamEarlyCloseWithError((short) 3);
 	}
 
 	private void doTestSimpleCallReturnsStreamEarlyCloseWithError(short method) throws Exception {
@@ -871,8 +917,8 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		ByteBuffer buffer = ByteBuffer.allocate(64);
 		buffer.put(VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(CALL_WITH_RETURN);
 		buffer.putLong(123);
@@ -880,7 +926,9 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		buffer.putInt(789);
 		buffer.putShort(method);
 		ByteBuf wrappedBuffer = Unpooled.wrappedBuffer(buffer);
-		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {8});
+		serializer.serializeArgs(wrappedBuffer.writerIndex(wrappedBuffer.readerIndex()), new Object[] {
+			8
+		});
 		buffer.position(buffer.position() + wrappedBuffer.writerIndex());
 		buffer.flip();
 
@@ -895,11 +943,10 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(SERVICE_ID, result[0]);
 		assertEquals(789, result[1]);
 
-
 		buffer = ByteBuffer.allocate(64);
 		buffer.put(Protocol_V2.VERSION);
-		for(int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
-			buffer.put((byte)0);
+		for (int i = 0; i < SIZE_WIDTH_IN_BYTES; i++) {
+			buffer.put((byte) 0);
 		}
 		buffer.put(Protocol_V2.CLIENT_OPEN);
 		buffer.putLong(123);
@@ -909,34 +956,34 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		sendData(channel, buffer);
 
-
-		for(Character c : TEST_STRING.substring(0, 8).toCharArray()) {
+		for (Character c : TEST_STRING.substring(0, 8)
+			.toCharArray()) {
 			checkData(channel, c);
 		}
 
 		returned = doRead(channel, (byte) 2);
 
- 		assertEquals(Protocol_V2.SERVER_ERROR_EVENT, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		ArrayIndexOutOfBoundsException aioobe = (ArrayIndexOutOfBoundsException) serializer
- 				.deserializeReturn(Unpooled.wrappedBuffer(returned));
- 		assertEquals("Failed after 8", aioobe.getMessage());
+		assertEquals(Protocol_V2.SERVER_ERROR_EVENT, returned.get());
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		ArrayIndexOutOfBoundsException aioobe = (ArrayIndexOutOfBoundsException) serializer
+			.deserializeReturn(Unpooled.wrappedBuffer(returned));
+		assertEquals("Failed after 8", aioobe.getMessage());
 	}
 
 	@Test
 	public void testSimpleCallReturnsPushEventSource() throws Exception {
-		doTestSimpleCallReturnsStream((short)4);
+		doTestSimpleCallReturnsStream((short) 4);
 	}
 
 	@Test
 	public void testSimpleCallReturnsPushEventSourceEarlyCloseFromClient() throws Exception {
-		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short)4);
+		doTestSimpleCallReturnsStreamEarlyCloseFromClient((short) 4);
 	}
 
 	@Test
 	public void testSimpleCallReturnsPushEventSourceEarlyCloseWithError() throws Exception {
-		doTestSimpleCallReturnsStreamEarlyCloseWithError((short)4);
+		doTestSimpleCallReturnsStreamEarlyCloseWithError((short) 4);
 	}
 
 	private void checkData(ByteChannel channel, Character character) throws IOException, ClassNotFoundException {
@@ -944,14 +991,14 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		returned = doRead(channel, (byte) 2);
 
 		assertEquals(Protocol_V2.SERVER_DATA_EVENT, returned.get());
- 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
- 		assertEquals(789, returned.getInt());
- 		assertEquals(character, serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
+		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
+		assertEquals(789, returned.getInt());
+		assertEquals(character, serializer.deserializeReturn(Unpooled.wrappedBuffer(returned)));
 	}
 
 	private void sendData(ByteChannel channel, ByteBuffer buffer) throws IOException {
 		buffer.putShort(buffer.position() + 2, (short) (buffer.remaining() - 4));
- 		channel.write(buffer);
+		channel.write(buffer);
 	}
 
 	private ByteBuffer doRead(ByteChannel channel) throws IOException {
@@ -959,62 +1006,65 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 	}
 
 	private ByteBuffer doRead(ByteChannel channel, byte version) throws IOException {
- 		ByteBuffer buffer = ByteBuffer.allocate(8192);
+		ByteBuffer buffer = ByteBuffer.allocate(8192);
 
- 		int loopCount = 0;
- 		do {
- 			channel.read(buffer);
- 			if(buffer.position() >= 4) {
- 				if(buffer.get(0) != version) {
- 					throw new IllegalArgumentException("" + buffer.get(0));
- 				}
- 				if(buffer.getShort(2) == (buffer.position() - 4)) {
- 					break;
- 				}
- 			}
- 			try {
+		int loopCount = 0;
+		do {
+			channel.read(buffer);
+			if (buffer.position() >= 4) {
+				if (buffer.get(0) != version) {
+					throw new IllegalArgumentException("" + buffer.get(0));
+				}
+				if (buffer.getShort(2) == (buffer.position() - 4)) {
+					break;
+				}
+			}
+			try {
 				Thread.sleep(50);
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
- 		} while(loopCount++ < 20);
+		} while (loopCount++ < 20);
 
- 		if(buffer.position() < 4) {
- 			throw new IllegalArgumentException("No response received");
- 		}
-
- 		if(buffer.getShort(2) != buffer.position() - 4) {
- 			throw new IllegalArgumentException("The buffer was the wrong size: " + (buffer.position() - 4) +
- 					" expected: " + buffer.getShort(2));
+		if (buffer.position() < 4) {
+			throw new IllegalArgumentException("No response received");
 		}
- 		buffer.flip();
- 		buffer.position(4);
- 		return buffer;
+
+		if (buffer.getShort(2) != buffer.position() - 4) {
+			throw new IllegalArgumentException(
+				"The buffer was the wrong size: " + (buffer.position() - 4) + " expected: " + buffer.getShort(2));
+		}
+		buffer.flip();
+		buffer.position(4);
+		return buffer;
 	}
 
 	private ClassLoader getSeparateClassLoader() {
 		return new ClassLoader() {
 			private final Map<String, Class<?>> cache = new HashMap<>();
 
-    		@Override
+			@Override
 			public Class<?> loadClass(String name) throws ClassNotFoundException {
-    			if(name.startsWith("java")) {
-    				return super.loadClass(name);
-    			}
-    			Class<?> c = cache.get(name);
-    			if(c != null) return c;
+				if (name.startsWith("java")) {
+					return super.loadClass(name);
+				}
+				Class<?> c = cache.get(name);
+				if (c != null)
+					return c;
 
-    			String resourceName = name.replace('.', '/') + ".class";
+				String resourceName = name.replace('.', '/') + ".class";
 
 				InputStream resourceAsStream = AbstractServerConnectionManagerTest.this.getClass()
-						.getClassLoader().getResourceAsStream(resourceName);
-				if(resourceAsStream == null) throw new ClassNotFoundException(name);
-				try(InputStream is = resourceAsStream) {
+					.getClassLoader()
+					.getResourceAsStream(resourceName);
+				if (resourceAsStream == null)
+					throw new ClassNotFoundException(name);
+				try (InputStream is = resourceAsStream) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					byte[] b = new byte[4096];
 
 					int i = 0;
-					while((i = is.read(b)) > -1) {
+					while ((i = is.read(b)) > -1) {
 						baos.write(b, 0, i);
 					}
 					c = defineClass(name, baos.toByteArray(), 0, baos.size());
@@ -1029,7 +1079,7 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 	protected String selectProtocol(String ipv6, String ipv4) {
 		String protocol;
-		try(DatagramSocket ds = new DatagramSocket(0, InetAddress.getByName("::"))) {
+		try (DatagramSocket ds = new DatagramSocket(0, InetAddress.getByName("::"))) {
 			protocol = ipv6;
 		} catch (SocketException e) {
 			System.out.println("IPV6 not supported");

@@ -23,9 +23,10 @@ import org.osgi.service.remoteserviceadmin.ImportReference;
 import org.osgi.service.remoteserviceadmin.ImportRegistration;
 import org.osgi.service.remoteserviceadmin.RemoteServiceAdmin;
 
-@GogoCommand(scope = "rsa", function = { "members", "hosts", "cluster", "address", "local", "attributes", "attribute",
-		"update", "rimports", "rexports"})
-@Component(immediate = true, property="endpoint.listener.scope=(objectClass=*)")
+@GogoCommand(scope = "rsa", function = {
+	"members", "hosts", "cluster", "address", "local", "attributes", "attribute", "update", "rimports", "rexports"
+})
+@Component(immediate = true, property = "endpoint.listener.scope=(objectClass=*)")
 public class RSAGogo implements Converter, EndpointEventListener, ClusterListener {
 	@Reference
 	RemoteServiceAdmin	admin;
@@ -87,12 +88,12 @@ public class RSAGogo implements Converter, EndpointEventListener, ClusterListene
 			try (Formatter sb = new Formatter()) {
 				ExportRegistration t = (ExportRegistration) target;
 				switch (level) {
-				case Converter.PART:
-					sb.format("> %s", t.getExportReference());
-					break;
-				case Converter.INSPECT:
-				case Converter.LINE:
-					sb.format("> %s exception=%s", t.getExportReference(), t.getException());
+					case Converter.PART :
+						sb.format("> %s", t.getExportReference());
+						break;
+					case Converter.INSPECT :
+					case Converter.LINE :
+						sb.format("> %s exception=%s", t.getExportReference(), t.getException());
 				}
 
 				return sb.toString();
@@ -102,12 +103,12 @@ public class RSAGogo implements Converter, EndpointEventListener, ClusterListene
 			try (Formatter sb = new Formatter()) {
 				ImportReference t = (ImportReference) target;
 				switch (level) {
-				case Converter.PART:
-					sb.format("< %s", t.getImportedEndpoint());
-					break;
-				case Converter.INSPECT:
-				case Converter.LINE:
-					sb.format("%s %s", t.getImportedEndpoint(), t.getImportedService());
+					case Converter.PART :
+						sb.format("< %s", t.getImportedEndpoint());
+						break;
+					case Converter.INSPECT :
+					case Converter.LINE :
+						sb.format("%s %s", t.getImportedEndpoint(), t.getImportedService());
 				}
 
 				return sb.toString();
@@ -117,12 +118,12 @@ public class RSAGogo implements Converter, EndpointEventListener, ClusterListene
 			try (Formatter sb = new Formatter()) {
 				ExportReference t = (ExportReference) target;
 				switch (level) {
-				case Converter.PART:
-					sb.format("> %s", t.getExportedEndpoint());
-					break;
-				case Converter.INSPECT:
-				case Converter.LINE:
-					sb.format("> %s %s", t.getExportedEndpoint(), t.getExportedService());
+					case Converter.PART :
+						sb.format("> %s", t.getExportedEndpoint());
+						break;
+					case Converter.INSPECT :
+					case Converter.LINE :
+						sb.format("> %s %s", t.getExportedEndpoint(), t.getExportedService());
 				}
 
 				return sb.toString();
@@ -138,8 +139,9 @@ public class RSAGogo implements Converter, EndpointEventListener, ClusterListene
 
 	@Override
 	public void clusterEvent(ClusterInformation cluster, Action action, UUID id, Set<String> addedKeys,
-			Set<String> removedKeys, Set<String> updatedKeys) {
-		System.out.println(cluster + " action=" + action + " id=" + id + " add=" + addedKeys + " remove=" + removedKeys + " update" + updatedKeys);
+		Set<String> removedKeys, Set<String> updatedKeys) {
+		System.out.println(cluster + " action=" + action + " id=" + id + " add=" + addedKeys + " remove=" + removedKeys
+			+ " update" + updatedKeys);
 
 	}
 

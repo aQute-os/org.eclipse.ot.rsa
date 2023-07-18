@@ -23,7 +23,7 @@ public class ClientConnectionManagerTest extends AbstractClientConnectionManager
 	protected Map<String, Object> getConfig() {
 		Map<String, Object> config = new HashMap<>();
 		config.put("client.protocols", "TCP");
-        config.put("allow.insecure.transports", true);
+		config.put("allow.insecure.transports", true);
 		return config;
 	}
 

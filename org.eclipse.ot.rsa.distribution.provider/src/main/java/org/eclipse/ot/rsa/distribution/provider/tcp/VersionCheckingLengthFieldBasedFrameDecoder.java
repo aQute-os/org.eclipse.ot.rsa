@@ -26,17 +26,17 @@ public class VersionCheckingLengthFieldBasedFrameDecoder extends ByteToMessageDe
 		while (buf.readableBytes() > 4) {
 			final int offset = buf.readerIndex();
 			final short version = buf.getUnsignedByte(offset);
-	        if(version > 2) {
-	        	throw new CorruptedFrameException("Unacceptable message version (" + version + ")");
-	        }
-	        final int length = buf.getUnsignedMedium(offset + 1);
+			if (version > 2) {
+				throw new CorruptedFrameException("Unacceptable message version (" + version + ")");
+			}
+			final int length = buf.getUnsignedMedium(offset + 1);
 
-	        if(!buf.isReadable(length + 4)) {
-	        	break;
-	        }
+			if (!buf.isReadable(length + 4)) {
+				break;
+			}
 
-        	out.add(buf.retainedSlice(offset + 4, length));
-        	buf.skipBytes(length + 4);
-        }
+			out.add(buf.retainedSlice(offset + 4, length));
+			buf.skipBytes(length + 4);
+		}
 	}
 }

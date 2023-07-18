@@ -21,9 +21,9 @@ import org.osgi.framework.InvalidSyntaxException;
 
 public class FrameworkUtil {
 
-	private static final Map<Class<?>, Bundle> mapping = new HashMap<>();
+	private static final Map<Class<?>, Bundle>	mapping	= new HashMap<>();
 
-	private static final Map<String, Filter> filters = new HashMap<>();
+	private static final Map<String, Filter>	filters	= new HashMap<>();
 
 	public static void clear() {
 		mapping.clear();
@@ -40,7 +40,7 @@ public class FrameworkUtil {
 
 	public static Filter createFilter(String filter) throws InvalidSyntaxException {
 		Filter f = filters.get(filter);
-		if(f == null) {
+		if (f == null) {
 			throw new InvalidSyntaxException("No filter defined for string", filter);
 		}
 		return f;

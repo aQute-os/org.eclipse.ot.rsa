@@ -26,29 +26,29 @@ import io.netty.buffer.ByteBuf;
 
 public class VersionAwareVanillaPojoSerializer extends VanillaPojoSerializer {
 
-    public VersionAwareVanillaPojoSerializer(MetaClasses metaclasses) {
-        super(metaclasses);
-    }
+	public VersionAwareVanillaPojoSerializer(MetaClasses metaclasses) {
+		super(metaclasses);
+	}
 
 	@Override
 	public <Pojo> Pojo deserialize(ByteBuf rb, WireFormat wf) throws ClassNotFoundException, IOException {
-    	String classWithParameters = (String)wf.readObject(rb);
-        MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
+		String classWithParameters = (String) wf.readObject(rb);
+		MetaClass<Pojo> clazz = _metaClasses.acquireMetaClass(classWithParameters);
 
-        Pojo pojo;
-        if (clazz == null) {
-            throw new ClassNotFoundException(classWithParameters);
-        } else if (clazz.getType() == Version.class) {
-        	int idx = wf.getPojoIndex();
-        	@SuppressWarnings("unchecked")
-			Pojo tmp = (Pojo) new Version((int)wf.readNum(rb), (int)wf.readNum(rb),
-        			(int)wf.readNum(rb), (String)wf.readObject(rb));
-        	wf.registerPojo(idx, tmp);
-        	pojo = tmp;
-        } else {
-        	pojo = deserialize(rb, wf, clazz);
-        }
-        return pojo;
-    }
+		Pojo pojo;
+		if (clazz == null) {
+			throw new ClassNotFoundException(classWithParameters);
+		} else if (clazz.getType() == Version.class) {
+			int idx = wf.getPojoIndex();
+			@SuppressWarnings("unchecked")
+			Pojo tmp = (Pojo) new Version((int) wf.readNum(rb), (int) wf.readNum(rb), (int) wf.readNum(rb),
+				(String) wf.readObject(rb));
+			wf.registerPojo(idx, tmp);
+			pojo = tmp;
+		} else {
+			pojo = deserialize(rb, wf, clazz);
+		}
+		return pojo;
+	}
 
 }

@@ -19,5 +19,5 @@ package org.freshvanilla.lang;
 import org.freshvanilla.utils.SimpleResource;
 
 public interface ObjectBuilder<T> extends SimpleResource {
-    public T create();
+	public T create();
 }

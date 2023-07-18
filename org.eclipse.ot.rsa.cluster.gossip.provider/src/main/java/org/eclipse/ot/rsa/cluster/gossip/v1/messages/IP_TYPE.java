@@ -43,7 +43,8 @@ enum IP_TYPE {
 	HOSTNAME {
 		@Override
 		InetAddress getInetAddress(ByteBuf input) throws IOException {
-			String address = input.readCharSequence(input.readUnsignedShort(), UTF_8).toString();
+			String address = input.readCharSequence(input.readUnsignedShort(), UTF_8)
+				.toString();
 			return InetAddress.getByName(address);
 		}
 
@@ -53,11 +54,11 @@ enum IP_TYPE {
 			AbstractGossipMessage.writeUTF8(output, address.getHostName());
 			output.writeShort(address.getPort());
 		}
-	}, UNKNOWN {
+	},
+	UNKNOWN {
 
 		@Override
-		InetAddress getInetAddress(ByteBuf input) throws IOException,
-				UnknownHostException {
+		InetAddress getInetAddress(ByteBuf input) throws IOException, UnknownHostException {
 			return null;
 		}
 
@@ -74,12 +75,13 @@ enum IP_TYPE {
 	}
 
 	static IP_TYPE fromInetSocketAddress(InetSocketAddress address) {
-		if(address == null || address.getAddress() == null) {
+		if (address == null || address.getAddress() == null) {
 			return UNKNOWN;
 		}
 		InetAddress inetAddress = address.getAddress();
-		if(inetAddress.toString().startsWith("/")) {
-			if(inetAddress instanceof Inet4Address) {
+		if (inetAddress.toString()
+			.startsWith("/")) {
+			if (inetAddress instanceof Inet4Address) {
 				return IPV4;
 			} else if (inetAddress instanceof Inet6Address) {
 				return IPV6;
@@ -93,7 +95,8 @@ enum IP_TYPE {
 
 	void writeOut(InetSocketAddress address, ByteBuf output) throws IOException {
 		output.writeByte(ordinal());
-		output.writeBytes(address.getAddress().getAddress());
+		output.writeBytes(address.getAddress()
+			.getAddress());
 		output.writeShort(address.getPort());
 	}
 }

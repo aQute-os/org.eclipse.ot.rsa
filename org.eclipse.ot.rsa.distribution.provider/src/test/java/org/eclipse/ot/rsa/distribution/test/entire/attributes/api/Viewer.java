@@ -20,7 +20,6 @@ import java.lang.reflect.Type;
  * {@link ADBuilder} will instantiate the given class and call
  * {@link #build(AD, Type)} on it. This can then set the different fields of the
  * {@link AD}.
- *
  */
 public abstract class Viewer {
 

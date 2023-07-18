@@ -11,12 +11,12 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType.FIRST_CONTACT_RESPONSE;
 
 import java.util.Objects;
 
 import io.netty.buffer.ByteBuf;
-
 
 public class FirstContactResponse extends AbstractGossipMessage {
 

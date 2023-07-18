@@ -30,35 +30,28 @@ package org.eclipse.ot.rsa.distribution.test.dosgi.dsw.net.serialization;
 
 import java.io.Serializable;
 
-
 public class PrimitivePojo implements Serializable {
-    private static final long serialVersionUID = 1L;
+	private static final long	serialVersionUID	= 1L;
 
-    public final boolean booleanField;
-    public final byte byteField;
-    public final short shortField;
-    public final char charField;
-    public final int intField;
-    public final float floatField;
-    public final long longField;
-    public final double doubleField;
+	public final boolean		booleanField;
+	public final byte			byteField;
+	public final short			shortField;
+	public final char			charField;
+	public final int			intField;
+	public final float			floatField;
+	public final long			longField;
+	public final double			doubleField;
 
-    public PrimitivePojo(boolean booleanField,
-                         byte byteField,
-                         short shortField,
-                         char charField,
-                         int intField,
-                         float floatField,
-                         long longField,
-                         double doubleField) {
-        this.booleanField = booleanField;
-        this.byteField = byteField;
-        this.shortField = shortField;
-        this.charField = charField;
-        this.intField = intField;
-        this.floatField = floatField;
-        this.longField = longField;
-        this.doubleField = doubleField;
-    }
+	public PrimitivePojo(boolean booleanField, byte byteField, short shortField, char charField, int intField,
+		float floatField, long longField, double doubleField) {
+		this.booleanField = booleanField;
+		this.byteField = byteField;
+		this.shortField = shortField;
+		this.charField = charField;
+		this.intField = intField;
+		this.floatField = floatField;
+		this.longField = longField;
+		this.doubleField = doubleField;
+	}
 
 }

@@ -26,17 +26,19 @@ import io.netty.util.concurrent.FastThreadLocal;
 
 public class VanillaRMISerializer implements Serializer {
 
-	private final MetaClasses metaClasses;
+	private final MetaClasses						metaClasses;
 
-	private final FastThreadLocal<BinaryWireFormat> wireFormats =
-			new FastThreadLocal<BinaryWireFormat>(){
-				@Override
-				protected BinaryWireFormat initialValue() {
-					return new BinaryWireFormat(metaClasses, AccessUtils.isSafe() ?
-							new VersionAwareVanillaPojoSerializer(metaClasses) :
-							new VanillaPojoSerializer(metaClasses));
-				}
-			};
+	private final FastThreadLocal<BinaryWireFormat>	wireFormats	= new FastThreadLocal<BinaryWireFormat>() {
+																	@Override
+																	protected BinaryWireFormat initialValue() {
+																		return new BinaryWireFormat(metaClasses,
+																			AccessUtils.isSafe()
+																				? new VersionAwareVanillaPojoSerializer(
+																					metaClasses)
+																				: new VanillaPojoSerializer(
+																					metaClasses));
+																	}
+																};
 
 	public VanillaRMISerializer(MetaClasses metaClasses) {
 		this.metaClasses = metaClasses;
@@ -47,8 +49,8 @@ public class VanillaRMISerializer implements Serializer {
 		BinaryWireFormat bwf = wireFormats.get();
 		try {
 			bwf.writeNum(buffer, o.length);
-			//Optimise for up to 8 args
-			switch(o.length) {
+			// Optimise for up to 8 args
+			switch (o.length) {
 				case 0 :
 					break;
 				case 1 :
@@ -104,9 +106,9 @@ public class VanillaRMISerializer implements Serializer {
 					bwf.writeObject(buffer, o[7]);
 					break;
 				default :
-				for (Object element : o) {
-					bwf.writeObject(buffer,element);
-				}
+					for (Object element : o) {
+						bwf.writeObject(buffer, element);
+					}
 			}
 		} finally {
 			bwf.reset();
@@ -120,37 +122,48 @@ public class VanillaRMISerializer implements Serializer {
 		BinaryWireFormat bwf = wireFormats.get();
 		try {
 			int size = (int) bwf.readNum(buffer);
-			switch(size) {
-				case 0:
+			switch (size) {
+				case 0 :
 					return EMPTY_ARGS;
-				case 1:
-					return new Object[] {bwf.readObject(buffer)};
-				case 2:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer)};
-				case 3:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer)};
-				case 4:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer)};
-				case 5:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)};
-				case 6:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer)};
-				case 7:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer)};
-				case 8:
-					return new Object[] {bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
-							bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)};
-				default:
+				case 1 :
+					return new Object[] {
+						bwf.readObject(buffer)
+					};
+				case 2 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				case 3 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				case 4 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				case 5 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
+						bwf.readObject(buffer)
+					};
+				case 6 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
+						bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				case 7 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				case 8 :
+					return new Object[] {
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer),
+						bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer), bwf.readObject(buffer)
+					};
+				default :
 					Object[] o = new Object[size];
-					for(int i = 0; i < o.length; i++) {
+					for (int i = 0; i < o.length; i++) {
 						o[i] = bwf.readObject(buffer);
 					}
 					return o;

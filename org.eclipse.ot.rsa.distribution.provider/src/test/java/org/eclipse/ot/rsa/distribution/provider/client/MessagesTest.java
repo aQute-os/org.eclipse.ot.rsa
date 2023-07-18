@@ -12,7 +12,6 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -36,12 +35,12 @@ import io.netty.channel.ChannelPromise;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class MessagesTest {
 
-	private final UUID serviceId = UUID.randomUUID();
+	private final UUID	serviceId	= UUID.randomUUID();
 
-	private final int callId = 42;
+	private final int	callId		= 42;
 
 	@Mock
-	ChannelPromise promise;
+	ChannelPromise		promise;
 
 	@Test
 	public void testBackPressure() {

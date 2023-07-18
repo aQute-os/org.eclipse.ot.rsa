@@ -24,7 +24,6 @@ public class NestedEnumPojo {
 		this.pojo = pojo;
 	}
 
-	public NestedEnumPojo() {
-	}
+	public NestedEnumPojo() {}
 
 }

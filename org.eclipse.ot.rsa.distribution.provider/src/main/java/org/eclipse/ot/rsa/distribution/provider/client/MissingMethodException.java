@@ -17,6 +17,7 @@ public class MissingMethodException extends Exception {
 	private static final long serialVersionUID = -5390658105164314276L;
 
 	public MissingMethodException(String name) {
-		super("The remote service did not have a method " + name + " it is possible that two incompatible versions of the API are being used");
+		super("The remote service did not have a method " + name
+			+ " it is possible that two incompatible versions of the API are being used");
 	}
 }

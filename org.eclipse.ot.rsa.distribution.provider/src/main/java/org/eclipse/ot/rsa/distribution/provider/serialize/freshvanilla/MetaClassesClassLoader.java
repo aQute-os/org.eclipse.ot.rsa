@@ -29,13 +29,13 @@ public class MetaClassesClassLoader extends ClassLoader {
 		}
 	}
 
-
 	public MetaClassesClassLoader(Bundle classSpace) {
 		super(new BundleToClassLoader(classSpace));
 	}
 
 	@Override
 	protected Class<?> findClass(String className) throws ClassNotFoundException {
-		return MetaClassesClassLoader.class.getClassLoader().loadClass(className);
+		return MetaClassesClassLoader.class.getClassLoader()
+			.loadClass(className);
 	}
 }

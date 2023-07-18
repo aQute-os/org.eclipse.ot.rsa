@@ -31,122 +31,115 @@ import org.freshvanilla.utils.VanillaResource;
 
 public class DataSocketFactory extends VanillaResource implements Factory<String, DataSocket> {
 
-    public static final int DEFAULT_MAXIMUM_MESSAGE_SIZE = 1024 * 1024;
+	public static final int					DEFAULT_MAXIMUM_MESSAGE_SIZE	= 1024 * 1024;
 
-    private final InetSocketAddress[] _addresses;
-    private final ObjectBuilder<WireFormat> _wireFormatBuilder;
-    private final Map<String, Object> _header = new LinkedHashMap<>();
-    private final long _timeoutMillis;
+	private final InetSocketAddress[]		_addresses;
+	private final ObjectBuilder<WireFormat>	_wireFormatBuilder;
+	private final Map<String, Object>		_header							= new LinkedHashMap<>();
+	private final long						_timeoutMillis;
 
-    private int _lastAddress = 0;
-    private int _maximumMessageSize = DEFAULT_MAXIMUM_MESSAGE_SIZE;
+	private int								_lastAddress					= 0;
+	private int								_maximumMessageSize				= DEFAULT_MAXIMUM_MESSAGE_SIZE;
 
-    public DataSocketFactory(String name, String connectionString, long timeoutMS, MetaClasses metaClasses) {
-        super(name);
-        _addresses = parseConnectionString(connectionString);
-        _timeoutMillis = timeoutMS;
-        _wireFormatBuilder = new BinaryWireFormat.Builder(name, metaClasses, AccessUtils.isSafe() ?
-        		new VersionAwareVanillaPojoSerializer(metaClasses) :
-        		new VanillaPojoSerializer(metaClasses));
-    }
+	public DataSocketFactory(String name, String connectionString, long timeoutMS, MetaClasses metaClasses) {
+		super(name);
+		_addresses = parseConnectionString(connectionString);
+		_timeoutMillis = timeoutMS;
+		_wireFormatBuilder = new BinaryWireFormat.Builder(name, metaClasses,
+			AccessUtils.isSafe() ? new VersionAwareVanillaPojoSerializer(metaClasses)
+				: new VanillaPojoSerializer(metaClasses));
+	}
 
-    public Map<String, Object> getHeader() {
-        return _header;
-    }
+	public Map<String, Object> getHeader() {
+		return _header;
+	}
 
-    public int getMaximumMessageSize() {
-        return _maximumMessageSize;
-    }
+	public int getMaximumMessageSize() {
+		return _maximumMessageSize;
+	}
 
-    public void setMaximumMessageSize(int maximumMessageSize) {
-        _maximumMessageSize = maximumMessageSize;
-    }
+	public void setMaximumMessageSize(int maximumMessageSize) {
+		_maximumMessageSize = maximumMessageSize;
+	}
 
-    private static InetSocketAddress[] parseConnectionString(String connectionString) {
-        String[] parts = connectionString.split(",");
-        InetSocketAddress[] addresses = new InetSocketAddress[parts.length];
+	private static InetSocketAddress[] parseConnectionString(String connectionString) {
+		String[] parts = connectionString.split(",");
+		InetSocketAddress[] addresses = new InetSocketAddress[parts.length];
 
-        for (int i = 0; i < parts.length; i++) {
-        	int idx = parts[i].lastIndexOf(':');
+		for (int i = 0; i < parts.length; i++) {
+			int idx = parts[i].lastIndexOf(':');
 
-            if (idx == -1) {
-                int port = Integer.parseInt(parts[i]);
-                addresses[i] = new InetSocketAddress(port);
-            }
-            else {
-                String hostname = parts[i].substring(0, idx);
-                int port = Integer.parseInt(parts[i].substring(idx + 1));
-                if (hostname.length() == 0 || "localhost".equals(hostname)) {
-                    addresses[i] = new InetSocketAddress(port);
-                }
-                else {
-                    addresses[i] = new InetSocketAddress(hostname, port);
-                }
-            }
-        }
+			if (idx == -1) {
+				int port = Integer.parseInt(parts[i]);
+				addresses[i] = new InetSocketAddress(port);
+			} else {
+				String hostname = parts[i].substring(0, idx);
+				int port = Integer.parseInt(parts[i].substring(idx + 1));
+				if (hostname.length() == 0 || "localhost".equals(hostname)) {
+					addresses[i] = new InetSocketAddress(port);
+				} else {
+					addresses[i] = new InetSocketAddress(hostname, port);
+				}
+			}
+		}
 
-        return addresses;
-    }
+		return addresses;
+	}
 
-    @Override
+	@Override
 	public DataSocket acquire(String name) throws Exception {
-        WireFormat wireFormat = _wireFormatBuilder.create();
-        Map<String, Object> header = new LinkedHashMap<>(_header);
-        long timeoutMillis = _timeoutMillis < Long.MAX_VALUE
-                        ? System.currentTimeMillis() + _timeoutMillis
-                        : Long.MAX_VALUE;
-        int count = 1;
+		WireFormat wireFormat = _wireFormatBuilder.create();
+		Map<String, Object> header = new LinkedHashMap<>(_header);
+		long timeoutMillis = _timeoutMillis < Long.MAX_VALUE ? System.currentTimeMillis() + _timeoutMillis
+			: Long.MAX_VALUE;
+		int count = 1;
 
-        IOException lastException;
+		IOException lastException;
 
-        do {
-            try {
-                final InetSocketAddress remote = _addresses[_lastAddress];
-                SocketChannel channel = SocketChannel.open(remote);
-                return new VanillaDataSocket(name, remote, channel, wireFormat, header, _maximumMessageSize);
-            }
-            catch (IOException e) {
-                if (Thread.currentThread().isInterrupted()) {
-                    throw e;
-                }
+		do {
+			try {
+				final InetSocketAddress remote = _addresses[_lastAddress];
+				SocketChannel channel = SocketChannel.open(remote);
+				return new VanillaDataSocket(name, remote, channel, wireFormat, header, _maximumMessageSize);
+			} catch (IOException e) {
+				if (Thread.currentThread()
+					.isInterrupted()) {
+					throw e;
+				}
 
-                if (_lastAddress + 1 >= _addresses.length) {
-                    _lastAddress = 0;
-                }
-                else {
-                    _lastAddress++;
-                }
+				if (_lastAddress + 1 >= _addresses.length) {
+					_lastAddress = 0;
+				} else {
+					_lastAddress++;
+				}
 
-                lastException = e;
-            }
+				lastException = e;
+			}
 
-            if (count == _addresses.length) {
-                getLog().debug(name + ": unable to connect to any of " + Arrays.asList(_addresses));
-                Thread.sleep(2500);
-                count = 0;
-            }
-            else {
-                count++;
-            }
-        }
-        while (System.currentTimeMillis() < timeoutMillis);
+			if (count == _addresses.length) {
+				getLog().debug(name + ": unable to connect to any of " + Arrays.asList(_addresses));
+				Thread.sleep(2500);
+				count = 0;
+			} else {
+				count++;
+			}
+		} while (System.currentTimeMillis() < timeoutMillis);
 
-        throw lastException;
-    }
+		throw lastException;
+	}
 
-    @Override
+	@Override
 	public void recycle(DataSocket dataSocket) {
-        dataSocket.close();
-    }
+		dataSocket.close();
+	}
 
-    @Override
+	@Override
 	protected void finalize() throws Throwable {
-        try {
-            close();
-        }
-        finally {
-            super.finalize();
-        }
-    }
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
+	}
 
 }

@@ -3,57 +3,57 @@ package org.freshvanilla.lang.misc;
 import java.lang.reflect.Field;
 
 class SafeByteFieldAccessor implements FieldAccessor<Byte> {
-    private final Field f;
+	private final Field f;
 
-    SafeByteFieldAccessor(Field f) {
-        this.f = f;
-    }
+	SafeByteFieldAccessor(Field f) {
+		this.f = f;
+	}
 
-    @Override
+	@Override
 	public <Pojo> Byte getField(Pojo pojo) {
-    	try {
+		try {
 			return (Byte) f.get(pojo);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-    }
+	}
 
-    @Override
+	@Override
 	public <Pojo> boolean getBoolean(Pojo pojo) {
-        return getField(pojo) != 0;
-    }
+		return getField(pojo) != 0;
+	}
 
-    @Override
+	@Override
 	public <Pojo> long getNum(Pojo pojo) {
-    	return getField(pojo);
-    }
+		return getField(pojo);
+	}
 
-    @Override
+	@Override
 	public <Pojo> double getDouble(Pojo pojo) {
-    	return getField(pojo);
-    }
+		return getField(pojo);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setField(Pojo pojo, Byte object) {
-    	try {
-        	f.set(pojo, object);
-        } catch (Exception e) {
-        	throw new RuntimeException();
-        }
-    }
+		try {
+			f.set(pojo, object);
+		} catch (Exception e) {
+			throw new RuntimeException();
+		}
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setBoolean(Pojo pojo, boolean flag) {
-        setField(pojo, (byte)(flag ? 1 : 0));
-    }
+		setField(pojo, (byte) (flag ? 1 : 0));
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setNum(Pojo pojo, long value) {
-    	setField(pojo, (byte)value);
-    }
+		setField(pojo, (byte) value);
+	}
 
-    @Override
+	@Override
 	public <Pojo> void setDouble(Pojo pojo, double value) {
-    	setField(pojo, (byte)value);
-    }
+		setField(pojo, (byte) value);
+	}
 }

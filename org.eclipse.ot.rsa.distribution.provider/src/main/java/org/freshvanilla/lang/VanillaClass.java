@@ -25,73 +25,82 @@ import org.freshvanilla.lang.misc.AccessUtils;
 
 public class VanillaClass<T> implements MetaClass<T> {
 
-    private final Class<T> _clazz;
-    private final String _nameWithParameters;
-    private final MetaField<T, ?>[] _fields;
-    private final boolean _definesEquals;
-    private final Class<?> _componentType;
+	private final Class<T>			_clazz;
+	private final String			_nameWithParameters;
+	private final MetaField<T, ?>[]	_fields;
+	private final boolean			_definesEquals;
+	private final Class<?>			_componentType;
 
-    public VanillaClass(Class<T> clazz) {
-        _clazz = clazz;
+	public VanillaClass(Class<T> clazz) {
+		_clazz = clazz;
 
-        _fields = getFieldsForSerialization(clazz);
+		_fields = getFieldsForSerialization(clazz);
 
-        StringBuilder sb = new StringBuilder(64);
-        sb.append(clazz.getName());
-        for (MetaField<T, ?> field : _fields) {
-            sb.append(',').append(field.getName());
-        }
+		StringBuilder sb = new StringBuilder(64);
+		sb.append(clazz.getName());
+		for (MetaField<T, ?> field : _fields) {
+			sb.append(',')
+				.append(field.getName());
+		}
 
-        _nameWithParameters = sb.toString();
-        _definesEquals = clazz.getName().startsWith("java") || clazz.getName().startsWith("com.sun.");
-        _componentType = clazz.getComponentType();
-    }
+		_nameWithParameters = sb.toString();
+		_definesEquals = clazz.getName()
+			.startsWith("java")
+			|| clazz.getName()
+				.startsWith("com.sun.");
+		_componentType = clazz.getComponentType();
+	}
 
-    @SuppressWarnings("unchecked")
-    private static <T> MetaField<T, ?>[] getFieldsForSerialization(Class<?> clazz) {
-        Map<String, MetaField<T, ?>> fieldMap = new LinkedHashMap<>();
-        getFieldsForSerialization0(fieldMap, clazz);
-        return fieldMap.values().toArray(new MetaField[fieldMap.size()]);
-    }
+	@SuppressWarnings("unchecked")
+	private static <T> MetaField<T, ?>[] getFieldsForSerialization(Class<?> clazz) {
+		Map<String, MetaField<T, ?>> fieldMap = new LinkedHashMap<>();
+		getFieldsForSerialization0(fieldMap, clazz);
+		return fieldMap.values()
+			.toArray(new MetaField[fieldMap.size()]);
+	}
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <T> void getFieldsForSerialization0(Map<String, MetaField<T, ?>> fieldMap, Class<?> clazz) {
-        if (clazz == null || clazz == Object.class) return;
-        getFieldsForSerialization0(fieldMap, clazz.getSuperclass());
-        for (Field field : clazz.getDeclaredFields()) {
-            if ((field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT)) != 0) continue;
-            field.setAccessible(true);
-            fieldMap.put(field.getName(), new VanillaField(field));
-        }
-    }
+	@SuppressWarnings({
+		"unchecked", "rawtypes"
+	})
+	private static <T> void getFieldsForSerialization0(Map<String, MetaField<T, ?>> fieldMap, Class<?> clazz) {
+		if (clazz == null || clazz == Object.class)
+			return;
+		getFieldsForSerialization0(fieldMap, clazz.getSuperclass());
+		for (Field field : clazz.getDeclaredFields()) {
+			if ((field.getModifiers() & (Modifier.STATIC | Modifier.TRANSIENT)) != 0)
+				continue;
+			field.setAccessible(true);
+			fieldMap.put(field.getName(), new VanillaField(field));
+		}
+	}
 
-    @Override
+	@Override
 	public Class<T> getType() {
-        return _clazz;
-    }
+		return _clazz;
+	}
 
-    @Override
+	@Override
 	public String nameWithParameters() {
-        return _nameWithParameters;
-    }
+		return _nameWithParameters;
+	}
 
-    @Override
+	@Override
 	public MetaField<T, ?>[] fields() {
-        return _fields;
-    }
+		return _fields;
+	}
 
-    @Override
+	@Override
 	public T newInstance() throws InstantiationException {
-        return AccessUtils.newInstance(_clazz);
-    }
+		return AccessUtils.newInstance(_clazz);
+	}
 
-    @Override
+	@Override
 	public boolean definesEquals() {
-        return _definesEquals;
-    }
+		return _definesEquals;
+	}
 
-    @Override
+	@Override
 	public Class<?> getComponentType() {
-        return _componentType;
-    }
+		return _componentType;
+	}
 }

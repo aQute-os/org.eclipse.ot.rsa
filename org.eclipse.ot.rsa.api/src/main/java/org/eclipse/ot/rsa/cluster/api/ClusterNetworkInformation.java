@@ -28,29 +28,31 @@ public interface ClusterNetworkInformation {
 	public InetAddress getBindAddress();
 
 	/**
-	 * Our best guess as to whether there is a NAT firewall between us
-	 * and the remote node
+	 * Our best guess as to whether there is a NAT firewall between us and the
+	 * remote node
+	 * 
 	 * @return true if a NAT firewall has been detected
 	 */
 	public boolean isFirewalled();
 
 	/**
-	 * Get the address of this fibre as seen by the
-	 * outside world
+	 * Get the address of this fibre as seen by the outside world
 	 *
-	 * @return The InetAddress of this fibre as used
-	 *  by a remote node to communicate with us
+	 * @return The InetAddress of this fibre as used by a remote node to
+	 *         communicate with us
 	 */
 	public InetAddress getFibreAddress();
 
 	/**
 	 * Get the name of this cluster
+	 * 
 	 * @return the cluster name
 	 */
 	public String getClusterName();
 
 	/**
 	 * Get the UUID of this cluster member
+	 * 
 	 * @return the local UUID
 	 */
 	public UUID getLocalUUID();

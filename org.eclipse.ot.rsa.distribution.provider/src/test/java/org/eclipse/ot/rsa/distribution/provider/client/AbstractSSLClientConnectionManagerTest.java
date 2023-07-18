@@ -28,20 +28,18 @@ import io.netty.handler.ssl.SslHandler;
 
 public abstract class AbstractSSLClientConnectionManagerTest extends AbstractClientConnectionManagerTest {
 
-	protected KeyManagerFactory keyManagerFactory;
-	protected TrustManagerFactory trustManagerFactory;
+	protected KeyManagerFactory		keyManagerFactory;
+	protected TrustManagerFactory	trustManagerFactory;
 
 	@BeforeEach
 	public final void setUpSSL() throws Exception {
-		keyManagerFactory = KeyManagerFactory
-				.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
 		KeyStore ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("test-resources/fabric.keystore"), "paremus".toCharArray());
 		keyManagerFactory.init(ks, "paremus".toCharArray());
 
-		trustManagerFactory = TrustManagerFactory
-				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
 		ks = KeyStore.getInstance("JKS");
 		ks.load(new FileInputStream("test-resources/fabric.truststore"), "paremus".toCharArray());
@@ -52,8 +50,10 @@ public abstract class AbstractSSLClientConnectionManagerTest extends AbstractCli
 
 		instance.createSSLEngine();
 
-		Mockito.when(tls.hasTrust()).thenReturn(true);
-		Mockito.when(tls.getTLSClientHandler()).then(i -> {
+		Mockito.when(tls.hasTrust())
+			.thenReturn(true);
+		Mockito.when(tls.getTLSClientHandler())
+			.then(i -> {
 				SSLEngine engine = instance.createSSLEngine();
 				engine.setUseClientMode(true);
 				return new SslHandler(engine);

@@ -19,7 +19,6 @@ public @interface ImportedServiceConfig {
 	/**
 	 * Method name aligned with
 	 * {@link RSAConstants#DISTRIBUTION_CONFIGURATION_TYPE}
-	 *
 	 */
 	String[] org_eclipse_ot_rsa_distribution_config() default {};
 
@@ -27,10 +26,8 @@ public @interface ImportedServiceConfig {
 
 	String org_eclipse_ot_rsa_distribution_config_serialization() default "";
 
-
 	int org_eclipse_ot_rsa_distribution_timeout() default -1;
 
 	long osgi_basic_timeout() default -1;
-
 
 }

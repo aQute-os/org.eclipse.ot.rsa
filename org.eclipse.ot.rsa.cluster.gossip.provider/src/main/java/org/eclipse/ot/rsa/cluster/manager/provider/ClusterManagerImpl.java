@@ -68,7 +68,7 @@ public class ClusterManagerImpl implements ClusterInformation, ClusterManager {
 
 	final BundleContext																context;
 	final UUID																		id;
-	final ClusterGossipConfig																	config;
+	final ClusterGossipConfig														config;
 	final int																		tcpPort;
 	final AtomicBoolean																open		= new AtomicBoolean(
 		true);

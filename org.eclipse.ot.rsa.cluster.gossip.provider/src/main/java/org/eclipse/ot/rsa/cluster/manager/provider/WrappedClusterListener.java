@@ -32,16 +32,18 @@ import org.slf4j.LoggerFactory;
 
 public class WrappedClusterListener implements ClusterListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(WrappedClusterListener.class);
+	private static final Logger											logger	= LoggerFactory
+		.getLogger(WrappedClusterListener.class);
 
-	private final ClusterListener listener;
+	private final ClusterListener										listener;
 
-	private final Executor executor;
+	private final Executor												executor;
 
-	private final AtomicReference<Function<Set<String>, Set<String>>> filter = new AtomicReference<>();
+	private final AtomicReference<Function<Set<String>, Set<String>>>	filter	= new AtomicReference<>();
 
 	public WrappedClusterListener(ClusterListener listener, Executor executor) {
-		if(listener == null) throw new IllegalStateException("Listener is invalid");
+		if (listener == null)
+			throw new IllegalStateException("Listener is invalid");
 		this.listener = listener;
 		this.executor = executor;
 		filter.set(Function.identity());
@@ -49,31 +51,36 @@ public class WrappedClusterListener implements ClusterListener {
 
 	@Override
 	public void clusterEvent(ClusterInformation ci, Action action, UUID id, Set<String> addedKeys,
-			Set<String> removedKeys, Set<String> updatedKeys) {
+		Set<String> removedKeys, Set<String> updatedKeys) {
 		Function<Set<String>, Set<String>> f = filter.get();
 
 		Set<String> filteredAdded = f.apply(addedKeys);
 		Set<String> filteredRemoved = f.apply(removedKeys);
 		Set<String> filteredUpdated = f.apply(updatedKeys);
 
-		if(logger.isDebugEnabled()) {
-			logger.debug("Event: {} {} {} {}", new Object[] {action, filteredAdded, filteredRemoved, filteredUpdated});
+		if (logger.isDebugEnabled()) {
+			logger.debug("Event: {} {} {} {}", new Object[] {
+				action, filteredAdded, filteredRemoved, filteredUpdated
+			});
 		}
 
-		if(action == Action.UPDATED && addedKeys.isEmpty() && removedKeys.isEmpty() && updatedKeys.isEmpty()) {
+		if (action == Action.UPDATED && addedKeys.isEmpty() && removedKeys.isEmpty() && updatedKeys.isEmpty()) {
 			return;
 		} else {
-			executor.execute(() -> listener.clusterEvent(ci, action, id, filteredAdded, filteredRemoved, filteredUpdated));
+			executor
+				.execute(() -> listener.clusterEvent(ci, action, id, filteredAdded, filteredRemoved, filteredUpdated));
 		}
 	}
 
 	public void update(ServiceReference<ClusterListener> ref) {
 		Set<String> wanted = getStringPlusProperty(ref, LIMIT_KEYS);
 
-		if(wanted.isEmpty()) {
+		if (wanted.isEmpty()) {
 			filter.set(Function.identity());
 		} else {
-			filter.set((s) -> s.stream().filter(wanted::contains).collect(toSet()));
+			filter.set((s) -> s.stream()
+				.filter(wanted::contains)
+				.collect(toSet()));
 		}
 
 	}
@@ -83,7 +90,7 @@ public class WrappedClusterListener implements ClusterListener {
 
 		Object o = ref.getProperty(prop);
 
-		if(o instanceof String) {
+		if (o instanceof String) {
 			wanted.add(o.toString());
 		} else if (o instanceof String[]) {
 			wanted.addAll(Arrays.asList((String[]) o));

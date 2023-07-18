@@ -26,22 +26,22 @@ public class Asset extends struct {
 	@ADA(
 		name = " ",
 		description = "Name of this asset"
-	)
-																			public String	name;
+		)
+	public String	name;
 
 	@ADA(
 		name = "Version",
 		description = "Version of this asset"
-	)																		public String	version;
+		)																		public String	version;
 
 	@ADA(
 		name = "Vendor",
 		description = "Vendor of this asset"
-	)																		public String	vendor;
+		)																		public String	vendor;
 
 	@ADA(
-			name = "# ",
-			description = "Serial number of this asset"
+		name = "# ",
+		description = "Serial number of this asset"
 
-	)																		public String	serial;
+		)																		public String	serial;
 }

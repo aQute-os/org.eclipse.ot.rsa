@@ -26,23 +26,23 @@ import io.netty.util.Timer;
 
 class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl {
 
-	private static final AutoCloseable MARKER = () -> {};
+	private static final AutoCloseable		MARKER		= () -> {};
 
-	private final PushEventSource<Object> source;
+	private final PushEventSource<Object>	source;
 
-	private final Timer timer;
+	private final Timer						timer;
 
-	private Timeout timeout;
+	private Timeout							timeout;
 
-	private AtomicReference<AutoCloseable> connection = new AtomicReference<>(null);
+	private AtomicReference<AutoCloseable>	connection	= new AtomicReference<>(null);
 
-	public PushEventSourcePushEventConsumerImpl(ToLongFunction<Object> onData,
-			Consumer<Throwable> onTerminal, PushEventSource<Object> source, Timer timer) {
+	public PushEventSourcePushEventConsumerImpl(ToLongFunction<Object> onData, Consumer<Throwable> onTerminal,
+		PushEventSource<Object> source, Timer timer) {
 		super(onData, onTerminal);
 		this.source = source;
 		this.timer = timer;
 		synchronized (timer) {
-			timeout = timer.newTimeout(this::timeout , 30, TimeUnit.SECONDS);
+			timeout = timer.newTimeout(this::timeout, 30, TimeUnit.SECONDS);
 		}
 	}
 
@@ -54,7 +54,7 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 
 	@Override
 	protected void terminalEvent(PushEvent<? extends Object> event) {
-		if(connection.getAndSet(null) != null) {
+		if (connection.getAndSet(null) != null) {
 			super.terminalEvent(event);
 		}
 	}
@@ -62,12 +62,12 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 	@Override
 	public void open() {
 		synchronized (this) {
-			if(!timeout.cancel()) {
+			if (!timeout.cancel()) {
 				return;
 			}
 		}
-		if(!closed.get()) {
-			if(connection.compareAndSet(null, MARKER)) {
+		if (!closed.get()) {
+			if (connection.compareAndSet(null, MARKER)) {
 				AutoCloseable open = null;
 				try {
 					open = source.open(this);
@@ -78,7 +78,7 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 					closeFuture.trySuccess(null);
 				}
 				// this can only happen due to an overlapping close
-				if(!connection.compareAndSet(MARKER, open) && open != null) {
+				if (!connection.compareAndSet(MARKER, open) && open != null) {
 					try {
 						open.close();
 					} catch (Exception e) {
@@ -96,15 +96,15 @@ class PushEventSourcePushEventConsumerImpl extends AbstractPushEventConsumerImpl
 	public void close() {
 		internalClose();
 		synchronized (this) {
-			if(timeout.isCancelled()) {
-				timeout = timer.newTimeout(this::timeout , 30, TimeUnit.SECONDS);
+			if (timeout.isCancelled()) {
+				timeout = timer.newTimeout(this::timeout, 30, TimeUnit.SECONDS);
 			}
 		}
 	}
 
 	private void internalClose() {
 		try (AutoCloseable conn = connection.getAndSet(null)) {
-			if(conn != null) {
+			if (conn != null) {
 				try {
 					conn.close();
 				} catch (Exception e) {

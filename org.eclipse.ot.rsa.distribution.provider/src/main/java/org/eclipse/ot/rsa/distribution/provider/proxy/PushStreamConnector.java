@@ -29,9 +29,9 @@ import io.netty.util.concurrent.Future;
 
 public class PushStreamConnector implements OnConnect<Object> {
 
-	private final Channel _channel;
+	private final Channel		_channel;
 
-	private final Serializer _serializer;
+	private final Serializer	_serializer;
 
 	public PushStreamConnector(Channel _channel, Serializer _serializer) {
 		this._channel = _channel;
@@ -39,35 +39,34 @@ public class PushStreamConnector implements OnConnect<Object> {
 	}
 
 	@Override
-	public void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture,
-			ToLongFunction<Object> pushData, Consumer<Exception> pushClose) {
-		ClientBackPressure template = new ClientBackPressure(
-				key.getId(), key.getCallId(), 0);
+	public void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture, ToLongFunction<Object> pushData,
+		Consumer<Exception> pushClose) {
+		ClientBackPressure template = new ClientBackPressure(key.getId(), key.getCallId(), 0);
 
-		Consumer<Object> onData = t ->
-			{
-				long bp = pushData.applyAsLong(t);
+		Consumer<Object> onData = t -> {
+			long bp = pushData.applyAsLong(t);
 
-				if(bp != 0) {
-					if(bp < 0) {
-						_channel.writeAndFlush(new EndStreamingInvocation(
-								key.getId(), key.getCallId()), _channel.voidPromise());
-						pushClose.accept(null);
-					} else {
-						_channel.writeAndFlush(template.fromTemplate(bp),
-								_channel.voidPromise());
-					}
+			if (bp != 0) {
+				if (bp < 0) {
+					_channel.writeAndFlush(new EndStreamingInvocation(key.getId(), key.getCallId()),
+						_channel.voidPromise());
+					pushClose.accept(null);
+				} else {
+					_channel.writeAndFlush(template.fromTemplate(bp), _channel.voidPromise());
 				}
-			};
+			}
+		};
 
 		// Open the channel
-		_channel.writeAndFlush(new BeginStreamingInvocation(key.getId(), key.getCallId(),
-				_serializer, worker, onData, pushClose, closeFuture)).addListener(f -> {
-					if(!f.isSuccess()) {
-						pushClose.accept(new ServiceException("Unable to open the data stream",
-								ServiceException.REMOTE, f.cause()));
-					}
-				});
+		_channel
+			.writeAndFlush(new BeginStreamingInvocation(key.getId(), key.getCallId(), _serializer, worker, onData,
+				pushClose, closeFuture))
+			.addListener(f -> {
+				if (!f.isSuccess()) {
+					pushClose.accept(
+						new ServiceException("Unable to open the data stream", ServiceException.REMOTE, f.cause()));
+				}
+			});
 	}
 
 }

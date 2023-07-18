@@ -84,41 +84,28 @@ public class ImportRegistrationImpl implements ImportRegistration {
 	/**
 	 * Default constructor for a new service import.
 	 *
-	 * @param endpoint
-	 *                                  the description for the endpoint being
-	 *                                  imported
-	 * @param targetFramework
-	 *                                  the framework into which this service is
-	 *                                  being imported
-	 * @param hostBundleContext
-	 *                                  the bundle context for the proxy bundle
-	 * @param rsa
-	 *                                  the exporting {@link RemoteServiceAdmin}
-	 * @param ccm
-	 *                                  The connection manager for making client
-	 *                                  invocations
-	 * @param defaultServiceTimeout
-	 *                                  the time (in millis) after which client
-	 *                                  calls should timeout
-	 * @param executor
-	 *                                  the worker to use when making async
-	 *                                  network calls
-	 * @param timer
-	 *                                  The timer to use for triggering
-	 *                                  scheduled future work
-	 * @throws NullPointerException
-	 *                                  if any required argument is
-	 *                                  <code>null</code>
+	 * @param endpoint the description for the endpoint being imported
+	 * @param targetFramework the framework into which this service is being
+	 *            imported
+	 * @param hostBundleContext the bundle context for the proxy bundle
+	 * @param rsa the exporting {@link RemoteServiceAdmin}
+	 * @param ccm The connection manager for making client invocations
+	 * @param defaultServiceTimeout the time (in millis) after which client
+	 *            calls should timeout
+	 * @param executor the worker to use when making async network calls
+	 * @param timer The timer to use for triggering scheduled future work
+	 * @throws NullPointerException if any required argument is
+	 *             <code>null</code>
 	 */
 	public ImportRegistrationImpl(EndpointDescription endpoint, Framework targetFramework,
-			BundleContext hostBundleContext, RemoteServiceAdminImpl rsa, ClientConnectionManager ccm,
-			int defaultServiceTimeout, EventExecutorGroup executor, Timer timer) {
+		BundleContext hostBundleContext, RemoteServiceAdminImpl rsa, ClientConnectionManager ccm,
+		int defaultServiceTimeout, EventExecutorGroup executor, Timer timer) {
 
 		_endpointDescription = Objects.requireNonNull(endpoint, "The endpoint for an export must not be null");
 		_targetFramework = Objects.requireNonNull(targetFramework,
-				"The target framework for a remote service import not be null");
+			"The target framework for a remote service import not be null");
 		_hostBundleContext = Objects.requireNonNull(hostBundleContext,
-				"The remote service host bundle must be active to import a remote service");
+			"The remote service host bundle must be active to import a remote service");
 
 		_frameworkUUID = _hostBundleContext.getProperty("org.osgi.framework.uuid");
 		_importReference = new SimpleImportReference();
@@ -129,8 +116,9 @@ public class ImportRegistrationImpl implements ImportRegistration {
 		_defaultServiceTimeout = defaultServiceTimeout;
 
 		try {
-			_config = Converters.standardConverter().convert(
-					_endpointDescription.getProperties()).to(ImportedServiceConfig.class);
+			_config = Converters.standardConverter()
+				.convert(_endpointDescription.getProperties())
+				.to(ImportedServiceConfig.class);
 		} catch (Exception ex) {
 			LOG.error("A serious failure occurred trying to import endpoint {}", endpoint, ex);
 			throw new IllegalArgumentException(ex);
@@ -140,20 +128,21 @@ public class ImportRegistrationImpl implements ImportRegistration {
 		_serviceTimeout = new AtomicLong(serviceTimeout);
 
 		_methodMappings = Arrays.stream(_config.org_eclipse_ot_rsa_distribution_config_methods())
-				.map(s -> s.split("="))
-				.collect(Collectors.toMap(s -> Integer.valueOf(s[0]), s -> s[1]));
+			.map(s -> s.split("="))
+			.collect(Collectors.toMap(s -> Integer.valueOf(s[0]), s -> s[1]));
 
 		List<URI> uris = Arrays.stream(_config.org_eclipse_ot_rsa_distribution_config())
-				.map(URI::create)
-				.collect(toList());
+			.map(URI::create)
+			.collect(toList());
 
 		Channel channel;
 		try {
 			channel = uris.stream()
-					.map(uri -> _clientConnectionManager.getChannelFor(uri, _endpointDescription))
-					.filter(mchf -> mchf != null)
-					.findFirst().orElseThrow(() -> new IllegalArgumentException(
-							"Unable to connect to any of the endpoint locations " + uris));
+				.map(uri -> _clientConnectionManager.getChannelFor(uri, _endpointDescription))
+				.filter(mchf -> mchf != null)
+				.findFirst()
+				.orElseThrow(
+					() -> new IllegalArgumentException("Unable to connect to any of the endpoint locations " + uris));
 		} catch (Exception e) {
 			_channel = null;
 			_serviceRegistration = null;
@@ -170,13 +159,13 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 		ServiceRegistration<?> reg;
 		try {
-			reg = _hostBundleContext.registerService(
-					endpoint.getInterfaces().toArray(new String[0]),
-					new ClientServiceFactory(this, endpoint, _channel,
+			reg = _hostBundleContext.registerService(endpoint.getInterfaces()
+				.toArray(new String[0]),
+				new ClientServiceFactory(this, endpoint, _channel,
 					SerializationType.of(_config.org_eclipse_ot_rsa_distribution_config_serialization())
 						.getFactory(),
-							_serviceTimeout, _executor, _timer),
-					serviceProps);
+					_serviceTimeout, _executor, _timer),
+				serviceProps);
 		} catch (Exception e) {
 			_serviceRegistration = null;
 			asyncFail(e);
@@ -202,11 +191,13 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 		try {
 			UnregistrationListener listener = new UnregistrationListener();
-			targetFramework.getBundleContext().addServiceListener(listener,
+			targetFramework.getBundleContext()
+				.addServiceListener(listener,
 					"(" + SERVICE_ID + "=" + getServiceReference().getProperty(SERVICE_ID) + ")");
 
 			if (getServiceReference() == null) {
-				targetFramework.getBundleContext().removeServiceListener(listener);
+				targetFramework.getBundleContext()
+					.removeServiceListener(listener);
 			}
 		} catch (Exception e) {
 			asyncFail(e);
@@ -230,22 +221,18 @@ public class ImportRegistrationImpl implements ImportRegistration {
 	/**
 	 * Create a failed endpoint
 	 *
-	 * @param endpoint
-	 *                            The Endpoint Description
-	 * @param targetFramework
-	 *                            The framework into which the service is being
-	 *                            imported
-	 * @param rsa
-	 *                            The Remote Service Admin
-	 * @param failure
-	 *                            The failure that occurred while importing
+	 * @param endpoint The Endpoint Description
+	 * @param targetFramework The framework into which the service is being
+	 *            imported
+	 * @param rsa The Remote Service Admin
+	 * @param failure The failure that occurred while importing
 	 */
-	public ImportRegistrationImpl(EndpointDescription endpoint, Framework targetFramework,
-			RemoteServiceAdminImpl rsa, Exception failure) {
+	public ImportRegistrationImpl(EndpointDescription endpoint, Framework targetFramework, RemoteServiceAdminImpl rsa,
+		Exception failure) {
 
 		_endpointDescription = Objects.requireNonNull(endpoint, "The endpoint for an export must not be null");
 		_targetFramework = Objects.requireNonNull(targetFramework,
-				"The target framework for a remote service import not be null");
+			"The target framework for a remote service import not be null");
 		_rsa = Objects.requireNonNull(rsa, "The Remote Service Admin must not be null");
 
 		_serviceRegistration = null;
@@ -286,9 +273,9 @@ public class ImportRegistrationImpl implements ImportRegistration {
 					}
 				}
 				LOG.warn("The imported remote service {} was unregistered by a third party",
-						_endpointDescription.getId());
-				asyncFail(new IllegalStateException("The imported remote service " +
-						_endpointDescription.getId() + " was unregistered by a third party"));
+					_endpointDescription.getId());
+				asyncFail(new IllegalStateException("The imported remote service " + _endpointDescription.getId()
+					+ " was unregistered by a third party"));
 			}
 		}
 	}
@@ -344,7 +331,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 			if (_state == ERROR) {
 				throw new IllegalStateException(
-						"The ImportRegistration associated with this ImportReference has failed", _exception);
+					"The ImportRegistration associated with this ImportReference has failed", _exception);
 			}
 
 			return _importReference;
@@ -385,7 +372,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 
 			if (_state == ERROR) {
 				throw new IllegalStateException(
-						"The ImportRegistration associated with this ImportReference has failed", _exception);
+					"The ImportRegistration associated with this ImportReference has failed", _exception);
 			}
 
 			if (!_endpointDescription.equals(endpoint)) {
@@ -393,8 +380,9 @@ public class ImportRegistrationImpl implements ImportRegistration {
 			}
 			ImportedServiceConfig tmpConfig;
 			try {
-				tmpConfig = Converters.standardConverter().convert(
-						endpoint.getProperties()).to(ImportedServiceConfig.class);
+				tmpConfig = Converters.standardConverter()
+					.convert(endpoint.getProperties())
+					.to(ImportedServiceConfig.class);
 			} catch (Exception e) {
 				throw new IllegalArgumentException("The endpoint could not be processed", e);
 			}
@@ -423,8 +411,7 @@ public class ImportRegistrationImpl implements ImportRegistration {
 				_rsa.notifyImportUpdate(_serviceRegistration.getReference(), _endpointDescription, _exception);
 				try {
 					_serviceRegistration.unregister();
-				} catch (IllegalStateException ise) {
-				}
+				} catch (IllegalStateException ise) {}
 				return false;
 			}
 			return true;
@@ -462,8 +449,8 @@ public class ImportRegistrationImpl implements ImportRegistration {
 				return;
 			}
 			_state = ERROR;
-			LOG.debug("The import for endpoint {} in framework {} is being failed",
-					_endpointDescription.getId(), _frameworkUUID, reason);
+			LOG.debug("The import for endpoint {} in framework {} is being failed", _endpointDescription.getId(),
+				_frameworkUUID, reason);
 
 			try {
 				if (_serviceRegistration != null)

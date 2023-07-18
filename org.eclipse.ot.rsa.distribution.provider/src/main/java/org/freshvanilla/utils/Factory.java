@@ -17,7 +17,7 @@
 package org.freshvanilla.utils;
 
 public interface Factory<Description, Resource extends SimpleResource> extends SimpleResource {
-    public Resource acquire(Description description) throws Exception;
+	public Resource acquire(Description description) throws Exception;
 
-    public void recycle(Resource resource);
+	public void recycle(Resource resource);
 }

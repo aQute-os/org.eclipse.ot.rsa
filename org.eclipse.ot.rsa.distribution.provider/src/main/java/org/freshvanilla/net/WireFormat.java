@@ -25,32 +25,32 @@ import io.netty.buffer.ByteBuf;
 
 public interface WireFormat {
 
-    public void flush(DataSocket ds, ByteBuf writeBuffer) throws IOException;
+	public void flush(DataSocket ds, ByteBuf writeBuffer) throws IOException;
 
-    public boolean readBoolean(ByteBuf readBuffer) throws StreamCorruptedException;
+	public boolean readBoolean(ByteBuf readBuffer) throws StreamCorruptedException;
 
-    public double readDouble(ByteBuf rb) throws StreamCorruptedException;
+	public double readDouble(ByteBuf rb) throws StreamCorruptedException;
 
-    public <Pojo, T> void readField(ByteBuf rb, MetaField<Pojo, T> field, Pojo pojo)
-        throws ClassNotFoundException, IOException;
+	public <Pojo, T> void readField(ByteBuf rb, MetaField<Pojo, T> field, Pojo pojo)
+		throws ClassNotFoundException, IOException;
 
-    public long readNum(ByteBuf readBuffer) throws StreamCorruptedException;
+	public long readNum(ByteBuf readBuffer) throws StreamCorruptedException;
 
-    public Object readObject(ByteBuf readBuffer) throws ClassNotFoundException, IOException;
+	public Object readObject(ByteBuf readBuffer) throws ClassNotFoundException, IOException;
 
-    public String readString(ByteBuf readBuffer) throws ClassNotFoundException, IOException;
+	public String readString(ByteBuf readBuffer) throws ClassNotFoundException, IOException;
 
-    public void writeBoolean(ByteBuf readBuffer, boolean flag);
+	public void writeBoolean(ByteBuf readBuffer, boolean flag);
 
-    public <Pojo, T> void writeField(ByteBuf wb, MetaField<Pojo, T> field, Pojo pojo) throws IOException;
+	public <Pojo, T> void writeField(ByteBuf wb, MetaField<Pojo, T> field, Pojo pojo) throws IOException;
 
-    public void writeNum(ByteBuf writeBuffer, long value);
+	public void writeNum(ByteBuf writeBuffer, long value);
 
-    public void writeObject(ByteBuf writeBuffer, Object object) throws IOException;
+	public void writeObject(ByteBuf writeBuffer, Object object) throws IOException;
 
-    public void writeTag(ByteBuf writeBuffer, String tag);
+	public void writeTag(ByteBuf writeBuffer, String tag);
 
-    public void registerPojo(Object o);
+	public void registerPojo(Object o);
 
 	public int getPojoIndex();
 

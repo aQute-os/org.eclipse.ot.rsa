@@ -26,7 +26,9 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.AD.Unit;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD })
+@Target({
+	ElementType.FIELD
+})
 public @interface ADA {
 	/**
 	 * Human readable name for the attribute
@@ -123,11 +125,14 @@ public @interface ADA {
 	int priority() default 0;
 
 	/**
-	 * Groups to which this attributes belongs to. It is up to the GUI how to interpret this.
+	 * Groups to which this attributes belongs to. It is up to the GUI how to
+	 * interpret this.
 	 */
 	String[] groups() default {};
+
 	/**
-	 * Diff non-nummeric values. If this flag is false, then the field is not diffed
+	 * Diff non-nummeric values. If this flag is false, then the field is not
+	 * diffed
 	 */
 	boolean diff() default false;
 

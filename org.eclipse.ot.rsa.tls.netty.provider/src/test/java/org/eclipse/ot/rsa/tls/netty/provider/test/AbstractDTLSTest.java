@@ -55,68 +55,71 @@ public abstract class AbstractDTLSTest {
 
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-			ByteBuf content = ((DatagramPacket)msg).content();
-			readData.put(content.readCharSequence(content.readableBytes(), UTF_8).toString());
+			ByteBuf content = ((DatagramPacket) msg).content();
+			readData.put(content.readCharSequence(content.readableBytes(), UTF_8)
+				.toString());
 			content.release();
 		}
 	}
 
-	private NioEventLoopGroup group;
-	protected Bootstrap udpBootstrap;
+	private NioEventLoopGroup		group;
+	protected Bootstrap				udpBootstrap;
 
-	private static final char[] EC_KEYSTORE_PW = "36e1b16c586196ab".toCharArray();
-	private static final char[] EC_TRUSTSTORE_PW = "f9f0a7084b8e28ff".toCharArray();
-	protected SSLParameters parameters;
-	protected KeyManagerFactory kmf;
-	protected TrustManagerFactory tmf;
+	private static final char[]		EC_KEYSTORE_PW		= "36e1b16c586196ab".toCharArray();
+	private static final char[]		EC_TRUSTSTORE_PW	= "f9f0a7084b8e28ff".toCharArray();
+	protected SSLParameters			parameters;
+	protected KeyManagerFactory		kmf;
+	protected TrustManagerFactory	tmf;
 
 	@BeforeEach
 	public void setup() throws Exception {
-//		System.setProperty("jdk.tls.client.protocols", "TLSv1.2");
-	    System.setProperty("io.netty.customResourceLeakDetector", TestResourceLeakDetector.class.getName());
+		// System.setProperty("jdk.tls.client.protocols", "TLSv1.2");
+		System.setProperty("io.netty.customResourceLeakDetector", TestResourceLeakDetector.class.getName());
 
 		ResourceLeakDetector.setLevel(Level.PARANOID);
 
 		group = new NioEventLoopGroup();
-	    udpBootstrap = new Bootstrap();
-	        udpBootstrap.group(group).channel(NioDatagramChannel.class);
+		udpBootstrap = new Bootstrap();
+		udpBootstrap.group(group)
+			.channel(NioDatagramChannel.class);
 	}
 
 	@AfterEach
 	public void tearDown() throws Exception {
-	    group.shutdownGracefully(250, 1000, TimeUnit.MILLISECONDS).sync();
-	    TestResourceLeakDetector.assertNoLeaks();
+		group.shutdownGracefully(250, 1000, TimeUnit.MILLISECONDS)
+			.sync();
+		TestResourceLeakDetector.assertNoLeaks();
 	}
 
-    protected void setupEC() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
-        UnrecoverableKeyException, KeyManagementException {
-        setupSSL("PKCS12", "/ec_test.keystore", EC_KEYSTORE_PW, "PKCS12", "/ec_test.truststore", EC_TRUSTSTORE_PW);
-    }
+	protected void setupEC() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
+		UnrecoverableKeyException, KeyManagementException {
+		setupSSL("PKCS12", "/ec_test.keystore", EC_KEYSTORE_PW, "PKCS12", "/ec_test.truststore", EC_TRUSTSTORE_PW);
+	}
 
-    protected void setupRSA() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
-    UnrecoverableKeyException, KeyManagementException {
-        setupSSL("JKS", "/fabric.keystore", "paremus".toCharArray(), "JKS", "/fabric.truststore", "paremus".toCharArray());
-    }
+	protected void setupRSA() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
+		UnrecoverableKeyException, KeyManagementException {
+		setupSSL("JKS", "/fabric.keystore", "paremus".toCharArray(), "JKS", "/fabric.truststore",
+			"paremus".toCharArray());
+	}
 
-    private void setupSSL(String keystoreType, String keystorepath, char[] keystorePassword,
-            String truststoreType, String truststorepath, char[] truststorePassword) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
-            UnrecoverableKeyException, KeyManagementException {
-        KeyStore keyStore = KeyStore.getInstance(keystoreType);
-	    keyStore.load(getClass().getResourceAsStream(keystorepath), keystorePassword);
+	private void setupSSL(String keystoreType, String keystorepath, char[] keystorePassword, String truststoreType,
+		String truststorepath, char[] truststorePassword) throws KeyStoreException, IOException,
+		NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+		KeyStore keyStore = KeyStore.getInstance(keystoreType);
+		keyStore.load(getClass().getResourceAsStream(keystorepath), keystorePassword);
 
-	    KeyStore trustStore = KeyStore.getInstance(truststoreType);
-	    trustStore.load(getClass().getResourceAsStream(truststorepath), truststorePassword);
+		KeyStore trustStore = KeyStore.getInstance(truststoreType);
+		trustStore.load(getClass().getResourceAsStream(truststorepath), truststorePassword);
 
+		kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		kmf.init(keyStore, keystorePassword);
 
-	    kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-	    kmf.init(keyStore, keystorePassword);
+		tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init(trustStore);
 
-	    tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-	    tmf.init(trustStore);
-
-	    SSLContext instance = SSLContext.getInstance("DTLSv1.2");
-	    instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
+		SSLContext instance = SSLContext.getInstance("DTLSv1.2");
+		instance.init(kmf.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom());
 		parameters = instance.getDefaultSSLParameters();
 		parameters.setNeedClientAuth(true);
-    }
+	}
 }

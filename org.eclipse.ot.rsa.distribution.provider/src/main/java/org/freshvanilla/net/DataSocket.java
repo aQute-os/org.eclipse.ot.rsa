@@ -25,25 +25,25 @@ import org.freshvanilla.utils.Callback;
 import org.freshvanilla.utils.SimpleResource;
 
 public interface DataSocket extends SimpleResource {
-    public InetSocketAddress getAddress();
+	public InetSocketAddress getAddress();
 
-    public WireFormat wireFormat();
+	public WireFormat wireFormat();
 
-    public ByteBuffer writeBuffer();
+	public ByteBuffer writeBuffer();
 
-    public long microTimestamp();
+	public long microTimestamp();
 
-    public ByteBuffer read() throws IOException;
+	public ByteBuffer read() throws IOException;
 
-    public void flush() throws IOException;
+	public void flush() throws IOException;
 
-    public void addCallback(long sequenceNumber, Callback<?> callback);
+	public void addCallback(long sequenceNumber, Callback<?> callback);
 
-    public Callback<?> removeCallback(long sequenceNumber);
+	public Callback<?> removeCallback(long sequenceNumber);
 
-    public void setReader(Callback<DataSocket> reader);
+	public void setReader(Callback<DataSocket> reader);
 
-    public Map<String, Object> getOtherHeader();
+	public Map<String, Object> getOtherHeader();
 
-    public void timedCheck(long timeMS);
+	public void timedCheck(long timeMS);
 }

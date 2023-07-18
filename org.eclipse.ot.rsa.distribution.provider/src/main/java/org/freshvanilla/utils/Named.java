@@ -17,5 +17,5 @@
 package org.freshvanilla.utils;
 
 public interface Named {
-    public String getName();
+	public String getName();
 }

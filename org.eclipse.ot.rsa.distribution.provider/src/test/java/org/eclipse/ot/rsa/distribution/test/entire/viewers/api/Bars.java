@@ -24,22 +24,25 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.Viewer;
 
 /**
  * Represents a struct as a stacked bar. A field in the struct can be set as a
- * marker (which will be a vertical line at that value) or as a value (which will be shown as a solid bar).
+ * marker (which will be a vertical line at that value) or as a value (which
+ * will be shown as a solid bar).
+ * 
  * <pre>
- * 	public class B {
- * 	  @ADA(builder=Bars.Marker.class)
- *    public int m1;
- * 	  @ADA(builder=Bars.Marker.class)
- *    public int m1;
- * 	  @ADA(builder=Bars.Value.class)
- *    public int b1;
- * 	  @ADA(builder=Bars.Value.class)
- *    public int b2;
- *  }
- *  public class C {
- *    @ADA(builder=Bars.class)
- *    public B b = new B();
- *  }
+ * public class B {
+ * 	&#64;ADA(builder = Bars.Marker.class)
+ * 	public int m1;
+ * 	&#64;ADA(builder = Bars.Marker.class)
+ * 	public int m1;
+ * 	&#64;ADA(builder = Bars.Value.class)
+ * 	public int b1;
+ * 	&#64;ADA(builder = Bars.Value.class)
+ * 	public int b2;
+ * }
+ * 
+ * public class C {
+ * 	@ADA(builder = Bars.class)
+ * 	public B b = new B();
+ * }
  * </pre>
  */
 public class Bars extends Viewer {

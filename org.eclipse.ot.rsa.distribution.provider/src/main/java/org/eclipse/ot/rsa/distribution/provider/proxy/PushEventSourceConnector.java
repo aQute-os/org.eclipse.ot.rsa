@@ -39,14 +39,13 @@ import io.netty.util.concurrent.Promise;
 
 public class PushEventSourceConnector implements OnConnect<Object> {
 
-	private final ConcurrentMap<CacheKey, PushEventSourceConnection> connections =
-			new ConcurrentHashMap<>();
+	private final ConcurrentMap<CacheKey, PushEventSourceConnection>	connections	= new ConcurrentHashMap<>();
 
-	private final Channel _channel;
+	private final Channel												_channel;
 
-	private final Serializer _serializer;
+	private final Serializer											_serializer;
 
-	private Timer _timer;
+	private Timer														_timer;
 
 	public PushEventSourceConnector(Timer _timer, Channel _channel, Serializer _serializer) {
 		this._timer = _timer;
@@ -55,12 +54,13 @@ public class PushEventSourceConnector implements OnConnect<Object> {
 	}
 
 	@Override
-	public void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture,
-			ToLongFunction<Object> pushData, Consumer<Exception> pushClose) {
-		// We use an immediate executor here as we swap to a different thread for real delivery
+	public void connect(CacheKey key, EventExecutor worker, Future<?> closeFuture, ToLongFunction<Object> pushData,
+		Consumer<Exception> pushClose) {
+		// We use an immediate executor here as we swap to a different thread
+		// for real delivery
 
 		PushEventSourceConnection connection = connections.computeIfAbsent(key,
-				k -> new PushEventSourceConnection(_timer, key, ImmediateEventExecutor.INSTANCE, _channel, _serializer));
+			k -> new PushEventSourceConnection(_timer, key, ImmediateEventExecutor.INSTANCE, _channel, _serializer));
 
 		new PushEventSourceClient(worker, closeFuture, connection, pushData, pushClose);
 	}
@@ -70,46 +70,47 @@ public class PushEventSourceConnector implements OnConnect<Object> {
 class PushEventSourceConnection {
 
 	// Mostly there will only be one connected consumer
-	private List<PushEventSourceClient> activeClients = new ArrayList<>(1);
+	private List<PushEventSourceClient>	activeClients	= new ArrayList<>(1);
 
-	private final Timer _timer;
-	private final CacheKey key;
-	private final EventExecutor _executor;
-	private final Channel _channel;
-	private final Serializer _serializer;
+	private final Timer					_timer;
+	private final CacheKey				key;
+	private final EventExecutor			_executor;
+	private final Channel				_channel;
+	private final Serializer			_serializer;
 
-	private final ClientBackPressure backPressureTemplate;
+	private final ClientBackPressure	backPressureTemplate;
 
-	private Promise<Object> closeFuture;
+	private Promise<Object>				closeFuture;
 
-	private boolean closed;
+	private boolean						closed;
 
-	private Timeout timeout;
+	private Timeout						timeout;
 
-	public PushEventSourceConnection(Timer _timer, CacheKey key, EventExecutor _executor,
-			Channel _channel, Serializer _serializer) {
+	public PushEventSourceConnection(Timer _timer, CacheKey key, EventExecutor _executor, Channel _channel,
+		Serializer _serializer) {
 		this._timer = _timer;
 		this.key = key;
 		this._executor = _executor;
 		this._channel = _channel;
 		this._serializer = _serializer;
 		this.backPressureTemplate = new ClientBackPressure(key.getId(), key.getCallId(), 0);
-		this.closeFuture = _executor.newPromise().addListener(this::setTimeout);
+		this.closeFuture = _executor.newPromise()
+			.addListener(this::setTimeout);
 
 		setTimeout(null);
 	}
 
 	private void setTimeout(Future<?> f) {
 		synchronized (activeClients) {
-			if(!closed) {
+			if (!closed) {
 				timeout = _timer.newTimeout(t -> {
-						synchronized (activeClients) {
-							if(activeClients.isEmpty()) {
-								closed = true;
-								closeFuture.trySuccess(null);
-							}
+					synchronized (activeClients) {
+						if (activeClients.isEmpty()) {
+							closed = true;
+							closeFuture.trySuccess(null);
 						}
-					}, 30, TimeUnit.SECONDS);
+					}
+				}, 30, TimeUnit.SECONDS);
 			}
 		}
 	}
@@ -121,21 +122,24 @@ class PushEventSourceConnection {
 			}
 			boolean add = activeClients.isEmpty();
 			activeClients.add(pushEventSourceClient);
-			if(add) {
+			if (add) {
 				timeout.cancel();
-				_channel.writeAndFlush(new BeginStreamingInvocation(key.getId(), key.getCallId(),
-						_serializer, _executor, this::incomingData, this::incomingTerminal, closeFuture)).addListener(f -> {
-							if(!f.isSuccess()) {
-								incomingTerminal(new ServiceException("Unable to open the data stream",
-										ServiceException.REMOTE, f.cause()));
-							}
-						});
+				_channel
+					.writeAndFlush(new BeginStreamingInvocation(key.getId(), key.getCallId(), _serializer, _executor,
+						this::incomingData, this::incomingTerminal, closeFuture))
+					.addListener(f -> {
+						if (!f.isSuccess()) {
+							incomingTerminal(new ServiceException("Unable to open the data stream",
+								ServiceException.REMOTE, f.cause()));
+						}
+					});
 			}
 		}
 	}
 
 	private void incomingData(Object o) {
-		// Data only ever comes in on a single thread and is pushed onto client threads
+		// Data only ever comes in on a single thread and is pushed onto client
+		// threads
 		synchronized (activeClients) {
 			if (!closed) {
 				BackPressureToken token = new BackPressureToken(_channel, backPressureTemplate);
@@ -154,7 +158,8 @@ class PushEventSourceConnection {
 			toCloseClients = new ArrayList<>(activeClients);
 			activeClients.clear();
 			toClosePromise = closeFuture;
-			closeFuture = _executor.newPromise().addListener(this::setTimeout);
+			closeFuture = _executor.newPromise()
+				.addListener(this::setTimeout);
 		}
 
 		for (PushEventSourceClient client : toCloseClients) {
@@ -166,13 +171,14 @@ class PushEventSourceConnection {
 	public void unregister(PushEventSourceClient pushEventSourceClient) {
 		Promise<Object> toClosePromise = null;
 		synchronized (activeClients) {
-			if(activeClients.remove(pushEventSourceClient) && activeClients.isEmpty()) {
+			if (activeClients.remove(pushEventSourceClient) && activeClients.isEmpty()) {
 				_channel.writeAndFlush(new EndStreamingInvocation(key.getId(), key.getCallId()));
 				toClosePromise = closeFuture;
-				closeFuture = _executor.newPromise().addListener(this::setTimeout);
+				closeFuture = _executor.newPromise()
+					.addListener(this::setTimeout);
 			}
 		}
-		if(toClosePromise != null) {
+		if (toClosePromise != null) {
 			toClosePromise.trySuccess(null);
 		}
 	}
@@ -180,27 +186,27 @@ class PushEventSourceConnection {
 
 class PushEventSourceClient {
 
-	private final AtomicBoolean closed = new AtomicBoolean();
-	private final EventExecutor worker;
-	private final ToLongFunction<Object> pushData;
-	private final Consumer<Exception> pushClose;
+	private final AtomicBoolean				closed	= new AtomicBoolean();
+	private final EventExecutor				worker;
+	private final ToLongFunction<Object>	pushData;
+	private final Consumer<Exception>		pushClose;
 
-	public PushEventSourceClient(EventExecutor worker, Future<?> closeFuture, PushEventSourceConnection connection, ToLongFunction<Object> pushData,
-			Consumer<Exception> pushClose) {
+	public PushEventSourceClient(EventExecutor worker, Future<?> closeFuture, PushEventSourceConnection connection,
+		ToLongFunction<Object> pushData, Consumer<Exception> pushClose) {
 		this.worker = worker;
 		this.pushData = pushData;
 		this.pushClose = pushClose;
-		if(!closeFuture.isDone()) {
+		if (!closeFuture.isDone()) {
 			closeFuture.addListener(f -> {
-					connection.unregister(this);
-					terminal(null);
-				});
+				connection.unregister(this);
+				terminal(null);
+			});
 			connection.register(this);
 		}
 	}
 
 	public void data(BackPressureToken token, Object o) {
-		if(!closed.get()) {
+		if (!closed.get()) {
 			try {
 				worker.execute(() -> internalDataEvent(token, o));
 			} catch (Exception e) {
@@ -210,10 +216,10 @@ class PushEventSourceClient {
 	}
 
 	private void internalDataEvent(BackPressureToken token, Object o) {
-		if(!closed.get()) {
+		if (!closed.get()) {
 			try {
 				long bp = pushData.applyAsLong(o);
-				if(bp > 0) {
+				if (bp > 0) {
 					token.applyBackPressure(bp);
 				} else if (bp < 0) {
 					checkedTerminal(null);
@@ -225,13 +231,13 @@ class PushEventSourceClient {
 	}
 
 	private void checkedTerminal(Exception e) {
-		if(!closed.getAndSet(true)) {
+		if (!closed.getAndSet(true)) {
 			pushClose.accept(e);
 		}
 	}
 
 	public void terminal(Exception e) {
-		if(!closed.get()) {
+		if (!closed.get()) {
 			try {
 				worker.execute(() -> {
 					try {
@@ -248,11 +254,11 @@ class PushEventSourceClient {
 }
 
 class BackPressureToken {
-	private long backPressureFutureTime;
+	private long						backPressureFutureTime;
 
-	private final Channel _channel;
+	private final Channel				_channel;
 
-	private final ClientBackPressure backPressureTemplate;
+	private final ClientBackPressure	backPressureTemplate;
 
 	public BackPressureToken(Channel _channel, ClientBackPressure backPressureTemplate) {
 		this._channel = _channel;
@@ -263,28 +269,29 @@ class BackPressureToken {
 
 		long suggestedFutureTime = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(bp);
 
-		if(suggestedFutureTime == 0) {
+		if (suggestedFutureTime == 0) {
 			suggestedFutureTime = 1;
 		}
 
 		long toSend = 0;
 
 		synchronized (this) {
-			if(backPressureFutureTime == 0) {
+			if (backPressureFutureTime == 0) {
 				// This happens the first time that we apply backpressure
 				backPressureFutureTime = suggestedFutureTime;
 				toSend = bp;
 			} else {
 				long diff = suggestedFutureTime - backPressureFutureTime;
-				if(diff > 0) {
-					// We have more back pressure to send, either the diff, or the full back pressure
+				if (diff > 0) {
+					// We have more back pressure to send, either the diff, or
+					// the full back pressure
 					backPressureFutureTime = suggestedFutureTime;
 					toSend = Math.min(TimeUnit.NANOSECONDS.toMillis(diff), bp);
 				}
 			}
 		}
 
-		if(toSend > 0) {
+		if (toSend > 0) {
 			_channel.writeAndFlush(backPressureTemplate.fromTemplate(toSend));
 		}
 	}

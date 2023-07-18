@@ -78,70 +78,76 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class ClusterManagerImplTest {
 
-	static final String CLUSTER = "myCluster";
-	static final String FOO = "foo";
-	static final String BAR = "bar";
-	static final String BAZ = "baz";
-	static final byte[] PAYLOAD = {1, 2, 3, 4};
-	static final byte[] PAYLOAD_2 = {5, 6, 7, 8};
+	static final String		CLUSTER				= "myCluster";
+	static final String		FOO					= "foo";
+	static final String		BAR					= "bar";
+	static final String		BAZ					= "baz";
+	static final byte[]		PAYLOAD				= {
+		1, 2, 3, 4
+	};
+	static final byte[]		PAYLOAD_2			= {
+		5, 6, 7, 8
+	};
 
-	static final int UDP = 1234;
-	static final int TCP = 1235;
+	static final int		UDP					= 1234;
+	static final int		TCP					= 1235;
 
-	static final UUID ID = new UUID(1234, 5678);
+	static final UUID		ID					= new UUID(1234, 5678);
 
+	static final byte[]		INCOMING_ADDRESS	= {
+		4, 3, 2, 1
+	};
+	static final int		INCOMING_UDP		= 2345;
+	static final int		INCOMING_TCP		= 2346;
 
-	static final byte[] INCOMING_ADDRESS = {4, 3, 2, 1};
-	static final int INCOMING_UDP = 2345;
-	static final int INCOMING_TCP = 2346;
-
-	static final UUID INCOMING_ID = new UUID(8765, 4321);
+	static final UUID		INCOMING_ID			= new UUID(8765, 4321);
 
 	@Mock
-	BundleContext context;
+	BundleContext			context;
 
 	@Mock
-	InternalClusterListener listener;
+	InternalClusterListener	listener;
 
-	ClusterManagerImpl impl;
+	ClusterManagerImpl		impl;
 
-
-	private void assertSnapshot(Snapshot s, int time, int sequence, int tcp,
-			UUID id, byte[] payload, SnapshotType type) {
+	private void assertSnapshot(Snapshot s, int time, int sequence, int tcp, UUID id, byte[] payload,
+		SnapshotType type) {
 		assertSnapshot(s, time, sequence, null, -1, tcp, id, payload, type);
 	}
 
-	private void assertSnapshot(Snapshot s, int time, int sequence, InetAddress address, int udp, int tcp,
-			UUID id, byte[] payload, SnapshotType type) {
+	private void assertSnapshot(Snapshot s, int time, int sequence, InetAddress address, int udp, int tcp, UUID id,
+		byte[] payload, SnapshotType type) {
 		// Due to the 24 bit nature of the timestamp 1ms is actually 256 higher
-		assertEquals(time, s.getSnapshotTimestamp(), 257d, ()->"Snapshot should be the current time");
-		assertEquals(sequence, s.getStateSequenceNumber(), ()->"No data yet");
-		if(address == null) {
-			assertNull(s.getAddress(), ()->"The address we send is always null");
+		assertEquals(time, s.getSnapshotTimestamp(), 257d, () -> "Snapshot should be the current time");
+		assertEquals(sequence, s.getStateSequenceNumber(), () -> "No data yet");
+		if (address == null) {
+			assertNull(s.getAddress(), () -> "The address we send is always null");
 		} else {
 			assertEquals(address, s.getAddress());
 		}
-		assertEquals(udp, s.getUdpPort(),()->"Wrong UDP port");
-		assertEquals(tcp, s.getTcpPort(),()->"Wrong TCP port");
-		assertEquals(id, s.getId(),()->"Wrong id");
-		if(type == HEARTBEAT) {
-			assertTrue(s.getData().isEmpty(), ()->"No payload for a heartbeat");
+		assertEquals(udp, s.getUdpPort(), () -> "Wrong UDP port");
+		assertEquals(tcp, s.getTcpPort(), () -> "Wrong TCP port");
+		assertEquals(id, s.getId(), () -> "Wrong id");
+		if (type == HEARTBEAT) {
+			assertTrue(s.getData()
+				.isEmpty(), () -> "No payload for a heartbeat");
 		} else if (payload == null) {
-			assertTrue(s.getData().isEmpty(), ()->"No payload expected");
+			assertTrue(s.getData()
+				.isEmpty(), () -> "No payload expected");
 		} else {
-			assertTrue(Arrays.equals(payload, s.getData().get(FOO)), ()->"Wrong payload");
+			assertTrue(Arrays.equals(payload, s.getData()
+				.get(FOO)), () -> "Wrong payload");
 		}
 		assertEquals(type, s.getMessageType());
 	}
 
 	@BeforeEach
 	public void setUp() throws Exception {
-		Mockito.when(listener.destroy()).thenReturn(Arrays.asList(GlobalEventExecutor.INSTANCE.newSucceededFuture(null)));
+		Mockito.when(listener.destroy())
+			.thenReturn(Arrays.asList(GlobalEventExecutor.INSTANCE.newSucceededFuture(null)));
 		HLogger log = HLogger.root(ClusterManagerImplTest.class);
-		impl = new ClusterManagerImpl(context, ID,
-				standardConverter().convert(singletonMap("cluster.name", CLUSTER))
-				.to(ClusterGossipConfig.class),
-			UDP, TCP, null, x -> listener, log);
+		impl = new ClusterManagerImpl(context, ID, standardConverter().convert(singletonMap("cluster.name", CLUSTER))
+			.to(ClusterGossipConfig.class), UDP, TCP, null, x -> listener, log);
 	}
 
 	@Test
@@ -175,7 +181,8 @@ public class ClusterManagerImplTest {
 
 		ArgumentCaptor<Snapshot> captor = ArgumentCaptor.forClass(Snapshot.class);
 
-		Mockito.verify(listener).localUpdate(captor.capture());
+		Mockito.verify(listener)
+			.localUpdate(captor.capture());
 
 		assertSnapshot(captor.getValue(), now, 1, TCP, ID, PAYLOAD, PAYLOAD_UPDATE);
 	}
@@ -184,34 +191,42 @@ public class ClusterManagerImplTest {
 	public void testDestroyTriggersListener() {
 		impl.destroy();
 
-		Mockito.verify(listener).destroy();
+		Mockito.verify(listener)
+			.destroy();
 	}
 
 	@Test
 	public void testBasicAddAndRemove() throws UnknownHostException {
 
-		impl.mergeSnapshot(new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 1),
-				new InetSocketAddress(InetAddress.getLocalHost(), 123)));
+		impl.mergeSnapshot(
+			new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 1), new InetSocketAddress(InetAddress.getLocalHost(), 123)));
 
-		assertTrue(impl.getKnownMembers().contains(ID), ()->"Should know about ourselves");
-		assertFalse(impl.getKnownMembers().contains(INCOMING_ID), ()->"Should not know about the new guy yet");
+		assertTrue(impl.getKnownMembers()
+			.contains(ID), () -> "Should know about ourselves");
+		assertFalse(impl.getKnownMembers()
+			.contains(INCOMING_ID), () -> "Should not know about the new guy yet");
 
 		int now = (int) (0xFFFFFF & NANOSECONDS.toMillis(System.nanoTime())) << 8;
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
-				Collections.singletonMap(FOO, PAYLOAD), 1),
+		impl.mergeSnapshot(
+			new Snapshot(
+				new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
+					Collections.singletonMap(FOO, PAYLOAD), 1),
 				new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
-		assertTrue(impl.getKnownMembers().contains(INCOMING_ID), ()->"Should now know about the new guy");
-		assertEquals(InetAddress.getByAddress(INCOMING_ADDRESS),
-				impl.getAddressFor(INCOMING_ID), ()->"Should have the right address");
+		assertTrue(impl.getKnownMembers()
+			.contains(INCOMING_ID), () -> "Should now know about the new guy");
+		assertEquals(InetAddress.getByAddress(INCOMING_ADDRESS), impl.getAddressFor(INCOMING_ID),
+			() -> "Should have the right address");
 
-		assertSnapshot(impl.getMemberInfo(INCOMING_ID).toSnapshot(), now, 0, InetAddress.getByAddress(INCOMING_ADDRESS),
-				INCOMING_UDP, INCOMING_TCP, INCOMING_ID, PAYLOAD, PAYLOAD_UPDATE);
+		assertSnapshot(impl.getMemberInfo(INCOMING_ID)
+			.toSnapshot(), now, 0, InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP, INCOMING_TCP, INCOMING_ID,
+			PAYLOAD, PAYLOAD_UPDATE);
 
 		impl.leavingCluster(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, HEARTBEAT, null, 1));
 
-		assertFalse(impl.getKnownMembers().contains(INCOMING_ID), ()->"New guy should be gone now");
-		assertNull(impl.getAddressFor(INCOMING_ID), ()->"Should have no address");
+		assertFalse(impl.getKnownMembers()
+			.contains(INCOMING_ID), () -> "New guy should be gone now");
+		assertNull(impl.getAddressFor(INCOMING_ID), () -> "Should have no address");
 	}
 
 	@Test
@@ -219,7 +234,8 @@ public class ClusterManagerImplTest {
 		MemberInfo info = Mockito.mock(MemberInfo.class);
 		impl.markUnreachable(info);
 
-		Mockito.verify(info).markUnreachable();
+		Mockito.verify(info)
+			.markUnreachable();
 	}
 
 	@Test
@@ -228,12 +244,12 @@ public class ClusterManagerImplTest {
 		attrs.put(FOO, PAYLOAD);
 		attrs.put(BAR, PAYLOAD_2);
 
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
-				attrs, 1), new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
+		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE, attrs, 1),
+			new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
-		Function<Map<String, byte[]>, Map<String, String>> equalsSafe =
-				m -> m.entrySet().stream()
-					.collect(toMap(Entry::getKey, e -> Arrays.toString(e.getValue())));
+		Function<Map<String, byte[]>, Map<String, String>> equalsSafe = m -> m.entrySet()
+			.stream()
+			.collect(toMap(Entry::getKey, e -> Arrays.toString(e.getValue())));
 
 		assertEquals(equalsSafe.apply(attrs), equalsSafe.apply(impl.getMemberAttributes(INCOMING_ID)));
 		assertEquals(Arrays.toString(PAYLOAD), Arrays.toString(impl.getMemberAttribute(INCOMING_ID, FOO)));
@@ -243,61 +259,73 @@ public class ClusterManagerImplTest {
 
 	@Test
 	public void testGetMemberSnapshots() throws UnknownHostException {
-		//Just ourselves
+		// Just ourselves
 		int now = (int) (0xFFFFFF & NANOSECONDS.toMillis(System.nanoTime())) << 8;
-		impl.mergeSnapshot(new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 0), new InetSocketAddress(getLoopbackAddress(), UDP)));
+		impl.mergeSnapshot(
+			new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 0), new InetSocketAddress(getLoopbackAddress(), UDP)));
 
-		Iterator<Snapshot> it = impl.getMemberSnapshots(PAYLOAD_UPDATE).iterator();
+		Iterator<Snapshot> it = impl.getMemberSnapshots(PAYLOAD_UPDATE)
+			.iterator();
 		assertSnapshot(it.next(), now, 0, getLoopbackAddress(), UDP, TCP, ID, null, PAYLOAD_UPDATE);
 		assertFalse(it.hasNext());
 
 		now = (int) (0xFFFFFF & NANOSECONDS.toMillis(System.nanoTime())) << 8;
 		impl.updateAttribute(FOO, PAYLOAD);
-		it = impl.getMemberSnapshots(PAYLOAD_UPDATE).iterator();
+		it = impl.getMemberSnapshots(PAYLOAD_UPDATE)
+			.iterator();
 
 		assertSnapshot(it.next(), now, 1, getLoopbackAddress(), UDP, TCP, ID, PAYLOAD, PAYLOAD_UPDATE);
 		assertFalse(it.hasNext());
 
-		//Add a new member
+		// Add a new member
 		int now2 = (int) (0xFFFFFF & NANOSECONDS.toMillis(System.nanoTime())) << 8;
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
-				Collections.singletonMap(FOO, PAYLOAD_2), 1),
+		impl.mergeSnapshot(
+			new Snapshot(
+				new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
+					Collections.singletonMap(FOO, PAYLOAD_2), 1),
 				new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
-		it = impl.getMemberSnapshots(PAYLOAD_UPDATE).stream()
-				.sorted((a,b) -> a.getId().compareTo(b.getId())).iterator();
+		it = impl.getMemberSnapshots(PAYLOAD_UPDATE)
+			.stream()
+			.sorted((a, b) -> a.getId()
+				.compareTo(b.getId()))
+			.iterator();
 
 		assertSnapshot(it.next(), now, 1, getLoopbackAddress(), UDP, TCP, ID, PAYLOAD, PAYLOAD_UPDATE);
-		assertSnapshot(it.next(), now2, 0, InetAddress.getByAddress(INCOMING_ADDRESS),
-				INCOMING_UDP, INCOMING_TCP, INCOMING_ID, PAYLOAD_2, PAYLOAD_UPDATE);
+		assertSnapshot(it.next(), now2, 0, InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP, INCOMING_TCP,
+			INCOMING_ID, PAYLOAD_2, PAYLOAD_UPDATE);
 		assertFalse(it.hasNext());
-
 
 		impl.leavingCluster(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, HEARTBEAT, null, 1));
 
-		it = impl.getMemberSnapshots(PAYLOAD_UPDATE).iterator();
+		it = impl.getMemberSnapshots(PAYLOAD_UPDATE)
+			.iterator();
 		assertSnapshot(it.next(), now, 1, getLoopbackAddress(), UDP, TCP, ID, PAYLOAD, PAYLOAD_UPDATE);
 		assertFalse(it.hasNext());
 	}
 
 	@Test
 	public void testSelectRandomPartners() throws UnknownHostException {
-		//Just ourselves
+		// Just ourselves
 		impl.updateAttribute(FOO, PAYLOAD);
 
 		Collection<MemberInfo> sample = impl.selectRandomPartners(2);
 
 		assertTrue(sample.isEmpty());
 
-		//Add a new member
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
-				Collections.singletonMap(FOO, PAYLOAD_2), 1),
+		// Add a new member
+		impl.mergeSnapshot(
+			new Snapshot(
+				new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
+					Collections.singletonMap(FOO, PAYLOAD_2), 1),
 				new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
 		sample = impl.selectRandomPartners(2);
 
 		assertEquals(1, sample.size());
-		assertEquals(INCOMING_ID, sample.iterator().next().getId());
+		assertEquals(INCOMING_ID, sample.iterator()
+			.next()
+			.getId());
 
 		impl.leavingCluster(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, HEARTBEAT, null, 1));
 
@@ -308,7 +336,8 @@ public class ClusterManagerImplTest {
 	@Test
 	public void testClusterListener() throws UnknownHostException, InterruptedException {
 
-		impl.mergeSnapshot(new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 0), new InetSocketAddress(getLoopbackAddress(), UDP)));
+		impl.mergeSnapshot(
+			new Snapshot(impl.getSnapshot(PAYLOAD_UPDATE, 0), new InetSocketAddress(getLoopbackAddress(), UDP)));
 
 		Semaphore semA = new Semaphore(0);
 		Semaphore semB = new Semaphore(0);
@@ -316,41 +345,51 @@ public class ClusterManagerImplTest {
 		ClusterListener listenerA = Mockito.mock(ClusterListener.class);
 		@SuppressWarnings("unchecked")
 		ServiceReference<ClusterListener> refA = Mockito.mock(ServiceReference.class);
-		Mockito.when(context.getService(refA)).thenReturn(listenerA);
+		Mockito.when(context.getService(refA))
+			.thenReturn(listenerA);
 		Mockito.doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				semA.release();
 				return null;
 			}
-		}).when(listenerA).clusterEvent(any(ClusterInformation.class), any(Action.class),
-				any(UUID.class), anySet(), anySet(), anySet());
+		})
+			.when(listenerA)
+			.clusterEvent(any(ClusterInformation.class), any(Action.class), any(UUID.class), anySet(), anySet(),
+				anySet());
 
 		ClusterListener listenerB = Mockito.mock(ClusterListener.class);
 		@SuppressWarnings("unchecked")
 		ServiceReference<ClusterListener> refB = Mockito.mock(ServiceReference.class);
-		Mockito.when(refB.getProperty(ClusterListener.CLUSTER_NAMES)).thenReturn(Collections.singleton(CLUSTER));
-		Mockito.when(context.getService(refB)).thenReturn(listenerB);
+		Mockito.when(refB.getProperty(ClusterListener.CLUSTER_NAMES))
+			.thenReturn(Collections.singleton(CLUSTER));
+		Mockito.when(context.getService(refB))
+			.thenReturn(listenerB);
 		Mockito.doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				semB.release();
 				return null;
 			}
-		}).when(listenerB).clusterEvent(any(ClusterInformation.class), any(Action.class),
-				any(UUID.class), anySet(), anySet(), anySet());
+		})
+			.when(listenerB)
+			.clusterEvent(any(ClusterInformation.class), any(Action.class), any(UUID.class), anySet(), anySet(),
+				anySet());
 
 		@SuppressWarnings("unchecked")
 		ServiceReference<ClusterListener> refC = Mockito.mock(ServiceReference.class);
-		Mockito.when(refC.getProperty(ClusterListener.CLUSTER_NAMES)).thenReturn(Collections.singleton(CLUSTER + "2"));
+		Mockito.when(refC.getProperty(ClusterListener.CLUSTER_NAMES))
+			.thenReturn(Collections.singleton(CLUSTER + "2"));
 
 		impl.listenerChange(refA, ServiceEvent.REGISTERED);
 		assertTrue(semA.tryAcquire(1000, TimeUnit.MILLISECONDS));
-		Mockito.verify(listenerA).clusterEvent(impl, ADDED, ID, emptySet(), emptySet(), emptySet());
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, ADDED, ID, emptySet(), emptySet(), emptySet());
 
 		impl.listenerChange(refB, ServiceEvent.REGISTERED);
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
-		Mockito.verify(listenerB).clusterEvent(impl, ADDED, ID, emptySet(), emptySet(), emptySet());
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, ADDED, ID, emptySet(), emptySet(), emptySet());
 
 		impl.listenerChange(refC, ServiceEvent.REGISTERED);
 
@@ -358,10 +397,12 @@ public class ClusterManagerImplTest {
 		assertTrue(semA.tryAcquire(1000, TimeUnit.MILLISECONDS));
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA).clusterEvent(impl, UPDATED, ID, singleton(FOO), emptySet(), emptySet());
-		Mockito.verify(listenerB).clusterEvent(impl, UPDATED, ID, singleton(FOO), emptySet(), emptySet());
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, UPDATED, ID, singleton(FOO), emptySet(), emptySet());
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, UPDATED, ID, singleton(FOO), emptySet(), emptySet());
 
-		//Sleep to make sure the next snapshot isn't ignored
+		// Sleep to make sure the next snapshot isn't ignored
 		Thread.sleep(20);
 
 		impl.updateAttribute(FOO, PAYLOAD_2);
@@ -369,56 +410,60 @@ public class ClusterManagerImplTest {
 		assertTrue(semA.tryAcquire(1000, TimeUnit.MILLISECONDS));
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA).clusterEvent(impl, UPDATED, ID, emptySet(), emptySet(), singleton(FOO));
-		Mockito.verify(listenerB).clusterEvent(impl, UPDATED, ID, emptySet(), emptySet(), singleton(FOO));
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, UPDATED, ID, emptySet(), emptySet(), singleton(FOO));
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, UPDATED, ID, emptySet(), emptySet(), singleton(FOO));
 
-		//Add a new member
+		// Add a new member
 		Map<String, byte[]> attrs = new HashMap<>();
 		attrs.put(FOO, PAYLOAD);
 		attrs.put(BAR, PAYLOAD_2);
 
-		//Sleep to make sure the next snapshot isn't ignored
+		// Sleep to make sure the next snapshot isn't ignored
 		Thread.sleep(20);
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE,
-				attrs, 1), new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
+		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, PAYLOAD_UPDATE, attrs, 1),
+			new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
 		assertTrue(semA.tryAcquire(1000, TimeUnit.MILLISECONDS));
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA).clusterEvent(impl, ADDED, INCOMING_ID, new HashSet<>(Arrays.asList(FOO, BAR)),
-				emptySet(), emptySet());
-		Mockito.verify(listenerB).clusterEvent(impl, ADDED, INCOMING_ID, new HashSet<>(Arrays.asList(FOO, BAR)),
-				emptySet(), emptySet());
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, ADDED, INCOMING_ID, new HashSet<>(Arrays.asList(FOO, BAR)), emptySet(), emptySet());
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, ADDED, INCOMING_ID, new HashSet<>(Arrays.asList(FOO, BAR)), emptySet(), emptySet());
 
-
-		//Update the member
+		// Update the member
 		attrs.remove(FOO);
 		attrs.put(BAR, PAYLOAD);
 		attrs.put(BAZ, PAYLOAD_2);
 
-		//Sleep to make sure the next snapshot isn't ignored
+		// Sleep to make sure the next snapshot isn't ignored
 		Thread.sleep(20);
-		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 1, PAYLOAD_UPDATE,
-				attrs, 1), new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
+		impl.mergeSnapshot(new Snapshot(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 1, PAYLOAD_UPDATE, attrs, 1),
+			new InetSocketAddress(InetAddress.getByAddress(INCOMING_ADDRESS), INCOMING_UDP)));
 
 		assertTrue(semA.tryAcquire(500000, TimeUnit.MILLISECONDS));
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA).clusterEvent(impl, UPDATED, INCOMING_ID, singleton(BAZ), singleton(FOO), singleton(BAR));
-		Mockito.verify(listenerB).clusterEvent(impl, UPDATED, INCOMING_ID, singleton(BAZ), singleton(FOO), singleton(BAR));
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, UPDATED, INCOMING_ID, singleton(BAZ), singleton(FOO), singleton(BAR));
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, UPDATED, INCOMING_ID, singleton(BAZ), singleton(FOO), singleton(BAR));
 
-		//Sleep to make sure the next snapshot isn't ignored
+		// Sleep to make sure the next snapshot isn't ignored
 		Thread.sleep(20);
 		impl.leavingCluster(new Snapshot(INCOMING_ID, INCOMING_TCP, (short) 0, HEARTBEAT, null, 1));
 
 		assertTrue(semA.tryAcquire(1000, TimeUnit.MILLISECONDS));
 		assertTrue(semB.tryAcquire(1000, TimeUnit.MILLISECONDS));
 
-		Mockito.verify(listenerA).clusterEvent(impl, REMOVED, INCOMING_ID, emptySet(),
-				new HashSet<>(Arrays.asList(BAR, BAZ)), emptySet());
-		Mockito.verify(listenerB).clusterEvent(impl, REMOVED, INCOMING_ID, emptySet(),
-				new HashSet<>(Arrays.asList(BAR, BAZ)), emptySet());
+		Mockito.verify(listenerA)
+			.clusterEvent(impl, REMOVED, INCOMING_ID, emptySet(), new HashSet<>(Arrays.asList(BAR, BAZ)), emptySet());
+		Mockito.verify(listenerB)
+			.clusterEvent(impl, REMOVED, INCOMING_ID, emptySet(), new HashSet<>(Arrays.asList(BAR, BAZ)), emptySet());
 
-		Mockito.verify(context, Mockito.never()).getService(refC);
+		Mockito.verify(context, Mockito.never())
+			.getService(refC);
 	}
 }

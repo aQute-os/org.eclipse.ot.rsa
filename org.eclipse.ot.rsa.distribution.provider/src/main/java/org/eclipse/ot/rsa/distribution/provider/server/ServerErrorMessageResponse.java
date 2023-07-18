@@ -25,14 +25,13 @@ public class ServerErrorMessageResponse extends AbstractRSAMessage<ServerMessage
 
 	private final String message;
 
-	public ServerErrorMessageResponse(ServerMessageType type, UUID serviceId, int callId,
-			String message) {
+	public ServerErrorMessageResponse(ServerMessageType type, UUID serviceId, int callId, String message) {
 		super(check(type), serviceId, callId);
 		this.message = message == null ? "" : message;
 	}
 
 	private static ServerMessageType check(ServerMessageType type) {
-		if(!type.isError()) {
+		if (!type.isError()) {
 			throw new IllegalArgumentException("The type is not an error");
 		}
 		return type;

@@ -48,4 +48,3 @@ public class FibreNetworkInterface extends struct {
 	 * @formatter:on
 	 */
 }
-

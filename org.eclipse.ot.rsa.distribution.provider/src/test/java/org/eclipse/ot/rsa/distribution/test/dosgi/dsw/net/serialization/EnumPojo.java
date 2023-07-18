@@ -24,7 +24,6 @@ public class EnumPojo {
 		this.myEnum = myEnum;
 	}
 
-	public EnumPojo() {
-	}
+	public EnumPojo() {}
 
 }

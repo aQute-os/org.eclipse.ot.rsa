@@ -11,6 +11,7 @@
  *      Data In Motion
  */
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
+
 import static org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType.DISCONNECTION;
 
 import io.netty.buffer.ByteBuf;

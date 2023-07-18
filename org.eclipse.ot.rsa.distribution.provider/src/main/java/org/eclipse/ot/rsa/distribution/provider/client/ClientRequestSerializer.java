@@ -23,9 +23,9 @@ import io.netty.channel.ChannelPromise;
 
 public class ClientRequestSerializer extends ChannelOutboundHandlerAdapter {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClientRequestSerializer.class);
+	private static final Logger			LOG	= LoggerFactory.getLogger(ClientRequestSerializer.class);
 
-	private final ClientResponseHandler responseHandler;
+	private final ClientResponseHandler	responseHandler;
 
 	public ClientRequestSerializer(ClientResponseHandler responseHandler) {
 		this.responseHandler = responseHandler;
@@ -41,18 +41,19 @@ public class ClientRequestSerializer extends ChannelOutboundHandlerAdapter {
 
 		try {
 			/* See Protocol_V1 and Protocol_V2 for header structure */
-			ByteBuf buffer = ctx.alloc().ioBuffer();
+			ByteBuf buffer = ctx.alloc()
+				.ioBuffer();
 			invocation.write(buffer, promise);
 
-			switch(callType.getAction()) {
+			switch (callType.getAction()) {
 
 				case ADD :
 					responseHandler.registerInvocation((AbstractClientInvocationWithResult) invocation);
 					promise.addListener(f -> {
-							if (!f.isSuccess()) {
-								responseHandler.unregisterInvocation(invocation.getKey());
-							}
-						});
+						if (!f.isSuccess()) {
+							responseHandler.unregisterInvocation(invocation.getKey());
+						}
+					});
 					break;
 				case REMOVE :
 					responseHandler.unregisterInvocation(invocation.getKey());
@@ -60,13 +61,13 @@ public class ClientRequestSerializer extends ChannelOutboundHandlerAdapter {
 				case SKIP :
 					break;
 				default :
-					throw new IllegalArgumentException("An unknown action type " + callType.getAction().name()
-						+ " was made on service " + invocation.getServiceId());
+					throw new IllegalArgumentException("An unknown action type " + callType.getAction()
+						.name() + " was made on service " + invocation.getServiceId());
 			}
 			ctx.write(buffer, promise);
 		} catch (Exception e) {
 			LOG.error("An error occurred when invoking service {} ", invocation.getServiceId(), e);
-			if(!promise.isVoid()) {
+			if (!promise.isVoid()) {
 				promise.tryFailure(e);
 			}
 		}

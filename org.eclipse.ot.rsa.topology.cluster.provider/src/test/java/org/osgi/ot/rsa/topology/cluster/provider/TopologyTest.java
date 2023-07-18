@@ -150,10 +150,8 @@ public class TopologyTest {
 			cts[i] = setup(lp);
 		}
 
-
 		List<Throwable> errors = new ArrayList<>();
-		for (int i = 0; i < launchpads.length; i++) {
-			Launchpad lp = launchpads[i];
+		for (Launchpad lp : launchpads) {
 			es.execute(() -> {
 				try {
 					Optional<Consumer> s = lp.waitForService(Consumer.class, 10_000);

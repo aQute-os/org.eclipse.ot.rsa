@@ -13,5 +13,6 @@
 package org.eclipse.ot.rsa.tls.netty.config;
 
 public enum ProviderType {
-    JRE_DEFAULT, BOUNCYCASTLE
+	JRE_DEFAULT,
+	BOUNCYCASTLE
 }

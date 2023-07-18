@@ -29,9 +29,7 @@ import org.eclipse.ot.rsa.distribution.test.entire.attributes.api.AD.Unit;
 
 /**
  * Build an {@link AD} from its field. This allows us to use the return type and
- * any annotations.
- *
- * TODO Use javax.validation annotations as well?
+ * any annotations. TODO Use javax.validation annotations as well?
  */
 public class ADBuilder {
 	static AD	object;
@@ -39,16 +37,17 @@ public class ADBuilder {
 	static {
 		object = new AD();
 		object.basicType = AD.BasicType.any;
-		any = new AD[] { object };
+		any = new AD[] {
+			object
+		};
 	}
-	final AD	ad	= new AD();
+	final AD ad = new AD();
 
 	public AD data() {
 		return ad;
 	}
 
-	public ADBuilder() {
-	}
+	public ADBuilder() {}
 
 	public ADBuilder name(String name) {
 		ad.name = name;
@@ -57,7 +56,6 @@ public class ADBuilder {
 
 	/*
 	 * Build an AD from a data type
-	 *
 	 * @param type the given data type.
 	 */
 	private ADBuilder(Type type) throws Exception {
@@ -67,8 +65,7 @@ public class ADBuilder {
 	/**
 	 * Use a field to provide the AD from the field type and any annotations.
 	 *
-	 * @param field
-	 *            the field to create an AD for.
+	 * @param field the field to create an AD for.
 	 */
 	public ADBuilder(Field field) throws Exception {
 		ad.id = field.getName();
@@ -78,7 +75,9 @@ public class ADBuilder {
 		if (annotation != null) {
 			annotation(annotation);
 			if (annotation.builder() != Viewer.class) {
-				Viewer v = annotation.builder().getConstructor(new Class[0]).newInstance(new Object[0]);
+				Viewer v = annotation.builder()
+					.getConstructor(new Class[0])
+					.newInstance(new Object[0]);
 				v.build(ad, field.getGenericType());
 			}
 		}
@@ -96,8 +95,7 @@ public class ADBuilder {
 	/**
 	 * Provide an annotation to fill the AD from.,
 	 *
-	 * @param annotation
-	 *            the given annotation
+	 * @param annotation the given annotation
 	 * @return A Builder so that call can be chained.
 	 */
 	public ADBuilder annotation(ADA annotation) throws Exception {
@@ -106,16 +104,20 @@ public class ADBuilder {
 
 		ad.required = annotation.required();
 
-		if (!annotation.name().equals(""))
+		if (!annotation.name()
+			.equals(""))
 			ad.name = annotation.name();
 
-		if (!annotation.placeholder().equals(""))
+		if (!annotation.placeholder()
+			.equals(""))
 			ad.placeholder = annotation.placeholder();
 
-		if (!annotation.deflt().isEmpty())
+		if (!annotation.deflt()
+			.isEmpty())
 			ad.deflt = annotation.deflt();
 
-		if (!annotation.description().isEmpty())
+		if (!annotation.description()
+			.isEmpty())
 			ad.description = annotation.description();
 
 		ad.high = annotation.high();
@@ -127,13 +129,16 @@ public class ADBuilder {
 		if (ad.threshold > 0)
 			ad.diff = true;
 
-		if (!annotation.viewer().isEmpty())
+		if (!annotation.viewer()
+			.isEmpty())
 			ad.viewer = annotation.viewer();
 
-		if (!annotation.name().isEmpty())
+		if (!annotation.name()
+			.isEmpty())
 			ad.name = annotation.name();
 
-		if (!annotation.pattern().isEmpty())
+		if (!annotation.pattern()
+			.isEmpty())
 			ad.pattern = annotation.pattern();
 
 		if (annotation.priority() != 0)
@@ -150,48 +155,48 @@ public class ADBuilder {
 
 		if (ad.viewer == null) {
 			switch (ad.unit) {
-			case ampere:
-			case bytes:
-			case candela:
-			case coulomb:
-			case farad:
-			case gray:
-			case hertz:
-			case joule:
-			case kat:
-			case kelvin:
-			case kg:
-			case load:
-			case lux:
-			case m2:
-			case m3:
-			case m_s:
-			case m_s2:
-			case meter:
-			case mol:
-			case ms:
-			case newton:
-			case none:
-			case ohm:
-			case pascal:
-			case rad:
-			case seconds:
-			case siemens:
-			case sievert:
-			case tesla:
-			case unit:
-			case volt:
-			case watt:
-			case weber:
-				break;
-			case time:
-			case date:
-				ad.viewer = ad.unit.name();
-				break;
-			case percentage:
-				ad.viewer = Unit.percentage.toString();
-				break;
-			default:
+				case ampere :
+				case bytes :
+				case candela :
+				case coulomb :
+				case farad :
+				case gray :
+				case hertz :
+				case joule :
+				case kat :
+				case kelvin :
+				case kg :
+				case load :
+				case lux :
+				case m2 :
+				case m3 :
+				case m_s :
+				case m_s2 :
+				case meter :
+				case mol :
+				case ms :
+				case newton :
+				case none :
+				case ohm :
+				case pascal :
+				case rad :
+				case seconds :
+				case siemens :
+				case sievert :
+				case tesla :
+				case unit :
+				case volt :
+				case watt :
+				case weber :
+					break;
+				case time :
+				case date :
+					ad.viewer = ad.unit.name();
+					break;
+				case percentage :
+					ad.viewer = Unit.percentage.toString();
+					break;
+				default :
 
 			}
 		}
@@ -210,7 +215,8 @@ public class ADBuilder {
 			Class<?> clazz = (Class<?>) type;
 
 			try {
-				ad.viewer = (String) clazz.getField("VIEWER").get(null);
+				ad.viewer = (String) clazz.getField("VIEWER")
+					.get(null);
 			} catch (Exception e) {
 				// Ignore
 			}
@@ -280,7 +286,9 @@ public class ADBuilder {
 
 			if (Map.class.isAssignableFrom(clazz)) {
 				ad.basicType = AD.BasicType.map;
-				ad.sub = new AD[] { object, object };
+				ad.sub = new AD[] {
+					object, object
+				};
 				ad.viewer = "map";
 				return this;
 			}
@@ -330,24 +338,27 @@ public class ADBuilder {
 					throw new IllegalArgumentException("An iterable must not have a generized type");
 
 				ad.basicType = AD.BasicType.list;
-				ad.sub = new AD[] { new ADBuilder(actualTypeArguments[0]).ad };
+				ad.sub = new AD[] {
+					new ADBuilder(actualTypeArguments[0]).ad
+				};
 				ad.sub = any;
 				return this;
 			} else if (rawType instanceof Class && Map.class.isAssignableFrom((Class<?>) rawType)) {
 				ad.basicType = AD.BasicType.map;
-				ad.sub = new AD[] { object, object };
+				ad.sub = new AD[] {
+					object, object
+				};
 				return this;
 			}
 		}
 		throw new IllegalArgumentException(
-				"A attributedef requires a primitive, a wrapper, a map, an iterable, or a struct (object with public fields");
+			"A attributedef requires a primitive, a wrapper, a map, an iterable, or a struct (object with public fields");
 	}
 
 	/**
 	 * Turn a camelized method name into a readable name. Used as default.
 	 *
-	 * @param id
-	 *            the id of the attribute
+	 * @param id the id of the attribute
 	 * @return a good looking name for readability
 	 */
 	private String unCamel(String id) {

@@ -47,8 +47,7 @@ public class ClusterTest {
 
 		try (Launchpad a = builder.create("a")) {
 			try (Launchpad b = builder.create("b")) {
-				try (Launchpad c = builder
-						.create("c")) {
+				try (Launchpad c = builder.create("c")) {
 
 					System.out.println("configure the 3 frameworks, do not fully connect the peers");
 					configure(a, 1900, true, "127.0.0.1:1910", "127.0.0.1:1920", "127.0.0.1:1930", "127.0.0.1:1940");
@@ -61,8 +60,7 @@ public class ClusterTest {
 					waitForClusterInformation(c, 3);
 
 					System.out.println("Start a framework cc");
-					try (Launchpad cc = builder
-							.create("cc")) {
+					try (Launchpad cc = builder.create("cc")) {
 						System.out.println("Configure cc");
 						configure(cc, 1940, true);
 						System.out.println("wait until it has its peers");
@@ -82,8 +80,7 @@ public class ClusterTest {
 
 		try (Launchpad a = builder.create("a")) {
 			try (Launchpad b = builder.create("b")) {
-				try (Launchpad c = builder
-						.create("c")) {
+				try (Launchpad c = builder.create("c")) {
 
 					System.out.println("configure the 3 frameworks, do not fully connect the peers");
 					configure(a, 1900, true);
@@ -95,9 +92,12 @@ public class ClusterTest {
 					waitForClusterInformation(b, 3);
 					waitForClusterInformation(c, 3);
 
-					ClusterInformation aci = a.getService(ClusterInformation.class).get();
-					ClusterInformation bci = b.getService(ClusterInformation.class).get();
-					ClusterInformation cci = c.getService(ClusterInformation.class).get();
+					ClusterInformation aci = a.getService(ClusterInformation.class)
+						.get();
+					ClusterInformation bci = b.getService(ClusterInformation.class)
+						.get();
+					ClusterInformation cci = c.getService(ClusterInformation.class)
+						.get();
 
 					System.out.println("check the name of the cluster");
 
@@ -116,25 +116,35 @@ public class ClusterTest {
 
 					System.out.println("ensure the address matches what we told");
 					Map<UUID, InetAddress> hosts = aci.getMemberHosts();
-					hosts.values().forEach((ia) -> assertThat(ia.isLoopbackAddress()).isTrue());
+					hosts.values()
+						.forEach((ia) -> assertThat(ia.isLoopbackAddress()).isTrue());
 
 					System.out.println("set an attribute on framework a, and check b & c");
 
 					aci.updateAttribute("foo", "HELLO".getBytes(StandardCharsets.UTF_8));
 
-					Awaitility.await().until(() -> aci.getMemberAttribute(auid, "foo") != null);
-					Awaitility.await().until(() -> bci.getMemberAttribute(auid, "foo") != null);
-					Awaitility.await().until(() -> cci.getMemberAttribute(auid, "foo") != null);
+					Awaitility.await()
+						.until(() -> aci.getMemberAttribute(auid, "foo") != null);
+					Awaitility.await()
+						.until(() -> bci.getMemberAttribute(auid, "foo") != null);
+					Awaitility.await()
+						.until(() -> cci.getMemberAttribute(auid, "foo") != null);
 
-					assertThat(aci.getMemberAttribute(auid, "foo")).asString().isEqualTo("HELLO");
-					assertThat(bci.getMemberAttribute(auid, "foo")).asString().isEqualTo("HELLO");
-					assertThat(cci.getMemberAttribute(auid, "foo")).asString().isEqualTo("HELLO");
+					assertThat(aci.getMemberAttribute(auid, "foo")).asString()
+						.isEqualTo("HELLO");
+					assertThat(bci.getMemberAttribute(auid, "foo")).asString()
+						.isEqualTo("HELLO");
+					assertThat(cci.getMemberAttribute(auid, "foo")).asString()
+						.isEqualTo("HELLO");
 
 					System.out.println("remove the attribute, and check it is removed everywhere");
 					aci.updateAttribute("foo", null);
-					Awaitility.await().until(() -> aci.getMemberAttribute(auid, "foo") == null);
-					Awaitility.await().until(() -> bci.getMemberAttribute(auid, "foo") == null);
-					Awaitility.await().until(() -> cci.getMemberAttribute(auid, "foo") == null);
+					Awaitility.await()
+						.until(() -> aci.getMemberAttribute(auid, "foo") == null);
+					Awaitility.await()
+						.until(() -> bci.getMemberAttribute(auid, "foo") == null);
+					Awaitility.await()
+						.until(() -> cci.getMemberAttribute(auid, "foo") == null);
 
 					System.out.println("close framework c, check if the others detect this");
 					c.close();
@@ -144,13 +154,13 @@ public class ClusterTest {
 					assertThat(bci.getKnownMembers()).contains(auid, buid);
 
 					System.out.println("Start a framework cc");
-					try (Launchpad cc = builder
-							.create("cc")) {
+					try (Launchpad cc = builder.create("cc")) {
 						System.out.println("Configure cc");
 						configure(cc, 1940, true, "127.0.0.1:1900");
 						System.out.println("wait until it has its peers");
 						waitForClusterInformation(cc, 3);
-						ClusterInformation ccci = cc.getService(ClusterInformation.class).get();
+						ClusterInformation ccci = cc.getService(ClusterInformation.class)
+							.get();
 						UUID ccuid = ccci.getLocalUUID();
 						Thread.sleep(1000);
 						System.out.println("check the cluster is complete");
@@ -180,17 +190,21 @@ public class ClusterTest {
 			System.out.println("start b");
 			try (Launchpad b = builder.create("b")) {
 				try (Launchpad c = builder // .gogo()
-						.create("c")) {
+					.create("c")) {
 
 					configure(a, 0, false);
 					configure(b, 0, false);
 
-					RemoteServiceAdmin arsa = a.waitForService(RemoteServiceAdmin.class, 4000).get();
-					RemoteServiceAdmin brsa = b.waitForService(RemoteServiceAdmin.class, 4000).get();
+					RemoteServiceAdmin arsa = a.waitForService(RemoteServiceAdmin.class, 4000)
+						.get();
+					RemoteServiceAdmin brsa = b.waitForService(RemoteServiceAdmin.class, 4000)
+						.get();
 
 					ServiceRegistration<Foo> afoo = a.register(Foo.class, new Foo(),
-							Constants.SERVICE_EXPORTED_INTERFACES, "*");
-					ExportRegistration afooe = arsa.exportService(afoo.getReference(), null).iterator().next();
+						Constants.SERVICE_EXPORTED_INTERFACES, "*");
+					ExportRegistration afooe = arsa.exportService(afoo.getReference(), null)
+						.iterator()
+						.next();
 					ExportReference afoor = afooe.getExportReference();
 					EndpointDescription afooep = afoor.getExportedEndpoint();
 
@@ -208,7 +222,7 @@ public class ClusterTest {
 		void send(int launchpad);
 	}
 
-	//@Test
+	// @Test
 	public void longrunnning() throws Throwable {
 
 		Launchpad[] launchpads = cluster(2);
@@ -225,8 +239,7 @@ public class ClusterTest {
 					configure(lp, 1900 + i, true, "127.0.0.1:1900");
 				}
 			}
-			for (int i = 0; i < launchpads.length; i++) {
-				Launchpad lp = launchpads[i];
+			for (Launchpad lp : launchpads) {
 				waitForClusterInformation(lp, launchpads.length);
 			}
 			for (int i = 0; i < launchpads.length; i++) {
@@ -249,29 +262,29 @@ public class ClusterTest {
 
 	void play(Launchpad lp, int n, AtomicReference<Throwable> throwable) {
 		try {
-				if ((n & 1) == 0) {
-					while (true) {
-						System.out.println("Waiting for a node in  "+n);
-						Optional<Node> service = lp.waitForService(Node.class, 10_000_000);
-						System.out.println("Got service  "+service);
-						assertThat(service).isPresent();
-						Node c = service.get();
-						System.out.println("tx " + n);
-						c.send(n);
-						Thread.sleep(1000+n);
-					}
-				} else {
-					System.out.println("Registering node " + n);
-					ServiceRegistration<Node> register = lp.register(Node.class, (i) -> {
-						System.out.println("rx " + i);
-					}, Constants.SERVICE_EXPORTED_INTERFACES, "*");
-					while (true) {
-						Thread.sleep(1000+n);
-						Hashtable<String,Object> ht = new Hashtable<>();
-						ht.put("x", System.nanoTime());
-						register.setProperties(ht);
-					}
+			if ((n & 1) == 0) {
+				while (true) {
+					System.out.println("Waiting for a node in  " + n);
+					Optional<Node> service = lp.waitForService(Node.class, 10_000_000);
+					System.out.println("Got service  " + service);
+					assertThat(service).isPresent();
+					Node c = service.get();
+					System.out.println("tx " + n);
+					c.send(n);
+					Thread.sleep(1000 + n);
 				}
+			} else {
+				System.out.println("Registering node " + n);
+				ServiceRegistration<Node> register = lp.register(Node.class, (i) -> {
+					System.out.println("rx " + i);
+				}, Constants.SERVICE_EXPORTED_INTERFACES, "*");
+				while (true) {
+					Thread.sleep(1000 + n);
+					Hashtable<String, Object> ht = new Hashtable<>();
+					ht.put("x", System.nanoTime());
+					register.setProperties(ht);
+				}
+			}
 		} catch (Throwable t) {
 			System.out.println("Leaving lp " + n + " due to " + t);
 			throwable.set(t);
@@ -290,14 +303,12 @@ public class ClusterTest {
 				configure(lp, 1900 + i, true, "127.0.0.1:1900");
 			}
 		}
-		for (int i = 0; i < launchpads.length; i++) {
-			Launchpad lp = launchpads[i];
+		for (Launchpad lp : launchpads) {
 			waitForClusterInformation(lp, launchpads.length);
 		}
 
 		close(launchpads);
 	}
-
 
 	private void close(Launchpad[] launchpads) throws InterruptedException {
 		CountDownLatch l = new CountDownLatch(launchpads.length);
@@ -318,8 +329,7 @@ public class ClusterTest {
 			String name = "" + i;
 			int n = i;
 			es.execute(() -> {
-				Launchpad lp = n == 1 ? builder
-						.create(name) : builder.create(name);
+				Launchpad lp = n == 1 ? builder.create(name) : builder.create(name);
 				System.out.println("build " + lp.getBundleContext());
 				lps[n] = lp;
 				l.countDown();
@@ -331,10 +341,10 @@ public class ClusterTest {
 
 	void delete(Launchpad lp, String pid, String local) throws IOException, InvalidSyntaxException {
 		ConfigurationAdmin ca = lp.waitForService(ConfigurationAdmin.class, 1000)
-				.get();
+			.get();
 		if (local == null) {
 			ca.getConfiguration(pid, "?")
-					.delete();
+				.delete();
 			return;
 		}
 
@@ -349,32 +359,32 @@ public class ClusterTest {
 		System.out.println(cinfo.getClusterName());
 		System.out.println(cinfo.getKnownMembers());
 		Awaitility.await()
-				.timeout(60, TimeUnit.SECONDS)
-				.until(() -> cinfo.getKnownMembers()
-						.size() == size);
+			.timeout(60, TimeUnit.SECONDS)
+			.until(() -> cinfo.getKnownMembers()
+				.size() == size);
 		return true;
 	}
 
 	private void configure(Launchpad lp, int port, boolean cluster, String... peers) throws Exception {
 		ConfigurationAdmin ca = lp.waitForService(ConfigurationAdmin.class, 1000)
-				.get();
+			.get();
 
 		update(ca, RSAConstants.TRANSPORT_TLS_PID, "insecure", true);
 		update(ca, RSAConstants.DISTRIBUTION_TRANSPORT_PID);
 		update(ca, RSAConstants.DISTRIBUTION_PROVIDER_PID, //
-				"server.bind.address", "127.0.0.1", //
-				"allow.insecure.transports", true, //
-				"server.protocols", "TCP;nodelay=true", //
-				"nodelay", true //
+			"server.bind.address", "127.0.0.1", //
+			"allow.insecure.transports", true, //
+			"server.protocols", "TCP;nodelay=true", //
+			"nodelay", true //
 		);
 
 		if (cluster) {
 			updateFact(ca, RSAConstants.CLUSTER_GOSSIP_PID, "SITE", //
-					"cluster.name", "SITE", //
-					"initial.peers", peers, //
-					"bind.address", "127.0.0.1", //
-					"udp.port", port, //
-					"tcp.port", port //
+				"cluster.name", "SITE", //
+				"initial.peers", peers, //
+				"bind.address", "127.0.0.1", //
+				"udp.port", port, //
+				"tcp.port", port //
 			);
 		}
 	}
@@ -404,7 +414,7 @@ public class ClusterTest {
 	}
 
 	private Configuration getConfiguration(ConfigurationAdmin cm, String pid, String local)
-			throws IOException, InvalidSyntaxException {
+		throws IOException, InvalidSyntaxException {
 		Configuration[] list = cm.listConfigurations("(&(.local.name=" + local + ")(service.factoryPid=" + pid + "))");
 		Configuration cnf;
 		if (list == null || list.length == 0) {
@@ -418,12 +428,12 @@ public class ClusterTest {
 
 	void until(Callable<Object> bs) {
 		Awaitility.await()
-				.until(() -> isTrue(bs.call()));
+			.until(() -> isTrue(bs.call()));
 	}
 
 	void untilNot(Callable<Object> bs) {
 		Awaitility.await()
-				.until(() -> !isTrue(bs.call()));
+			.until(() -> !isTrue(bs.call()));
 	}
 
 	private boolean isTrue(Object call) {

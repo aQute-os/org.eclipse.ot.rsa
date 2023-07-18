@@ -8,9 +8,10 @@ public class SafeAccessor implements Accessor {
 	@Override
 	public <T> T newInstance(Class<T> clazz) throws InstantiationException {
 		try {
-			return clazz.getConstructor(new Class[0]).newInstance(new Object[0]);
-		} catch (InstantiationException | IllegalArgumentException | InvocationTargetException
-				| IllegalAccessException | NoSuchMethodException | SecurityException e) {
+			return clazz.getConstructor(new Class[0])
+				.newInstance(new Object[0]);
+		} catch (InstantiationException | IllegalArgumentException | InvocationTargetException | IllegalAccessException
+			| NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			throw new InstantiationException(e.getMessage());

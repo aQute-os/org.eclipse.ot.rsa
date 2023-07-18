@@ -11,8 +11,7 @@
  *      Data In Motion
  */
 /**
- * This API is used to provide (D)TLS support using
- * when using Netty.
+ * This API is used to provide (D)TLS support using when using Netty.
  */
 
 @org.osgi.annotation.versioning.Version("1.0.0")

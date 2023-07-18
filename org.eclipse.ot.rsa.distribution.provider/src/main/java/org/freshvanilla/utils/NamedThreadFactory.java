@@ -20,25 +20,26 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NamedThreadFactory implements ThreadFactory {
-    private final String _name;
-    private final AtomicInteger _counter = new AtomicInteger();
-    private final int _priority;
-    private final boolean _daemon;
+	private final String		_name;
+	private final AtomicInteger	_counter	= new AtomicInteger();
+	private final int			_priority;
+	private final boolean		_daemon;
 
-    public NamedThreadFactory(String name, int priority, boolean daemon) {
-        _name = name;
-        _priority = priority;
-        _daemon = daemon;
-    }
+	public NamedThreadFactory(String name, int priority, boolean daemon) {
+		_name = name;
+		_priority = priority;
+		_daemon = daemon;
+	}
 
-    @Override
+	@Override
 	public Thread newThread(Runnable r) {
-        String name = _name;
-        int id = _counter.incrementAndGet();
-        if (id > 1) name += ':' + id;
-        Thread t = new Thread(r, name);
-        t.setPriority(_priority);
-        t.setDaemon(_daemon);
-        return t;
-    }
+		String name = _name;
+		int id = _counter.incrementAndGet();
+		if (id > 1)
+			name += ':' + id;
+		Thread t = new Thread(r, name);
+		t.setPriority(_priority);
+		t.setDaemon(_daemon);
+		return t;
+	}
 }

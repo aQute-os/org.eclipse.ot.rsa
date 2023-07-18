@@ -17,7 +17,7 @@
 package org.freshvanilla.utils;
 
 public interface Callback<T> {
-    public void onCallback(T t) throws Exception;
+	public void onCallback(T t) throws Exception;
 
-    public void onException(Throwable t);
+	public void onException(Throwable t);
 }

@@ -19,34 +19,33 @@ package org.freshvanilla.lang.misc;
 import java.lang.reflect.Field;
 
 public class AccessUtils {
-    static final Accessor delegate;
+	static final Accessor delegate;
 
-    private AccessUtils() {
-        // not used
-    }
+	private AccessUtils() {
+		// not used
+	}
 
-    static {
-    	Accessor toUse;
-        try {
-            toUse = new Unsafe();
-        }
-        catch (Throwable t) {
-        	if (t instanceof OutOfMemoryError) {
-        		throw t;
-        	}
-        	toUse = new SafeAccessor();
-        }
-        delegate = toUse;
-    }
+	static {
+		Accessor toUse;
+		try {
+			toUse = new Unsafe();
+		} catch (Throwable t) {
+			if (t instanceof OutOfMemoryError) {
+				throw t;
+			}
+			toUse = new SafeAccessor();
+		}
+		delegate = toUse;
+	}
 
-    public static <T> T newInstance(Class<T> clazz) throws InstantiationException {
-        return delegate.newInstance(clazz);
-    }
+	public static <T> T newInstance(Class<T> clazz) throws InstantiationException {
+		return delegate.newInstance(clazz);
+	}
 
-    @SuppressWarnings("rawtypes")
+	@SuppressWarnings("rawtypes")
 	public static FieldAccessor getFieldAccessor(Field field) {
-        return delegate.getFieldAccessor(field);
-    }
+		return delegate.getFieldAccessor(field);
+	}
 
 	public static boolean isSafe() {
 		return delegate instanceof SafeAccessor;

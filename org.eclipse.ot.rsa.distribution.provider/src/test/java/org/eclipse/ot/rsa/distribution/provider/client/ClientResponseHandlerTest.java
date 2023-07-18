@@ -56,42 +56,45 @@ import io.netty.util.concurrent.Promise;
 public class ClientResponseHandlerTest {
 
 	@Mock
-	Timer timer;
+	Timer						timer;
 	@Mock
-	Timeout timeout;
+	Timeout						timeout;
 	@Mock
-	Channel channel;
+	Channel						channel;
 	@Mock
-	ChannelHandlerContext ctx;
+	ChannelHandlerContext		ctx;
 	@Mock
-	Serializer serializer;
+	Serializer					serializer;
 	@Mock
-	ClientConnectionManager ccm;
+	ClientConnectionManager		ccm;
 
-	ByteBufAllocator allocator = PooledByteBufAllocator.DEFAULT;
+	ByteBufAllocator			allocator	= PooledByteBufAllocator.DEFAULT;
 
-	UUID serviceId = UUID.randomUUID();
+	UUID						serviceId	= UUID.randomUUID();
 
-	ClientResponseHandler impl;
+	ClientResponseHandler		impl;
 
-	EventExecutor executor;
+	EventExecutor				executor;
 
-	Supplier<Promise<Object>> nettyPromiseSupplier;
+	Supplier<Promise<Object>>	nettyPromiseSupplier;
 
 	@BeforeEach
 	public void setUp() {
-		Mockito.when(timer.newTimeout(any(), ArgumentMatchers.anyLong(), any())).thenReturn(timeout);
+		Mockito.when(timer.newTimeout(any(), ArgumentMatchers.anyLong(), any()))
+			.thenReturn(timeout);
 
 		executor = new DefaultEventExecutor();
 
-		nettyPromiseSupplier = () -> executor.next().newPromise();
+		nettyPromiseSupplier = () -> executor.next()
+			.newPromise();
 
 		impl = new ClientResponseHandler(ccm, timer);
 	}
 
 	@AfterEach
 	public void tearDown() throws Exception {
-		executor.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS).await(1, TimeUnit.SECONDS);
+		executor.shutdownGracefully(100, 500, TimeUnit.MILLISECONDS)
+			.await(1, TimeUnit.SECONDS);
 	}
 
 	@Test
@@ -102,7 +105,8 @@ public class ClientResponseHandlerTest {
 	@Test
 	public void testFailureResponseCleansUp() throws Exception {
 		ByteBuf buffer = allocator.buffer(0);
-		Mockito.when(serializer.deserializeReturn(buffer)).thenReturn(new UnsupportedAudioFileException());
+		Mockito.when(serializer.deserializeReturn(buffer))
+			.thenReturn(new UnsupportedAudioFileException());
 		doTestResponseCleansUp(Protocol_V1.SUCCESS_RESPONSE, buffer);
 	}
 
@@ -133,8 +137,8 @@ public class ClientResponseHandlerTest {
 
 	public void doTestResponseCleansUp(byte response, ByteBuf buf) throws Exception {
 
-		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0],
-				new int[0], new int[0], serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0], new int[0], new int[0],
+			serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
 
 		impl.registerInvocation(ci);
 
@@ -150,13 +154,16 @@ public class ClientResponseHandlerTest {
 		impl.channelRead(ctx, buf);
 		assertEquals(refCnt - 1, buf.refCnt());
 
-		assertTrue(ci.getResult().isSuccess());
-		Mockito.verify(timeout, timeout(100)).cancel();
+		assertTrue(ci.getResult()
+			.isSuccess());
+		Mockito.verify(timeout, timeout(100))
+			.cancel();
 
 		buf.resetReaderIndex();
 		impl.channelRead(ctx, buf);
 		assertEquals(refCnt - 2, buf.refCnt());
-		Mockito.verify(timeout, after(100)).cancel();
+		Mockito.verify(timeout, after(100))
+			.cancel();
 	}
 
 	private void assertEquals(int i, int refCnt) {
@@ -166,17 +173,21 @@ public class ClientResponseHandlerTest {
 
 	@Test
 	public void testTimeoutCleansUp() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0],
-				new int[0], new int[0], serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0], new int[0], new int[0],
+			serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
 
 		impl.registerInvocation(ci);
 
 		ArgumentCaptor<TimerTask> taskCaptor = ArgumentCaptor.forClass(TimerTask.class);
-		Mockito.verify(timer).newTimeout(taskCaptor.capture(), ArgumentMatchers.anyLong(), any());
+		Mockito.verify(timer)
+			.newTimeout(taskCaptor.capture(), ArgumentMatchers.anyLong(), any());
 
-		Mockito.when(timeout.isExpired()).thenReturn(Boolean.TRUE);
-		taskCaptor.getValue().run(timeout);
-		assertTrue(ci.getResult().isDone());
+		Mockito.when(timeout.isExpired())
+			.thenReturn(Boolean.TRUE);
+		taskCaptor.getValue()
+			.run(timeout);
+		assertTrue(ci.getResult()
+			.isDone());
 
 		ByteBuf buf = allocator.heapBuffer();
 		buf.writeByte(Protocol_V1.SUCCESS_RESPONSE);
@@ -186,20 +197,24 @@ public class ClientResponseHandlerTest {
 
 		impl.channelRead(ctx, buf);
 
-		Mockito.verify(timeout, Mockito.never()).cancel();
+		Mockito.verify(timeout, Mockito.never())
+			.cancel();
 	}
 
 	@Test
 	public void testChannelCloseCleansUp() throws Exception {
-		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0],
-				new int[0], new int[0], serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
+		ClientInvocation ci = new ClientInvocation(true, serviceId, -1, 42, new Object[0], new int[0], new int[0],
+			serializer, null, nettyPromiseSupplier.get(), new AtomicLong(3000), "test");
 
 		impl.registerInvocation(ci);
 
 		impl.channelInactive(ctx);
 
-		assertTrue(ci.getResult().isDone());
-		Mockito.verify(timeout, timeout(100)).cancel();
-		assertNotNull(ci.getResult().cause());
+		assertTrue(ci.getResult()
+			.isDone());
+		Mockito.verify(timeout, timeout(100))
+			.cancel();
+		assertNotNull(ci.getResult()
+			.cause());
 	}
 }

@@ -31,23 +31,23 @@ import org.slf4j.LoggerFactory;
 
 public class ProtocolScheme {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ProtocolScheme.class);
+	private static final Logger			LOG						= LoggerFactory.getLogger(ProtocolScheme.class);
 
-	private final Pattern COLON = Pattern.compile(":");
+	private final Pattern				COLON					= Pattern.compile(":");
 
-	private final Protocol protocol;
+	private final Protocol				protocol;
 
-	private final int receiveBufferSize;
+	private final int					receiveBufferSize;
 
-	private final int sendBufferSize;
+	private final int					sendBufferSize;
 
-	private final InetSocketAddress bindAddress;
+	private final InetSocketAddress		bindAddress;
 
-	private final Map<String, Integer> toAdvertise = new LinkedHashMap<>();
+	private final Map<String, Integer>	toAdvertise				= new LinkedHashMap<>();
 
-	private final Map<String, String> specificSocketOptions = new HashMap<>();
+	private final Map<String, String>	specificSocketOptions	= new HashMap<>();
 
-	private final String configuration;
+	private final String				configuration;
 
 	public ProtocolScheme(String spec) {
 		this.configuration = spec;
@@ -61,12 +61,12 @@ public class ProtocolScheme {
 		int sendBuf = 1 << 18;
 		InetSocketAddress bindAddress = null;
 
-		for(int i = 1; i < stanzas.length; i++) {
-			String[] stanza = stanzas[i].split("=",2);
-			switch(stanza[0]) {
+		for (int i = 1; i < stanzas.length; i++) {
+			String[] stanza = stanzas[i].split("=", 2);
+			switch (stanza[0]) {
 				case "port" :
 					portDef = Integer.valueOf(stanza[1]);
-					if(portDef < 0 || portDef > 65535)  {
+					if (portDef < 0 || portDef > 65535) {
 						throw new IllegalArgumentException("" + portDef + " is not a valid port number");
 					}
 					continue;
@@ -74,10 +74,9 @@ public class ProtocolScheme {
 					try {
 						bindAddress = handleAddress(spec, stanza[1]);
 						InetAddress address = bindAddress.getAddress();
-						if(NetworkInterface.getByInetAddress(address) == null &&
-								!address.isAnyLocalAddress()) {
-							throw new IllegalArgumentException("The bind address " +
-									stanza[1] + " is not local to this machine.");
+						if (NetworkInterface.getByInetAddress(address) == null && !address.isAnyLocalAddress()) {
+							throw new IllegalArgumentException(
+								"The bind address " + stanza[1] + " is not local to this machine.");
 						}
 					} catch (Exception e) {
 						throw new IllegalArgumentException("Unable to bind to the address " + stanza[1], e);
@@ -87,7 +86,7 @@ public class ProtocolScheme {
 					InetSocketAddress isa = handleAddress(spec, stanza[1]);
 					toAdvertise.put(isa.getHostString(), isa.getPort());
 					continue;
-				default:
+				default :
 					specificSocketOptions.put(stanza[0], stanza[1]);
 			}
 		}
@@ -106,12 +105,14 @@ public class ProtocolScheme {
 		boolean hasMultipleColons = colonCounter.find() && colonCounter.find();
 
 		boolean hasPort;
-		if(value.startsWith("[") ) {
+		if (value.startsWith("[")) {
 			// IPv6
 			int endOfAddress = value.lastIndexOf(']');
 			hasPort = portDelimiter > endOfAddress;
-		} else if(hasMultipleColons) {
-			LOG.warn("The protocol definition {} contains an address {} which uses IPV6 notation but is not surrounded by \"[]\". No port information can be detected using this syntax and it should be avoided.", spec, value);
+		} else if (hasMultipleColons) {
+			LOG.warn(
+				"The protocol definition {} contains an address {} which uses IPV6 notation but is not surrounded by \"[]\". No port information can be detected using this syntax and it should be avoided.",
+				spec, value);
 			hasPort = false;
 		} else {
 			hasPort = portDelimiter > 0;
@@ -120,10 +121,11 @@ public class ProtocolScheme {
 		try {
 			int port;
 			String address;
-			if(hasPort) {
+			if (hasPort) {
 				port = Integer.parseInt(value.substring(portDelimiter + 1));
-				if(port < 0 || port > 65535)  {
-					LOG.error("The protocol definition {} contains an address {} which declares an invalid port", spec, value);
+				if (port < 0 || port > 65535) {
+					LOG.error("The protocol definition {} contains an address {} which declares an invalid port", spec,
+						value);
 					throw new IllegalArgumentException("The " + port + " is not a valid port number");
 				}
 				address = value.substring(0, portDelimiter);
@@ -163,28 +165,28 @@ public class ProtocolScheme {
 	public <T> T getOption(String option, Class<T> clazz) {
 
 		String value = specificSocketOptions.get(option);
-		if(value == null) {
+		if (value == null) {
 			return null;
-		} else if(clazz.isInstance(value)) {
+		} else if (clazz.isInstance(value)) {
 			return clazz.cast(value);
 		} else {
 			try {
 				Method m = clazz.getMethod("valueOf", String.class);
-				if(Modifier.isStatic(m.getModifiers())) {
+				if (Modifier.isStatic(m.getModifiers())) {
 					return (T) m.invoke(null, value);
 				}
 			} catch (NoSuchMethodException nsme) {
-				//Look for a constructor instead
+				// Look for a constructor instead
 			} catch (Exception e) {
 				throw new RuntimeException(
-						format("Unable to convert the property value {} for option {}", value, option), e);
+					format("Unable to convert the property value {} for option {}", value, option), e);
 			}
 			try {
 				Constructor<T> c = clazz.getConstructor(String.class);
 				return c.newInstance(value);
 			} catch (Exception e) {
 				throw new RuntimeException(
-						format("Unable to convert the property value {} for option {}", value, option), e);
+					format("Unable to convert the property value {} for option {}", value, option), e);
 			}
 		}
 	}

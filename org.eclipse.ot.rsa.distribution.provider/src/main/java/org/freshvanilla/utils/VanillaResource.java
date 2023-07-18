@@ -21,48 +21,47 @@ import org.slf4j.LoggerFactory;
 
 public class VanillaResource implements SimpleResource {
 
-    private final String _name;
-    private volatile boolean _closed = false;
+	private final String		_name;
+	private volatile boolean	_closed	= false;
 
-    public VanillaResource(String name) {
-        _name = name;
-    }
+	public VanillaResource(String name) {
+		_name = name;
+	}
 
-    @Override
+	@Override
 	public String getName() {
-        return _name;
-    }
+		return _name;
+	}
 
-    @Override
+	@Override
 	public boolean isClosed() {
-        return _closed;
-    }
+		return _closed;
+	}
 
-    @Override
+	@Override
 	public void close() {
-        _closed = true;
-    }
+		_closed = true;
+	}
 
-    public void checkedClosed() throws IllegalStateException {
-        if (_closed) {
-            throw new IllegalStateException(_name + " closed!");
-        }
-    }
+	public void checkedClosed() throws IllegalStateException {
+		if (_closed) {
+			throw new IllegalStateException(_name + " closed!");
+		}
+	}
 
 	@Override
 	protected void finalize() throws Throwable {
-        try {
-            if (!_closed) {
-                close();
-            }
-        }
-        finally {
-            super.finalize();
-        }
-    }
+		try {
+			if (!_closed) {
+				close();
+			}
+		} finally {
+			super.finalize();
+		}
+	}
 
-    protected Logger getLog() {
-        return LoggerFactory.getLogger(getClass());
-    }
+	protected Logger getLog() {
+		return LoggerFactory.getLogger(getClass());
+	}
 
 }

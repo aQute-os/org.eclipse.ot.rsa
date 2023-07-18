@@ -20,60 +20,60 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class VirtualClass<T> implements MetaClass<T> {
-    private final MetaClass<T> _metaClass;
-    private final String _nameWithParameters;
-    private final MetaField<T, ?>[] _fields;
+	private final MetaClass<T>		_metaClass;
+	private final String			_nameWithParameters;
+	private final MetaField<T, ?>[]	_fields;
 
-    @SuppressWarnings("unchecked")
-    public VirtualClass(MetaClass<T> metaClass, String nameWithParameters, String[] nameWithParametersSplit) {
-        _metaClass = metaClass;
-        _nameWithParameters = nameWithParameters;
+	@SuppressWarnings("unchecked")
+	public VirtualClass(MetaClass<T> metaClass, String nameWithParameters, String[] nameWithParametersSplit) {
+		_metaClass = metaClass;
+		_nameWithParameters = nameWithParameters;
 
-        Map<String, MetaField<T, ?>> fieldsByName = new LinkedHashMap<>();
-        for (MetaField<T, ?> field : metaClass.fields()) {
-            fieldsByName.put(field.getName(), field);
-        }
+		Map<String, MetaField<T, ?>> fieldsByName = new LinkedHashMap<>();
+		for (MetaField<T, ?> field : metaClass.fields()) {
+			fieldsByName.put(field.getName(), field);
+		}
 
-        _fields = new MetaField[nameWithParametersSplit.length - 1];
+		_fields = new MetaField[nameWithParametersSplit.length - 1];
 
-        for (int i = 0; i < _fields.length; i++) {
-            MetaField<T, ?> field = fieldsByName.get(nameWithParametersSplit[i + 1]);
-            if (field == null) {
-                final String name = nameWithParametersSplit[i + 1];
-                field = new VanillaField<>(name, null, Void.class);
-            }
-            _fields[i] = field;
-        }
-    }
+		for (int i = 0; i < _fields.length; i++) {
+			MetaField<T, ?> field = fieldsByName.get(nameWithParametersSplit[i + 1]);
+			if (field == null) {
+				final String name = nameWithParametersSplit[i + 1];
+				field = new VanillaField<>(name, null, Void.class);
+			}
+			_fields[i] = field;
+		}
+	}
 
-    @Override
+	@Override
 	public Class<T> getType() {
-        return _metaClass.getType();
-    }
+		return _metaClass.getType();
+	}
 
-    @Override
+	@Override
 	public String nameWithParameters() {
-        return _nameWithParameters;
-    }
+		return _nameWithParameters;
+	}
 
-    @Override
+	@Override
 	public MetaField<T, ?>[] fields() {
-        return _fields;
-    }
+		return _fields;
+	}
 
-    @Override
+	@Override
 	public T newInstance() throws InstantiationException {
-        return _metaClass.newInstance();
-    }
+		return _metaClass.newInstance();
+	}
 
-    @Override
+	@Override
 	public boolean definesEquals() {
-        return _metaClass.definesEquals();
-    }
+		return _metaClass.definesEquals();
+	}
 
-    @Override
+	@Override
 	public Class<?> getComponentType() {
-        return null;
-    }
+		return null;
+	}
 
 }

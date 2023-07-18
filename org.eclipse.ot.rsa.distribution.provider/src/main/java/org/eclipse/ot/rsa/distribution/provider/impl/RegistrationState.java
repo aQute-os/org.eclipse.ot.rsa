@@ -12,4 +12,9 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.impl;
 
-public enum RegistrationState {PRE_INIT, OPEN, ERROR, CLOSED}
+public enum RegistrationState {
+	PRE_INIT,
+	OPEN,
+	ERROR,
+	CLOSED
+}

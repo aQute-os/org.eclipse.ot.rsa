@@ -28,8 +28,8 @@ public class MethodCompleteResponse extends AbstractPayloadMessage<ServerMessage
 
 	private final Object response;
 
-	public MethodCompleteResponse(boolean successful, UUID serviceId, int callId,
-			Serializer serializer, Object response) {
+	public MethodCompleteResponse(boolean successful, UUID serviceId, int callId, Serializer serializer,
+		Object response) {
 		super(successful ? SUCCESS : FAILURE, serviceId, callId, serializer);
 		this.response = response;
 	}

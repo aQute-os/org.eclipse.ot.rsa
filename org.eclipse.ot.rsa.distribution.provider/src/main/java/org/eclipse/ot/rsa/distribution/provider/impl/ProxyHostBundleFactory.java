@@ -32,47 +32,52 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 
 /**
- * This class dynamically creates and installs a "virtual" {@link Bundle} to host service
- * proxies for imported services. This is necessary to properly enable "magic" package
- * wiring and service visibility rules in the OSGi framework.<br>
+ * This class dynamically creates and installs a "virtual" {@link Bundle} to
+ * host service proxies for imported services. This is necessary to properly
+ * enable "magic" package wiring and service visibility rules in the OSGi
+ * framework.<br>
  * For background information please see <a
  * href=http://www.mail-archive.com/osgi-dev@mail.osgi.org/msg01876.html>here</a>.
  */
 public class ProxyHostBundleFactory {
 
-    public static final String PEER_PROXY_BUNDLE_SYMBOLIC_NAME = "org.eclipse.ot.rsa.net.host";
-    public static final String CHILD_PROXY_BUNDLE_SYMBOLIC_NAME = "org.eclipse.ot.rsa.net.child.host";
-    public static final String PROXY_BUNDLE_MANIFESTVERSION = "2";
-    public static final String PROXY_BUNDLE_NAME = "DOSGi Virtual Proxy Host";
+	public static final String	PEER_PROXY_BUNDLE_SYMBOLIC_NAME		= "org.eclipse.ot.rsa.net.host";
+	public static final String	CHILD_PROXY_BUNDLE_SYMBOLIC_NAME	= "org.eclipse.ot.rsa.net.child.host";
+	public static final String	PROXY_BUNDLE_MANIFESTVERSION		= "2";
+	public static final String	PROXY_BUNDLE_NAME					= "DOSGi Virtual Proxy Host";
 
-    /**
-     * Finds or installs a virtual {@link Bundle} with no exported or imported packages.
-     * The {@link BundleContext} of this Bundle must be used for registration of the
-     * {@link ServiceFactory} which acts as access point for imported remote services. <br>
-     * The new Bundle has the same version as the dosgi net bundle and has a
-     * Bundle-SymbolicName of {@value #PEER_PROXY_BUNDLE_SYMBOLIC_NAME} or
-     * {@value #CHILD_PROXY_BUNDLE_SYMBOLIC_NAME}
-     *
-     * @param target the framework into which the proxy bundle should be installed
-     * @return the new virtual bundle
-     */
+	/**
+	 * Finds or installs a virtual {@link Bundle} with no exported or imported
+	 * packages. The {@link BundleContext} of this Bundle must be used for
+	 * registration of the {@link ServiceFactory} which acts as access point for
+	 * imported remote services. <br>
+	 * The new Bundle has the same version as the dosgi net bundle and has a
+	 * Bundle-SymbolicName of {@value #PEER_PROXY_BUNDLE_SYMBOLIC_NAME} or
+	 * {@value #CHILD_PROXY_BUNDLE_SYMBOLIC_NAME}
+	 *
+	 * @param target the framework into which the proxy bundle should be
+	 *            installed
+	 * @return the new virtual bundle
+	 */
 	public synchronized Bundle getProxyBundle(Framework target) {
-    	Bundle dosgiBundle = FrameworkUtil.getBundle(ProxyHostBundleFactory.class);
-		boolean peer = dosgiBundle.getBundleContext().getBundle(0).equals(target);
+		Bundle dosgiBundle = FrameworkUtil.getBundle(ProxyHostBundleFactory.class);
+		boolean peer = dosgiBundle.getBundleContext()
+			.getBundle(0)
+			.equals(target);
 
-        // use name & version of the installer bundle to create the proxy host
-        String proxySymbolicName = peer ? PEER_PROXY_BUNDLE_SYMBOLIC_NAME : CHILD_PROXY_BUNDLE_SYMBOLIC_NAME;
-        Version proxyVersion = dosgiBundle.getVersion();
+		// use name & version of the installer bundle to create the proxy host
+		String proxySymbolicName = peer ? PEER_PROXY_BUNDLE_SYMBOLIC_NAME : CHILD_PROXY_BUNDLE_SYMBOLIC_NAME;
+		Version proxyVersion = dosgiBundle.getVersion();
 
-        BundleContext targetContext = target.getBundleContext();
+		BundleContext targetContext = target.getBundleContext();
 
-        Optional<Bundle> existing = Arrays.stream(targetContext.getBundles())
-        	.filter(b -> proxySymbolicName.equals(b.getSymbolicName()))
-        	.filter(b -> proxyVersion.equals(b.getVersion()))
-        	.findAny();
+		Optional<Bundle> existing = Arrays.stream(targetContext.getBundles())
+			.filter(b -> proxySymbolicName.equals(b.getSymbolicName()))
+			.filter(b -> proxyVersion.equals(b.getVersion()))
+			.findAny();
 
-        return existing.orElseGet(() -> createBundle(proxySymbolicName, proxyVersion, targetContext));
-    }
+		return existing.orElseGet(() -> createBundle(proxySymbolicName, proxyVersion, targetContext));
+	}
 
 	private static Bundle createBundle(String proxySymbolicName, Version proxyVersion, BundleContext targetContext) {
 		try {
@@ -85,12 +90,13 @@ public class ProxyHostBundleFactory {
 			a.put(new Name(Constants.BUNDLE_VERSION), proxyVersion.toString());
 
 			try (ByteArrayOutputStream stream = new ByteArrayOutputStream(1024)) {
-				try (JarOutputStream out = new JarOutputStream(stream, m)){ }
+				try (JarOutputStream out = new JarOutputStream(stream, m)) {}
 				// nothing to write, so just close again
 				stream.close();
 
 				// "materialize" the bundle
-				String location = UUID.randomUUID().toString();
+				String location = UUID.randomUUID()
+					.toString();
 				InputStream input = new ByteArrayInputStream(stream.toByteArray());
 				Bundle proxy = targetContext.installBundle(location, input);
 				// INSTALLED state is not enough

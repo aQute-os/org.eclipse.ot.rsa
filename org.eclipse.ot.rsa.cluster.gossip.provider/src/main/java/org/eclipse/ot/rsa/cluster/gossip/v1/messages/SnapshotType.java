@@ -13,5 +13,7 @@
 package org.eclipse.ot.rsa.cluster.gossip.v1.messages;
 
 public enum SnapshotType {
-	HEADER, HEARTBEAT, PAYLOAD_UPDATE;
+	HEADER,
+	HEARTBEAT,
+	PAYLOAD_UPDATE;
 }

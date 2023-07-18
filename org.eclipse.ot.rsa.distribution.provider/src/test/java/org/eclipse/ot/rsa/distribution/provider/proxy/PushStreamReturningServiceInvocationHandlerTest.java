@@ -76,78 +76,83 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class PushStreamReturningServiceInvocationHandlerTest {
 
-    @Mock
-    private ImportRegistrationImpl _importRegistration;
-    @Mock
-    Channel _ch;
-    @Mock
-    ChannelPromise _chPromise;
-    @Mock
-    Serializer _serializer;
-    @Mock
-    Bundle _callingContext;
+	@Mock
+	private ImportRegistrationImpl	_importRegistration;
+	@Mock
+	Channel							_ch;
+	@Mock
+	ChannelPromise					_chPromise;
+	@Mock
+	Serializer						_serializer;
+	@Mock
+	Bundle							_callingContext;
 
-    ByteBuf _trueBuf = Unpooled.buffer();
-    ByteBuf _falseBuf = Unpooled.buffer();
-    ByteBuf _oneBuf = Unpooled.buffer();
-    ByteBuf _twoBuf = Unpooled.buffer();
-    ByteBuf _nullBuf = Unpooled.buffer();
+	ByteBuf							_trueBuf	= Unpooled.buffer();
+	ByteBuf							_falseBuf	= Unpooled.buffer();
+	ByteBuf							_oneBuf		= Unpooled.buffer();
+	ByteBuf							_twoBuf		= Unpooled.buffer();
+	ByteBuf							_nullBuf	= Unpooled.buffer();
 
-	private EndpointDescription _endpointDescription;
+	private EndpointDescription		_endpointDescription;
 
-	private Class<?> _proxyClass;
-	private List<Class<?>> _proxyClassInterfaces;
-	private Class<?> _proxyClassWithDifferentPushStream;
-	private List<Class<?>> _proxyClassWithDifferentPushStreamInterfaces;
-	private Class<?> _differentPromise;
-	private Class<?> _differentPushStream;
-	private Class<?> _differentPushEventSource;
+	private Class<?>				_proxyClass;
+	private List<Class<?>>			_proxyClassInterfaces;
+	private Class<?>				_proxyClassWithDifferentPushStream;
+	private List<Class<?>>			_proxyClassWithDifferentPushStreamInterfaces;
+	private Class<?>				_differentPromise;
+	private Class<?>				_differentPushStream;
+	private Class<?>				_differentPushEventSource;
 
-	private EventExecutor executor;
+	private EventExecutor			executor;
 
-    private Timer timer;
+	private Timer					timer;
 
-    @BeforeEach
+	@BeforeEach
 	public void setUp() throws Exception {
-        executor = ImmediateEventExecutor.INSTANCE;
-        timer = new HashedWheelTimer();
+		executor = ImmediateEventExecutor.INSTANCE;
+		timer = new HashedWheelTimer();
 
-        Mockito.when(_ch.newPromise()).then(x -> new DefaultChannelPromise(_ch, executor));
+		Mockito.when(_ch.newPromise())
+			.then(x -> new DefaultChannelPromise(_ch, executor));
 
-        Map<String, Object> map = new HashMap<>();
-        map.put(RemoteConstants.ENDPOINT_ID, new UUID(123, 456).toString());
-        map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
-        map.put(Constants.OBJECTCLASS, new String[] {TestReturnsPushStreamTypes.class.getName()});
-        map.put(RSAConstants.DISTRIBUTION_CONFIG_METHODS, new String[] {"1=booleans[]"});
-        _endpointDescription = new EndpointDescription(map);
+		Map<String, Object> map = new HashMap<>();
+		map.put(RemoteConstants.ENDPOINT_ID, new UUID(123, 456).toString());
+		map.put(RemoteConstants.SERVICE_IMPORTED_CONFIGS, "my.config.type");
+		map.put(Constants.OBJECTCLASS, new String[] {
+			TestReturnsPushStreamTypes.class.getName()
+		});
+		map.put(RSAConstants.DISTRIBUTION_CONFIG_METHODS, new String[] {
+			"1=booleans[]"
+		});
+		_endpointDescription = new EndpointDescription(map);
 
-        _proxyClass = Proxy.getProxyClass(new ClassLoader(){}, TestReturnsPushStreamTypes.class);
-        _proxyClassInterfaces = asList(TestReturnsPushStreamTypes.class);
+		_proxyClass = Proxy.getProxyClass(new ClassLoader() {}, TestReturnsPushStreamTypes.class);
+		_proxyClassInterfaces = asList(TestReturnsPushStreamTypes.class);
 
-        ClassLoader differentClassLoader = getSeparateClassLoader();
+		ClassLoader differentClassLoader = getSeparateClassLoader();
 
-        _proxyClassWithDifferentPushStream = Proxy.getProxyClass(differentClassLoader,
-        		differentClassLoader.loadClass(TestReturnsPushStreamTypes.class.getName()));
-        _proxyClassWithDifferentPushStreamInterfaces = asList(
-        		differentClassLoader.loadClass(TestReturnsPushStreamTypes.class.getName()));
-        _differentPromise = differentClassLoader.loadClass(Promise.class.getName());
-        _differentPushStream = differentClassLoader.loadClass(PushStream.class.getName());
-        _differentPushEventSource = differentClassLoader.loadClass(PushEventSource.class.getName());
+		_proxyClassWithDifferentPushStream = Proxy.getProxyClass(differentClassLoader,
+			differentClassLoader.loadClass(TestReturnsPushStreamTypes.class.getName()));
+		_proxyClassWithDifferentPushStreamInterfaces = asList(
+			differentClassLoader.loadClass(TestReturnsPushStreamTypes.class.getName()));
+		_differentPromise = differentClassLoader.loadClass(Promise.class.getName());
+		_differentPushStream = differentClassLoader.loadClass(PushStream.class.getName());
+		_differentPushEventSource = differentClassLoader.loadClass(PushEventSource.class.getName());
 
-        Map<Integer, String> methods = new HashMap<>();
-        methods.put(1, "booleans[]");
-        methods.put(2, "integers[]");
-        when(_importRegistration.getMethodMappings()).thenReturn(methods);
-        when(_importRegistration.getId()).thenReturn(new UUID(123, 456));
+		Map<Integer, String> methods = new HashMap<>();
+		methods.put(1, "booleans[]");
+		methods.put(2, "integers[]");
+		when(_importRegistration.getMethodMappings()).thenReturn(methods);
+		when(_importRegistration.getId()).thenReturn(new UUID(123, 456));
 
-        when(_serializer.deserializeReturn(_trueBuf)).thenReturn(Boolean.TRUE);
-        when(_serializer.deserializeReturn(_falseBuf)).thenReturn(Boolean.FALSE);
-        when(_serializer.deserializeReturn(_oneBuf)).thenReturn(1);
-        when(_serializer.deserializeReturn(_twoBuf)).thenReturn(2);
-        when(_serializer.deserializeReturn(_nullBuf)).thenReturn(null);
-    }
+		when(_serializer.deserializeReturn(_trueBuf)).thenReturn(Boolean.TRUE);
+		when(_serializer.deserializeReturn(_falseBuf)).thenReturn(Boolean.FALSE);
+		when(_serializer.deserializeReturn(_oneBuf)).thenReturn(1);
+		when(_serializer.deserializeReturn(_twoBuf)).thenReturn(2);
+		when(_serializer.deserializeReturn(_nullBuf)).thenReturn(null);
+	}
 
-    @AfterEach
+	@AfterEach
 	public void tearDown() throws Exception {
 		timer.stop();
 		executor.shutdownGracefully();
@@ -158,25 +163,28 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		return new ClassLoader() {
 			private final Map<String, Class<?>> cache = new HashMap<>();
 
-    		@Override
+			@Override
 			public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    			if(name.startsWith("java")) {
-    				return super.loadClass(name, resolve);
-    			}
-    			Class<?> c = cache.get(name);
-    			if(c != null) return c;
+				if (name.startsWith("java")) {
+					return super.loadClass(name, resolve);
+				}
+				Class<?> c = cache.get(name);
+				if (c != null)
+					return c;
 
-    			String resourceName = name.replace('.', '/') + ".class";
+				String resourceName = name.replace('.', '/') + ".class";
 
 				InputStream resourceAsStream = PushStreamReturningServiceInvocationHandlerTest.this.getClass()
-						.getClassLoader().getResourceAsStream(resourceName);
-				if(resourceAsStream == null) throw new ClassNotFoundException(name);
-				try(InputStream is = resourceAsStream) {
+					.getClassLoader()
+					.getResourceAsStream(resourceName);
+				if (resourceAsStream == null)
+					throw new ClassNotFoundException(name);
+				try (InputStream is = resourceAsStream) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					byte[] b = new byte[4096];
 
 					int i = 0;
-					while((i = is.read(b)) > -1) {
+					while ((i = is.read(b)) > -1) {
 						baos.write(b, 0, i);
 					}
 					c = defineClass(name, baos.toByteArray(), 0, baos.size());
@@ -184,7 +192,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 					throw new ClassNotFoundException(name, e);
 				}
 				cache.put(name, c);
-				if(resolve) {
+				if (resolve) {
 					resolveClass(c);
 				}
 				return c;
@@ -194,13 +202,14 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 	private Object createProxy(Class<?> proxyClass, ServiceInvocationHandler handler) {
 		try {
-			return proxyClass.getConstructor(InvocationHandler.class).newInstance(handler);
+			return proxyClass.getConstructor(InvocationHandler.class)
+				.newInstance(handler);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-    ArgumentMatcher<Object[]> isArrayOf(Object... o) {
+	ArgumentMatcher<Object[]> isArrayOf(Object... o) {
 		return new ArgumentMatcher<Object[]>() {
 
 			@Override
@@ -210,147 +219,154 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		};
 	}
 
-    @Test
+	@Test
 	public void testSuccessfulInvocationPushStream() throws Exception {
 
-        ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, PushStream.class,
-        		PushEventConsumer.class, _ch, _serializer, () -> 1, new AtomicLong(3000), executor, timer);
+		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
+			_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, PushStream.class,
+			PushEventConsumer.class, _ch, _serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
-        TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
+		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
-        when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN,
-        		TestReturnsPushStreamTypes.class.getMethod("booleans").toString(),
-        		new Object[] {})), any()))
-			.then(i -> {
-				i.<ClientInvocation>getArgument(0).getResult()
-        			.setSuccess(new Object[] {new UUID(1, 2), 3});
-				return null;
-			});
+		when(_ch
+			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("booleans")
+				.toString(), new Object[] {})), any())).then(i -> {
+					i.<ClientInvocation> getArgument(0)
+						.getResult()
+						.setSuccess(new Object[] {
+							new UUID(1, 2), 3
+					});
+					return null;
+				});
 
-        PushStream<Boolean> p = proxy.booleans();
+		PushStream<Boolean> p = proxy.booleans();
 
-        when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN))))
-        	.then(i -> {
-        			AbstractClientInvocationWithResult invocation =
-        					i.<AbstractClientInvocationWithResult>getArgument(0);
-        			assertEquals(new UUID(1,2), invocation.getServiceId());
-        			assertEquals(3, invocation.getCallId());
-        			invocation.data(_trueBuf);
-        			invocation.data(_falseBuf);
-        			invocation.fail(_nullBuf);
-        			return _chPromise;
-        		});
+		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
+			assertEquals(new UUID(1, 2), invocation.getServiceId());
+			assertEquals(3, invocation.getCallId());
+			invocation.data(_trueBuf);
+			invocation.data(_falseBuf);
+			invocation.fail(_nullBuf);
+			return _chPromise;
+		});
 
-        Promise<Long> promise = p.count();
+		Promise<Long> promise = p.count();
 
-        assertTrue(promise.isDone());
-        assertEquals(2, promise.getValue().longValue());
-    }
+		assertTrue(promise.isDone());
+		assertEquals(2, promise.getValue()
+			.longValue());
+	}
 
-    @Test
-    public void testSuccessfulInvocationPushEventSource() throws Exception {
+	@Test
+	public void testSuccessfulInvocationPushEventSource() throws Exception {
 
-    	ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-    			_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, PushStream.class,
-    			PushEventSource.class, _ch, _serializer, () -> 1, new AtomicLong(3000), executor, timer);
+		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
+			_callingContext, _proxyClass, _proxyClassInterfaces, Promise.class, false, PushStream.class,
+			PushEventSource.class, _ch, _serializer, () -> 1, new AtomicLong(3000), executor, timer);
 
-    	TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
+		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
-    	when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN,
-    			TestReturnsPushStreamTypes.class.getMethod("integers").toString(),
-    			new Object[] {})), any()))
-    	.then(i -> {
-    		i.<ClientInvocation>getArgument(0).getResult()
-    		.setSuccess(new Object[] {new UUID(1, 2), 3});
-    		return null;
-    	});
+		when(_ch
+			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})), any())).then(i -> {
+					i.<ClientInvocation> getArgument(0)
+						.getResult()
+						.setSuccess(new Object[] {
+							new UUID(1, 2), 3
+					});
+					return null;
+				});
 
-    	PushEventSource<Integer> p = proxy.integers();
+		PushEventSource<Integer> p = proxy.integers();
 
-    	when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN))))
-    	.then(i -> {
-    		AbstractClientInvocationWithResult invocation =
-    				i.<AbstractClientInvocationWithResult>getArgument(0);
-    		assertEquals(new UUID(1,2), invocation.getServiceId());
-    		assertEquals(3, invocation.getCallId());
-    		invocation.data(_oneBuf);
-    		invocation.data(_twoBuf);
-    		invocation.fail(_nullBuf);
-    		return _chPromise;
-    	});
+		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
+			assertEquals(new UUID(1, 2), invocation.getServiceId());
+			assertEquals(3, invocation.getCallId());
+			invocation.data(_oneBuf);
+			invocation.data(_twoBuf);
+			invocation.fail(_nullBuf);
+			return _chPromise;
+		});
 
-    	Promise<Long> promise = new PushStreamProvider().buildStream(p).unbuffered().build().count();
+		Promise<Long> promise = new PushStreamProvider().buildStream(p)
+			.unbuffered()
+			.build()
+			.count();
 
-    	promise.getValue();
-    	assertEquals(2, promise.getValue().longValue());
-    }
+		promise.getValue();
+		assertEquals(2, promise.getValue()
+			.longValue());
+	}
 
 	@Test
 	public void testSuccessfulInvocationDifferentPushStream() throws Exception {
 
-        ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-        		_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces, _differentPromise, false, _differentPushStream, _differentPushEventSource, _ch,
-        		_serializer, () -> 1, new AtomicLong(3000), executor, timer);
+		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
+			_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces,
+			_differentPromise, false, _differentPushStream, _differentPushEventSource, _ch, _serializer, () -> 1,
+			new AtomicLong(3000), executor, timer);
 
-        Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
+		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-        when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN,
-        		TestReturnsPushStreamTypes.class.getMethod("booleans").toString(),
-        		new Object[] {})), any()))
-			.then(i -> {
-				i.<ClientInvocation>getArgument(0).getResult()
-					.setSuccess(new Object[] {new UUID(1, 2), 3});
-				return null;
-			});
+		when(_ch
+			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("booleans")
+				.toString(), new Object[] {})), any())).then(i -> {
+					i.<ClientInvocation> getArgument(0)
+						.getResult()
+						.setSuccess(new Object[] {
+							new UUID(1, 2), 3
+					});
+					return null;
+				});
 
+		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
+			assertEquals(new UUID(1, 2), invocation.getServiceId());
+			assertEquals(3, invocation.getCallId());
+			invocation.data(_trueBuf);
+			invocation.data(_falseBuf);
+			invocation.fail(_nullBuf);
+			return _chPromise;
+		});
 
-        when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN))))
-        	.then(i -> {
-        			AbstractClientInvocationWithResult invocation =
-        					i.<AbstractClientInvocationWithResult>getArgument(0);
-        			assertEquals(new UUID(1,2), invocation.getServiceId());
-        			assertEquals(3, invocation.getCallId());
-        			invocation.data(_trueBuf);
-        			invocation.data(_falseBuf);
-        			invocation.fail(_nullBuf);
-        			return _chPromise;
-        		});
+		Method booleans = _proxyClassWithDifferentPushStream.getMethod("booleans");
+		Method count = _differentPushStream.getMethod("count");
 
-        Method booleans = _proxyClassWithDifferentPushStream.getMethod("booleans");
-        Method count = _differentPushStream.getMethod("count");
-
-        Object returnedPushStream = booleans.invoke(proxy);
+		Object returnedPushStream = booleans.invoke(proxy);
 		Object returnedPromise = count.invoke(returnedPushStream);
 
-        assertTrue((Boolean) _differentPromise.getMethod("isDone").invoke(returnedPromise));
-        assertEquals(2L, _differentPromise.getMethod("getValue").invoke(returnedPromise));
-    }
+		assertTrue((Boolean) _differentPromise.getMethod("isDone")
+			.invoke(returnedPromise));
+		assertEquals(2L, _differentPromise.getMethod("getValue")
+			.invoke(returnedPromise));
+	}
 
 	@Test
 	public void testSuccessfulInvocationDifferentPushEventSource() throws Exception {
 
 		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-				_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces, _differentPromise, false, _differentPushStream, _differentPushEventSource, _ch,
-				_serializer, () -> 1, new AtomicLong(3000), executor, timer);
+			_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces,
+			_differentPromise, false, _differentPushStream, _differentPushEventSource, _ch, _serializer, () -> 1,
+			new AtomicLong(3000), executor, timer);
 
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN,
-				TestReturnsPushStreamTypes.class.getMethod("integers").toString(),
-				new Object[] {})), any()))
-		.then(i -> {
-			i.<ClientInvocation>getArgument(0).getResult()
-			.setSuccess(new Object[] {new UUID(1, 2), 3});
-			return null;
-		});
+		when(_ch
+			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})), any())).then(i -> {
+					i.<ClientInvocation> getArgument(0)
+						.getResult()
+						.setSuccess(new Object[] {
+							new UUID(1, 2), 3
+					});
+					return null;
+				});
 
-
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN))))
-		.then(i -> {
-			AbstractClientInvocationWithResult invocation =
-					i.<AbstractClientInvocationWithResult>getArgument(0);
-			assertEquals(new UUID(1,2), invocation.getServiceId());
+		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
+			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
 			invocation.data(_oneBuf);
 			invocation.data(_twoBuf);
@@ -363,10 +379,12 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		AtomicInteger count = new AtomicInteger(0);
 
-		Object consumer = Proxy.newProxyInstance(_differentPushEventSource.getClassLoader(), new Class<?>[] {open.getParameterTypes()[0]}, (x,y,z) -> {
-				count.incrementAndGet();
-				return 0L;
-			});
+		Object consumer = Proxy.newProxyInstance(_differentPushEventSource.getClassLoader(), new Class<?>[] {
+			open.getParameterTypes()[0]
+		}, (x, y, z) -> {
+			count.incrementAndGet();
+			return 0L;
+		});
 
 		Object returnedPushEventSource = integers.invoke(proxy);
 		open.invoke(returnedPushEventSource, consumer);
@@ -378,26 +396,26 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 	public void testSuccessfulInvocationDifferentPushEventSourceEarlyTerminate() throws Exception {
 
 		ServiceInvocationHandler sih = new ServiceInvocationHandler(_importRegistration, _endpointDescription,
-				_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces, _differentPromise, false, _differentPushStream, _differentPushEventSource, _ch,
-				_serializer, () -> 1, new AtomicLong(3000), executor, timer);
+			_callingContext, _proxyClassWithDifferentPushStream, _proxyClassWithDifferentPushStreamInterfaces,
+			_differentPromise, false, _differentPushStream, _differentPushEventSource, _ch, _serializer, () -> 1,
+			new AtomicLong(3000), executor, timer);
 
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(WITH_RETURN,
-				TestReturnsPushStreamTypes.class.getMethod("integers").toString(),
-				new Object[] {})), any()))
-		.then(i -> {
-			i.<ClientInvocation>getArgument(0).getResult()
-			.setSuccess(new Object[] {new UUID(1, 2), 3});
-			return null;
-		});
+		when(_ch
+			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})), any())).then(i -> {
+					i.<ClientInvocation> getArgument(0)
+						.getResult()
+						.setSuccess(new Object[] {
+							new UUID(1, 2), 3
+					});
+					return null;
+				});
 
-
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN))))
-		.then(i -> {
-			AbstractClientInvocationWithResult invocation =
-					i.<AbstractClientInvocationWithResult>getArgument(0);
-			assertEquals(new UUID(1,2), invocation.getServiceId());
+		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
+			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
 			invocation.data(_oneBuf);
 			invocation.data(_twoBuf);
@@ -410,7 +428,9 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		AtomicInteger count = new AtomicInteger(0);
 
-		Object consumer = Proxy.newProxyInstance(_differentPushEventSource.getClassLoader(), new Class<?>[] {open.getParameterTypes()[0]}, (x,y,z) -> {
+		Object consumer = Proxy.newProxyInstance(_differentPushEventSource.getClassLoader(), new Class<?>[] {
+			open.getParameterTypes()[0]
+		}, (x, y, z) -> {
 			count.incrementAndGet();
 			return -1L;
 		});
@@ -421,18 +441,18 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		assertEquals(2, count.get());
 	}
 
-	private ArgumentMatcher<ClientInvocation> isInvocationWith(ClientMessageType callType,
-			String method, Object[] args) {
+	private ArgumentMatcher<ClientInvocation> isInvocationWith(ClientMessageType callType, String method,
+		Object[] args) {
 		return new ArgumentMatcher<ClientInvocation>() {
 
-				@Override
-				public boolean matches(ClientInvocation clientInvocation) {
-					return  clientInvocation != null &&
-							clientInvocation.getType() == callType &&
-							clientInvocation.getMethodName().equals(method) &&
-							deepEquals(args, clientInvocation.getArgs());
-				}
-			};
+			@Override
+			public boolean matches(ClientInvocation clientInvocation) {
+				return clientInvocation != null && clientInvocation.getType() == callType
+					&& clientInvocation.getMethodName()
+						.equals(method)
+					&& deepEquals(args, clientInvocation.getArgs());
+			}
+		};
 	}
 
 	private ArgumentMatcher<AbstractClientInvocationWithResult> isInvocationWith(ClientMessageType callType) {

@@ -43,8 +43,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServiceAdminImpl> {
 
 	private static class Tuple {
-		final RemoteServiceAdminEventPublisher rp;
-		final int usageCount;
+		final RemoteServiceAdminEventPublisher	rp;
+		final int								usageCount;
 
 		public Tuple(RemoteServiceAdminEventPublisher rp, int usageCount) {
 			this.rp = rp;
@@ -52,25 +52,23 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 		}
 	}
 
-	private final ServerConnectionManager serverConnectionManager;
-	private final ClientConnectionManager clientConnectionManager;
+	private final ServerConnectionManager			serverConnectionManager;
+	private final ClientConnectionManager			clientConnectionManager;
 
-	private final ConcurrentMap<Bundle, Framework> bundleFrameworks
-		= new ConcurrentHashMap<>();
-	private final ConcurrentMap<Framework, Tuple> publisherReferenceCounts
-		= new ConcurrentHashMap<>();
+	private final ConcurrentMap<Bundle, Framework>	bundleFrameworks			= new ConcurrentHashMap<>();
+	private final ConcurrentMap<Framework, Tuple>	publisherReferenceCounts	= new ConcurrentHashMap<>();
 
-	private final List<RemoteServiceAdminImpl> impls = new CopyOnWriteArrayList<>();
+	private final List<RemoteServiceAdminImpl>		impls						= new CopyOnWriteArrayList<>();
 
-	private final EventExecutorGroup serverWorkers;
-	private final EventExecutorGroup clientWorkers;
-	private final Timer timer;
-	private final TransportConfig config;
-	private final BundleContext context;
+	private final EventExecutorGroup				serverWorkers;
+	private final EventExecutorGroup				clientWorkers;
+	private final Timer								timer;
+	private final TransportConfig					config;
+	private final BundleContext						context;
 
 	public RemoteServiceAdminFactoryImpl(BundleContext context, TransportConfig config, ParemusNettyTLS tls,
-			ByteBufAllocator allocator, EventLoopGroup serverIo, EventLoopGroup clientIo,
-			EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers, Timer timer) {
+		ByteBufAllocator allocator, EventLoopGroup serverIo, EventLoopGroup clientIo, EventExecutorGroup serverWorkers,
+		EventExecutorGroup clientWorkers, Timer timer) {
 		this.context = context;
 		this.config = config;
 		this.timer = timer;
@@ -82,52 +80,49 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 		serverConnectionManager = new ServerConnectionManager(config, tls, allocator, serverIo, timer);
 	}
 
-
 	@Override
 	public RemoteServiceAdminImpl getService(Bundle bundle, ServiceRegistration<RemoteServiceAdminImpl> registration) {
-		Framework framework = bundle.getBundleContext().getBundle(0).adapt(Framework.class);
+		Framework framework = bundle.getBundleContext()
+			.getBundle(0)
+			.adapt(Framework.class);
 
 		bundleFrameworks.put(bundle, framework);
 
-		RemoteServiceAdminEventPublisher rsaep = publisherReferenceCounts
-				.compute(framework, (k,v) -> {
-						Tuple toReturn = v == null ? new Tuple(
-						new RemoteServiceAdminEventPublisher(context), 1) :
-						new Tuple(v.rp, v.usageCount + 1);
-						return toReturn;
-					}).rp;
+		RemoteServiceAdminEventPublisher rsaep = publisherReferenceCounts.compute(framework, (k, v) -> {
+			Tuple toReturn = v == null ? new Tuple(new RemoteServiceAdminEventPublisher(context), 1)
+				: new Tuple(v.rp, v.usageCount + 1);
+			return toReturn;
+		}).rp;
 
 		rsaep.start();
 
-		RemoteServiceAdminImpl impl = new RemoteServiceAdminImpl(this, framework, rsaep, serverConnectionManager.getConfiguredProviders(),
-				clientConnectionManager, getSupportedIntents(), new ProxyHostBundleFactory(), serverWorkers,
-				clientWorkers, timer, config);
+		RemoteServiceAdminImpl impl = new RemoteServiceAdminImpl(this, framework, rsaep,
+			serverConnectionManager.getConfiguredProviders(), clientConnectionManager, getSupportedIntents(),
+			new ProxyHostBundleFactory(), serverWorkers, clientWorkers, timer, config);
 		impls.add(impl);
 		return impl;
 	}
 
 	@Override
 	public void ungetService(Bundle bundle, ServiceRegistration<RemoteServiceAdminImpl> registration,
-			RemoteServiceAdminImpl service) {
+		RemoteServiceAdminImpl service) {
 		impls.remove(service);
 		service.close();
 
 		Framework framework = bundleFrameworks.remove(bundle);
 
 		AtomicReference<RemoteServiceAdminEventPublisher> toClose = new AtomicReference<>();
-		publisherReferenceCounts
-			.computeIfPresent(framework, (k,v) -> {
-					toClose.set(null);
-					if(v.usageCount == 1) {
-						toClose.set(v.rp);
-						return null;
-					} else {
-						return new Tuple(v.rp, v.usageCount - 1);
-					}
-				});
+		publisherReferenceCounts.computeIfPresent(framework, (k, v) -> {
+			toClose.set(null);
+			if (v.usageCount == 1) {
+				toClose.set(v.rp);
+				return null;
+			} else {
+				return new Tuple(v.rp, v.usageCount - 1);
+			}
+		});
 
-		ofNullable(toClose.get())
-			.ifPresent(RemoteServiceAdminEventPublisher::destroy);
+		ofNullable(toClose.get()).ifPresent(RemoteServiceAdminEventPublisher::destroy);
 	}
 
 	public void close() {
@@ -141,7 +136,8 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 		intents.add("osgi.basic");
 		intents.add("osgi.async");
 		intents.addAll(Arrays.asList(config.additional_intents()));
-		if(serverConnectionManager.getConfiguredProviders().stream()
+		if (serverConnectionManager.getConfiguredProviders()
+			.stream()
 			.anyMatch(RemotingProvider::isSecure)) {
 			intents.add("confidentiality.message");
 			intents.add("osgi.confidential");
@@ -150,7 +146,8 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 	}
 
 	Collection<RemoteServiceAdminImpl> getRemoteServiceAdmins() {
-		return impls.stream().collect(toList());
+		return impls.stream()
+			.collect(toList());
 	}
 
 }

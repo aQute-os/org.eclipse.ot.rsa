@@ -38,7 +38,8 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 		AbstractRSAMessage<ServerMessageType> response = (AbstractRSAMessage<ServerMessageType>) msg;
 		try {
 			/* See Protocol_V1 and Protocol_V2 for header structure */
-			ByteBuf buf = ctx.alloc().ioBuffer();
+			ByteBuf buf = ctx.alloc()
+				.ioBuffer();
 			try {
 				response.write(buf, promise);
 			} catch (Exception e) {
@@ -52,21 +53,21 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 		}
 	}
 
-	private AbstractRSAMessage<ServerMessageType> getErrorResponse(
-			AbstractRSAMessage<ServerMessageType> response, Exception e) {
+	private AbstractRSAMessage<ServerMessageType> getErrorResponse(AbstractRSAMessage<ServerMessageType> response,
+		Exception e) {
 		AbstractRSAMessage<ServerMessageType> toReturn;
-		switch(response.getType()) {
-			case SUCCESS:
-				toReturn = new ServerErrorMessageResponse(RETURN_SERIALIZATION_ERROR,
-						response.getServiceId(), response.getCallId(), e.getMessage());
+		switch (response.getType()) {
+			case SUCCESS :
+				toReturn = new ServerErrorMessageResponse(RETURN_SERIALIZATION_ERROR, response.getServiceId(),
+					response.getCallId(), e.getMessage());
 				break;
-			case FAILURE:
-				toReturn = new ServerErrorMessageResponse(FAILURE_SERIALIZATION_ERROR,
-						response.getServiceId(), response.getCallId(), e.getMessage());
+			case FAILURE :
+				toReturn = new ServerErrorMessageResponse(FAILURE_SERIALIZATION_ERROR, response.getServiceId(),
+					response.getCallId(), e.getMessage());
 				break;
-			default:
-				toReturn = new ServerErrorMessageResponse(UNKNOWN_ERROR,
-						response.getServiceId(), response.getCallId(), e.getMessage());
+			default :
+				toReturn = new ServerErrorMessageResponse(UNKNOWN_ERROR, response.getServiceId(), response.getCallId(),
+					e.getMessage());
 		}
 		return toReturn;
 	}

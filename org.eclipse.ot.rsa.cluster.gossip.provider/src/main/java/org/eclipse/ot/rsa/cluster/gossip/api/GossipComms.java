@@ -24,11 +24,9 @@ import io.netty.util.concurrent.Future;
 
 public interface GossipComms {
 
-	public void publish(GossipMessage message,
-			Collection<InetSocketAddress> participants);
+	public void publish(GossipMessage message, Collection<InetSocketAddress> participants);
 
-	public Future<Void> replicate(MemberInfo member,
-			Collection<Snapshot> snapshots);
+	public Future<Void> replicate(MemberInfo member, Collection<Snapshot> snapshots);
 
 	public List<Future<?>> destroy();
 

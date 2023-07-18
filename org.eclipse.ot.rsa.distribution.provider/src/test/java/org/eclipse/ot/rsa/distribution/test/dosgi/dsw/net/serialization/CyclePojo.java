@@ -24,7 +24,6 @@ public class CyclePojo {
 		this.pojo = pojo;
 	}
 
-	public CyclePojo() {
-	}
+	public CyclePojo() {}
 
 }
