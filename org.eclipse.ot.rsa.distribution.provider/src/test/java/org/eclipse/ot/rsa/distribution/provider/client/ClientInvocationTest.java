@@ -83,7 +83,7 @@ public class ClientInvocationTest {
 	public void testSimpleInvocationCommsSuccess() throws Exception {
 		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
 			result
-		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -114,7 +114,7 @@ public class ClientInvocationTest {
 	public void testSimpleInvocationCommsFail() throws Exception {
 		ClientInvocation ci = new ClientInvocation(true, serviceId, 1, callId, new Object[] {
 			result
-		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -147,7 +147,7 @@ public class ClientInvocationTest {
 	public void testFireAndForgetInvocationCommsSuccess() throws Exception {
 		ClientInvocation ci = new ClientInvocation(false, serviceId, 1, callId, new Object[] {
 			result
-		}, new int[0], new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[long]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -180,7 +180,7 @@ public class ClientInvocationTest {
 			deferred.getPromise()
 		}, new int[] {
 			0
-		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -243,7 +243,7 @@ public class ClientInvocationTest {
 			deferred.getPromise()
 		}, new int[] {
 			0
-		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -303,7 +303,7 @@ public class ClientInvocationTest {
 			deferred.getPromise()
 		}, new int[] {
 			0
-		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		deferred.resolve(result);
@@ -341,7 +341,7 @@ public class ClientInvocationTest {
 			deferred.getPromise()
 		}, new int[] {
 			0
-		}, new int[0], serializer, PromiseFactory.toNettyFutureAdapter(Promise.class),
+		}, new int[0], serializer, PromiseFactory.osgiToNetty(Promise.class),
 			ImmediateEventExecutor.INSTANCE.newPromise(), new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		IOException failure = new IOException("failed");
@@ -380,7 +380,7 @@ public class ClientInvocationTest {
 			cf
 		}, new int[0], new int[] {
 			0
-		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+		}, serializer, PromiseFactory.osgiToNetty(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
 			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -439,7 +439,7 @@ public class ClientInvocationTest {
 			cf
 		}, new int[0], new int[] {
 			0
-		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+		}, serializer, PromiseFactory.osgiToNetty(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
 			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		ByteBuf buffer = Unpooled.buffer();
@@ -499,7 +499,7 @@ public class ClientInvocationTest {
 			cf
 		}, new int[0], new int[] {
 			0
-		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+		}, serializer, PromiseFactory.osgiToNetty(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
 			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		cf.complete(result);
@@ -537,7 +537,7 @@ public class ClientInvocationTest {
 			cf
 		}, new int[0], new int[] {
 			0
-		}, serializer, PromiseFactory.toNettyFutureAdapter(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
+		}, serializer, PromiseFactory.osgiToNetty(Promise.class), ImmediateEventExecutor.INSTANCE.newPromise(),
 			new AtomicLong(5000), "test[org.osgi.util.promise.Promise]");
 
 		IOException failure = new IOException("failed");

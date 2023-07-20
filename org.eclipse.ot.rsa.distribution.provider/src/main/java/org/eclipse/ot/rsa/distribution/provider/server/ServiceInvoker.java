@@ -136,9 +136,9 @@ public class ServiceInvoker {
 
 		try {
 			Class<?> promise = serviceClassLoader.loadClass("org.osgi.util.promise.Promise");
-			nettyPromiseCreator = PromiseFactory.nettyPromiseCreator(promise, timer);
-			toNettyFutureAdapter = PromiseFactory.toNettyFutureAdapter(promise);
-			fromNettyFutureAdapter = PromiseFactory.fromNettyFutureAdapter(promise, serverWorkers);
+			nettyPromiseCreator = PromiseFactory.nettyWithOSGi(promise, timer);
+			toNettyFutureAdapter = PromiseFactory.osgiToNetty(promise);
+			fromNettyFutureAdapter = PromiseFactory.nettyToOSGi(promise, serverWorkers);
 		} catch (NoClassDefFoundError | Exception e) {
 			LOG.debug("Unable to integrate with promises for the remote service {}", serviceId);
 		}

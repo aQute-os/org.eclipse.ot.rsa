@@ -768,7 +768,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.toNettyFutureAdapter(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
+			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
 			"testing"));
 
 		assertEquals(new URL("http://www.example.com"), p.get());
@@ -830,7 +830,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.toNettyFutureAdapter(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
+			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
 			"testing"));
 
 		assertEquals(new URL("http://www.example.com"), p.get());
@@ -915,7 +915,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.toNettyFutureAdapter(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
+			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
 			"testing"));
 
 		assertFalse(p.await(300));
@@ -1004,7 +1004,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.toNettyFutureAdapter(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
+			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
 			"testing"));
 
 		assertFalse(p.await(300));

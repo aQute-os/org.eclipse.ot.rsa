@@ -127,11 +127,11 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
 		Function<Future<?>, Object> pushEventSourceTransformer = getPushEventSourceTransformer(pushEventSourceClass);
 
-		Function<EventExecutor, Promise<Object>> nettyPromiseSupplier = PromiseFactory.nettyPromiseCreator(promiseClass,
+		Function<EventExecutor, Promise<Object>> nettyPromiseSupplier = PromiseFactory.nettyWithOSGi(promiseClass,
 			_timer);
 
 		Function<Object, Future<Object>> nettyFutureAdapter = promiseClass == null ? null
-			: PromiseFactory.toNettyFutureAdapter(promiseClass);
+			: PromiseFactory.osgiToNetty(promiseClass);
 
 		Set<Method> objectMethods = stream(Object.class.getMethods()).collect(toSet());
 
@@ -275,7 +275,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 			promiseReturnAction = UNREACHABLE_RETURN_TRANSFORMER;
 		} else {
 			try {
-				promiseReturnAction = PromiseFactory.fromNettyFutureAdapter(promiseClass, _executor);
+				promiseReturnAction = PromiseFactory.nettyToOSGi(promiseClass, _executor);
 			} catch (NoClassDefFoundError | Exception e) {
 				throw new RuntimeException("The Promises package is not supported", e);
 			}
@@ -436,7 +436,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
 	protected Future<String> proxyToString(Object proxy) {
 		StringBuilder sb = new StringBuilder(80);
-		sb.append("Proxy");
+		sb.append("ActualTypeName");
 
 		Class<?>[] interfaces = proxy.getClass()
 			.getInterfaces();

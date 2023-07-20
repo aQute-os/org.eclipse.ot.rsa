@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.when;
-import static org.osgi.util.promise.Promises.failed;
 import static org.osgi.util.promise.Promises.resolved;
 
 import java.io.ByteArrayOutputStream;
@@ -494,14 +493,15 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 		assertEquals(SUCCESS_RESPONSE, returned.get());
 		assertEquals(SERVICE_ID, new UUID(returned.getLong(), returned.getLong()));
 		assertEquals(789, returned.getInt());
-		assertEquals(42, returned.get());
+		Object deserializeReturn = serializer.deserializeReturn(Unpooled.wrappedBuffer(returned));
+		assertEquals(42, deserializeReturn);
 	}
 
 	@Test
 	public void testSimpleCallReturnsFailedPromise() throws Exception {
 
 		TestService serviceToUse = mock(TestService.class);
-		when(serviceToUse.length()).thenReturn(failed(new StringIndexOutOfBoundsException()));
+		when(serviceToUse.length()).thenThrow(StringIndexOutOfBoundsException.class);
 		methodMappings = new Method[1];
 		methodMappings[0] = serviceToUse.getClass()
 			.getMethod("length");
