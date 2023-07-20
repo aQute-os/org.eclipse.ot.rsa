@@ -14,7 +14,7 @@ package org.eclipse.ot.rsa.distribution.provider.proxy;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.deepEquals;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.WITH_RETURN;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CALL_WITH_RETURN_TYPE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -204,7 +204,7 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 		Deferred<Boolean> d = new Deferred<>();
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(WITH_RETURN, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
 				.toString(), new Object[] {
 					d.getPromise()
 			})), any())).then(i -> {
@@ -229,7 +229,7 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
 
 		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(WITH_RETURN, TestConsumesAsyncTypes.class.getMethod("alsoPending", CompletableFuture.class)
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("alsoPending", CompletableFuture.class)
 				.toString(), new Object[] {
 					cf
 			})), any())).then(i -> {
@@ -257,7 +257,7 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 			.invoke(deferred);
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(WITH_RETURN, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
 				.toString(), new Object[] {
 					promiseArg
 			})), any())).then(i -> {

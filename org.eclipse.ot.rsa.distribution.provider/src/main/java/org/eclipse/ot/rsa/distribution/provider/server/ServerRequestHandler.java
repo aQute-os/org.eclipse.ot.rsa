@@ -13,8 +13,7 @@
 package org.eclipse.ot.rsa.distribution.provider.server;
 
 import static java.util.Optional.ofNullable;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.NO_SERVICE;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.UNKNOWN_ERROR;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
 import static org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V1.CALL_WITHOUT_RETURN;
 import static org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V1.CALL_WITH_RETURN;
 import static org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V1.CANCEL;
@@ -82,7 +81,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 					LOG.warn(
 						"The RSA distribution provider received an unknown request type {} for service {} and is ignoring it",
 						callType, serviceId);
-					ctx.write(new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId,
+					ctx.write(new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, serviceId, callId,
 						"An unknown request type was received for service " + serviceId), ctx.voidPromise());
 
 			}
@@ -136,7 +135,9 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 						serviceId, transport.getProtocol(), transport.getConfigurationString()
 					});
 				ctx.channel()
-					.writeAndFlush(new ServerErrorResponse(NO_SERVICE, serviceId, callId), ctx.voidPromise());
+					.writeAndFlush(
+						new ServerErrorResponse(ServerMessageType.FAILURE_NO_SERVICE_TYPE, serviceId, callId),
+						ctx.voidPromise());
 				break;
 			case CALL_WITHOUT_RETURN :
 			case CANCEL :
@@ -172,7 +173,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 					break;
 			}
 		} else if (callType != CLIENT_CLOSE) {
-			ctx.writeAndFlush(new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId,
+			ctx.writeAndFlush(new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, serviceId, callId,
 				"The streaming response could not be found"), ctx.voidPromise());
 		}
 	}
@@ -192,7 +193,7 @@ class ServerRequestHandler extends ChannelInboundHandlerAdapter {
 			.addListener(f -> {
 				registeredStreams.remove(key);
 				if (!f.isSuccess()) {
-					ch.writeAndFlush(new ServerErrorMessageResponse(UNKNOWN_ERROR, id, callId,
+					ch.writeAndFlush(new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, id, callId,
 						"No connection made to the stream before the timeout was reached"), ch.voidPromise());
 				}
 			});

@@ -22,7 +22,7 @@ import io.netty.channel.ChannelPromise;
 public class ServerStreamCloseResponse extends AbstractRSAMessage<ServerMessageType> {
 
 	public ServerStreamCloseResponse(UUID serviceId, int callId) {
-		super(ServerMessageType.STREAM_CLOSE, serviceId, callId);
+		super(ServerMessageType.SERVER_CLOSE_EVENT_TYPE, serviceId, callId);
 	}
 
 	@Override

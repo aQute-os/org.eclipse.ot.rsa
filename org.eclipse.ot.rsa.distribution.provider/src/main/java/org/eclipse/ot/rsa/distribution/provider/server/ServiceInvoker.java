@@ -12,11 +12,11 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.server;
 
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.ARGS_SERIALIZATION_ERROR;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.ASYNC_PARAM_ERROR;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.NO_METHOD;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SERVER_OVERLOADED;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.UNKNOWN_ERROR;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_TO_DESERIALIZE_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SERVER_ASYNC_METHOD_PARAM_ERROR_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_NO_METHOD_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_SERVER_OVERLOADED_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -356,7 +356,7 @@ public class ServiceInvoker {
 				returnHandler = returnHandlers[idx];
 				argsPostProcessor = argsHandlers[idx];
 			} catch (ArrayIndexOutOfBoundsException aioobe) {
-				sendInternalFailureResponse(channel, callId, NO_METHOD, null);
+				sendInternalFailureResponse(channel, callId, FAILURE_NO_METHOD_TYPE, null);
 				return;
 			}
 
@@ -365,12 +365,12 @@ public class ServiceInvoker {
 				resolvers = argsPostProcessor.process(args);
 			} catch (Exception e) {
 				LOG.warn("Unable to deserialize the method and arguments for a remote call", e);
-				sendInternalFailureResponse(channel, callId, ARGS_SERIALIZATION_ERROR, e);
+				sendInternalFailureResponse(channel, callId, FAILURE_TO_DESERIALIZE_TYPE, e);
 				return;
 			}
 		} catch (Exception e) {
 			LOG.warn("An unknown error occurred setting up a remote call for service {}", serviceId, e);
-			sendInternalFailureResponse(channel, callId, UNKNOWN_ERROR, e);
+			sendInternalFailureResponse(channel, callId, FAILURE_UNKNOWN_TYPE, e);
 			return;
 		}
 		doCall(channel, callId, m, returnHandler, args, resolvers);
@@ -401,7 +401,7 @@ public class ServiceInvoker {
 			});
 		} catch (RejectedExecutionException ree) {
 			LOG.warn("The RSA distribution provider is overloaded and rejecting calls", ree);
-			sendInternalFailureResponse(channel, callId, SERVER_OVERLOADED, ree);
+			sendInternalFailureResponse(channel, callId, FAILURE_SERVER_OVERLOADED_TYPE, ree);
 		}
 	}
 
@@ -529,7 +529,7 @@ public class ServiceInvoker {
 				}
 			} catch (Exception e) {
 				LOG.warn("An unknown error occurred setting up a remote call for service {}", serviceId, e);
-				sendInternalFailureResponse(channel, callId, ASYNC_PARAM_ERROR, e);
+				sendInternalFailureResponse(channel, callId, SERVER_ASYNC_METHOD_PARAM_ERROR_TYPE, e);
 				ri.runningTask.cancel(true);
 				failAsyncArgs(ri.resolvers, e);
 				return;

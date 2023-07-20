@@ -12,8 +12,8 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.ASYNC_ARG_FAILURE;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.ASYNC_ARG_SUCCESS;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.ASYNC_METHOD_PARAM_FAILURE_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.ASYNC_METHOD_PARAM_DATA_TYPE;
 import static org.osgi.framework.ServiceException.REMOTE;
 
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessag
 	private final ClientInvocation	invocation;
 
 	public AsyncArgumentCompletion(boolean success, ClientInvocation invocation, int i, Object result) {
-		super(success ? ASYNC_ARG_SUCCESS : ASYNC_ARG_FAILURE, invocation.getServiceId(), invocation.getCallId(),
+		super(success ? ASYNC_METHOD_PARAM_DATA_TYPE : ASYNC_METHOD_PARAM_FAILURE_TYPE, invocation.getServiceId(), invocation.getCallId(),
 			invocation.getSerializer());
 
 		this.invocation = invocation;

@@ -12,7 +12,7 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.STREAMING_RESPONSE_OPEN;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CLIENT_OPEN_TYPE;
 import static org.osgi.framework.ServiceException.REMOTE;
 
 import java.util.UUID;
@@ -37,7 +37,7 @@ public class BeginStreamingInvocation extends AbstractClientInvocationWithResult
 
 	public BeginStreamingInvocation(UUID serviceId, int callId, Serializer serializer, EventExecutor executor,
 		Consumer<Object> dataConsumer, Consumer<Exception> closeConsumer, Future<?> close) {
-		super(STREAMING_RESPONSE_OPEN, serviceId, callId, serializer);
+		super(CLIENT_OPEN_TYPE, serviceId, callId, serializer);
 		this.executor = executor;
 		this.dataConsumer = dataConsumer;
 		this.closeConsumer = closeConsumer;

@@ -352,7 +352,7 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		Mockito.doThrow(IOException.class)
 			.when(serializer)
-			.serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
+			.serializeReturn((ByteBuf) ArgumentMatchers.any(), ArgumentMatchers.any());
 
 		ByteChannel channel = getCommsChannel(serviceUri);
 
@@ -390,7 +390,7 @@ public abstract class AbstractServerConnectionManagerTest extends AbstractLeakCh
 
 		Mockito.doThrow(IOException.class)
 			.when(serializer)
-			.serializeReturn(ArgumentMatchers.any(), ArgumentMatchers.any());
+			.serializeReturn((ByteBuf) ArgumentMatchers.any(), ArgumentMatchers.any());
 
 		ByteChannel channel = getCommsChannel(serviceUri);
 

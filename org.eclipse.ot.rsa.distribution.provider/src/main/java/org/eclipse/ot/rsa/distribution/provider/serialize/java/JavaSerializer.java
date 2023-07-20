@@ -33,7 +33,7 @@ public class JavaSerializer implements Serializer {
 	}
 
 	@Override
-	public void serializeArgs(ByteBuf buffer, Object[] o) throws IOException {
+	public void serializeArgs(ByteBuf buffer, Object... o) throws IOException {
 		serializeReturn(buffer, o);
 	}
 

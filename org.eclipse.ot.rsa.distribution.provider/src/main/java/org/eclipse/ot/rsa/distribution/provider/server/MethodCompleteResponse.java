@@ -12,8 +12,8 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.server;
 
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SUCCESS;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_RESPONSE_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SUCCESS_RESPONSE_TYPE;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -30,7 +30,7 @@ public class MethodCompleteResponse extends AbstractPayloadMessage<ServerMessage
 
 	public MethodCompleteResponse(boolean successful, UUID serviceId, int callId, Serializer serializer,
 		Object response) {
-		super(successful ? SUCCESS : FAILURE, serviceId, callId, serializer);
+		super(successful ? SUCCESS_RESPONSE_TYPE : FAILURE_RESPONSE_TYPE, serviceId, callId, serializer);
 		this.response = response;
 	}
 

@@ -12,7 +12,7 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.STREAMING_RESPONSE_CLOSE;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CLIENT_CLOSE_TYPE;
 
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ import io.netty.channel.ChannelPromise;
 public class EndStreamingInvocation extends AbstractRSAMessage<ClientMessageType> {
 
 	public EndStreamingInvocation(UUID serviceId, int callId) {
-		super(STREAMING_RESPONSE_CLOSE, serviceId, callId);
+		super(CLIENT_CLOSE_TYPE, serviceId, callId);
 	}
 
 	@Override

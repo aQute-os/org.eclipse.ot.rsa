@@ -32,25 +32,27 @@ import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V2;
 
 public enum ServerMessageType implements MessageType {
 
-	SUCCESS(Protocol_V1.VERSION, SUCCESS_RESPONSE, false),
-	FAILURE(Protocol_V1.VERSION, FAILURE_RESPONSE, true),
-	NO_SERVICE(Protocol_V1.VERSION, FAILURE_NO_SERVICE, true),
-	NO_METHOD(Protocol_V1.VERSION, FAILURE_NO_METHOD, true),
-	SERVER_OVERLOADED(Protocol_V1.VERSION, FAILURE_SERVER_OVERLOADED, true),
-	ARGS_SERIALIZATION_ERROR(Protocol_V1.VERSION, FAILURE_TO_DESERIALIZE, true),
-	RETURN_SERIALIZATION_ERROR(Protocol_V1.VERSION, FAILURE_TO_SERIALIZE_SUCCESS, true),
-	FAILURE_SERIALIZATION_ERROR(Protocol_V1.VERSION, FAILURE_TO_SERIALIZE_FAILURE, true),
-	UNKNOWN_ERROR(Protocol_V1.VERSION, FAILURE_UNKNOWN, true),
-	ASYNC_PARAM_ERROR(Protocol_V2.VERSION, SERVER_ASYNC_METHOD_PARAM_ERROR, true),
-	STREAM_DATA(Protocol_V2.VERSION, SERVER_DATA_EVENT, false),
-	STREAM_CLOSE(Protocol_V2.VERSION, SERVER_CLOSE_EVENT, false),
-	STREAM_ERROR(Protocol_V2.VERSION, SERVER_ERROR_EVENT, true);
+	// @formatter:off
+	SUCCESS_RESPONSE_TYPE                (Protocol_V1.VERSION, SUCCESS_RESPONSE,             false),
+	FAILURE_RESPONSE_TYPE                (Protocol_V1.VERSION, FAILURE_RESPONSE,             true),
+	FAILURE_NO_METHOD_TYPE               (Protocol_V1.VERSION, FAILURE_NO_METHOD,            true),
+	FAILURE_NO_SERVICE_TYPE               (Protocol_V1.VERSION, FAILURE_NO_SERVICE,          true),
+	FAILURE_SERVER_OVERLOADED_TYPE       (Protocol_V1.VERSION, FAILURE_SERVER_OVERLOADED,    true),
+	FAILURE_TO_DESERIALIZE_TYPE          (Protocol_V1.VERSION, FAILURE_TO_DESERIALIZE,       true),
+	FAILURE_TO_SERIALIZE_SUCCESS_TYPE    (Protocol_V1.VERSION, FAILURE_TO_SERIALIZE_SUCCESS, true),
+	FAILURE_TO_SERIALIZE_FAILURE_TYPE    (Protocol_V1.VERSION, FAILURE_TO_SERIALIZE_FAILURE, true),
+	FAILURE_UNKNOWN_TYPE                 (Protocol_V1.VERSION, FAILURE_UNKNOWN,              true),
+	SERVER_ASYNC_METHOD_PARAM_ERROR_TYPE (Protocol_V2.VERSION, SERVER_ASYNC_METHOD_PARAM_ERROR, true),
+	SERVER_DATA_EVENT_TYPE               (Protocol_V2.VERSION, SERVER_DATA_EVENT,            false),
+	SERVER_CLOSE_EVENT_TYPE              (Protocol_V2.VERSION, SERVER_CLOSE_EVENT,           false),
+	SERVER_ERROR_EVENT_TYPE              (Protocol_V2.VERSION, SERVER_ERROR_EVENT,           true);
+	// @formatter:on
 
 	private final byte		version;
 	private final byte		command;
 	private final boolean	isError;
 
-	private ServerMessageType(byte version, byte command, boolean isError) {
+	ServerMessageType(byte version, byte command, boolean isError) {
 		this.version = version;
 		this.command = command;
 		this.isError = isError;
@@ -69,4 +71,5 @@ public enum ServerMessageType implements MessageType {
 	public boolean isError() {
 		return isError;
 	}
+
 }

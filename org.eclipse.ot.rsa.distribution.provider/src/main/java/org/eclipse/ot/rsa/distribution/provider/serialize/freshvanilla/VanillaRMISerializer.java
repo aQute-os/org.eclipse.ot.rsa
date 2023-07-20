@@ -45,7 +45,7 @@ public class VanillaRMISerializer implements Serializer {
 	}
 
 	@Override
-	public void serializeArgs(ByteBuf buffer, Object[] o) throws IOException {
+	public void serializeArgs(ByteBuf buffer, Object... o) throws IOException {
 		BinaryWireFormat bwf = wireFormats.get();
 		try {
 			bwf.writeNum(buffer, o.length);

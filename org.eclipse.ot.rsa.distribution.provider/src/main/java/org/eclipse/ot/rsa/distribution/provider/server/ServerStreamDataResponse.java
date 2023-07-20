@@ -26,7 +26,7 @@ public class ServerStreamDataResponse extends AbstractPayloadMessage<ServerMessa
 	private final Object data;
 
 	public ServerStreamDataResponse(UUID serviceId, int callId, Serializer serializer, Object data) {
-		super(ServerMessageType.STREAM_DATA, serviceId, callId, serializer);
+		super(ServerMessageType.SERVER_DATA_EVENT_TYPE, serviceId, callId, serializer);
 		this.data = data;
 	}
 

@@ -14,7 +14,7 @@ package org.eclipse.ot.rsa.distribution.provider.proxy;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.deepEquals;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.WITH_RETURN;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CALL_WITH_RETURN_TYPE;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -199,7 +199,7 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(WITH_RETURN, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
 				.toString(), new Object[] {
 					7L, 42L
 			})), any())).then(i -> {
@@ -223,7 +223,7 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(WITH_RETURN, TestReturnsAsyncTypes.class.getMethod("isPrime", long.class)
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("isPrime", long.class)
 				.toString(), new Object[] {
 					17L
 			})), any())).then(i -> {
@@ -247,7 +247,7 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(WITH_RETURN, TestReturnsAsyncTypes.class.getMethod("countGrainsOfSand", String.class)
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("countGrainsOfSand", String.class)
 				.toString(), new Object[] {
 					"Foo"
 			})), any())).then(i -> {
@@ -271,7 +271,7 @@ public class PromiseReturningServiceInvocationHandlerTest {
 		Object proxy = createProxy(_proxyClassWithDifferentPromise, sih);
 
 		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(WITH_RETURN, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
 				.toString(), new Object[] {
 					14L, 15L
 			})), any())).then(i -> {

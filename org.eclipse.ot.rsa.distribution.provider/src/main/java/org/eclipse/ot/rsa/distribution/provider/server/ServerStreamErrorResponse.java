@@ -26,7 +26,7 @@ public class ServerStreamErrorResponse extends AbstractPayloadMessage<ServerMess
 	private final Throwable exception;
 
 	public ServerStreamErrorResponse(UUID serviceId, int callId, Serializer serializer, Throwable error) {
-		super(ServerMessageType.STREAM_ERROR, serviceId, callId, serializer);
+		super(ServerMessageType.SERVER_ERROR_EVENT_TYPE, serviceId, callId, serializer);
 		this.exception = error;
 	}
 

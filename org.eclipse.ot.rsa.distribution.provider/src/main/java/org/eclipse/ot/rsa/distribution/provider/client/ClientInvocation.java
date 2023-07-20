@@ -12,8 +12,8 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.FIRE_AND_FORGET;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.WITH_RETURN;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CALL_WITHOUT_RETURN_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CALL_WITH_RETURN_TYPE;
 import static org.osgi.framework.ServiceException.REMOTE;
 
 import java.io.IOException;
@@ -59,7 +59,7 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 		int[] promiseArgs, int[] completableFutureArgs, Serializer serializer,
 		Function<Object, Future<Object>> toNettyPromiseAdapter, Promise<Object> result, AtomicLong timeout,
 		String methodName) {
-		super(withReturn ? WITH_RETURN : FIRE_AND_FORGET, serviceId, callId, serializer);
+		super(withReturn ? CALL_WITH_RETURN_TYPE : CALL_WITHOUT_RETURN_TYPE, serviceId, callId, serializer);
 
 		this.methodId = methodId;
 		this.args = args == null ? EMPTY_ARGS : args;

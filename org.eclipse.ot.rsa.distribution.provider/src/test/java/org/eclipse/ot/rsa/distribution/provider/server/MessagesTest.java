@@ -12,8 +12,8 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.server;
 
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.NO_SERVICE;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.UNKNOWN_ERROR;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_NO_SERVICE_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -50,7 +50,7 @@ public class MessagesTest {
 
 	@Test
 	public void testServerError() throws IOException {
-		ServerErrorResponse ser = new ServerErrorResponse(NO_SERVICE, serviceId, callId);
+		ServerErrorResponse ser = new ServerErrorResponse(FAILURE_NO_SERVICE_TYPE, serviceId, callId);
 
 		ByteBuf buffer = Unpooled.buffer();
 
@@ -70,7 +70,7 @@ public class MessagesTest {
 
 	@Test
 	public void testServerErrorWithMessage() throws IOException {
-		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(UNKNOWN_ERROR, serviceId, callId, TEST_MESSAGE);
+		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, serviceId, callId, TEST_MESSAGE);
 
 		ByteBuf buffer = Unpooled.buffer();
 

@@ -14,8 +14,8 @@ package org.eclipse.ot.rsa.distribution.provider.proxy;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.deepEquals;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.STREAMING_RESPONSE_OPEN;
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.WITH_RETURN;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CLIENT_OPEN_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CALL_WITH_RETURN_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -229,7 +229,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
 		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("booleans")
+			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
 				.toString(), new Object[] {})), any())).then(i -> {
 					i.<ClientInvocation> getArgument(0)
 						.getResult()
@@ -241,7 +241,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		PushStream<Boolean> p = proxy.booleans();
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
 			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
@@ -268,7 +268,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
 		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
 				.toString(), new Object[] {})), any())).then(i -> {
 					i.<ClientInvocation> getArgument(0)
 						.getResult()
@@ -280,7 +280,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		PushEventSource<Integer> p = proxy.integers();
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
 			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
@@ -311,7 +311,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
 		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("booleans")
+			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
 				.toString(), new Object[] {})), any())).then(i -> {
 					i.<ClientInvocation> getArgument(0)
 						.getResult()
@@ -321,7 +321,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 					return null;
 				});
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
 			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
@@ -354,7 +354,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
 		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
 				.toString(), new Object[] {})), any())).then(i -> {
 					i.<ClientInvocation> getArgument(0)
 						.getResult()
@@ -364,7 +364,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 					return null;
 				});
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
 			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());
@@ -403,7 +403,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
 		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(WITH_RETURN, TestReturnsPushStreamTypes.class.getMethod("integers")
+			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
 				.toString(), new Object[] {})), any())).then(i -> {
 					i.<ClientInvocation> getArgument(0)
 						.getResult()
@@ -413,7 +413,7 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 					return null;
 				});
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(STREAMING_RESPONSE_OPEN)))).then(i -> {
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
 			assertEquals(new UUID(1, 2), invocation.getServiceId());
 			assertEquals(3, invocation.getCallId());

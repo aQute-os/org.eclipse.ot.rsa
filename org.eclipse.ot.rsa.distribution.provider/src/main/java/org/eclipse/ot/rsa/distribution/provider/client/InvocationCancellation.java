@@ -12,7 +12,7 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CANCELLATION;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CANCEL_TYPE;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class InvocationCancellation extends AbstractRSAMessage<ClientMessageType
 	private final boolean interrupt;
 
 	public InvocationCancellation(UUID serviceId, int callId, boolean interrupt) {
-		super(CANCELLATION, serviceId, callId);
+		super(CANCEL_TYPE, serviceId, callId);
 		this.interrupt = interrupt;
 	}
 

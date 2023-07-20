@@ -72,7 +72,7 @@ public class ProtoBufSerializer implements Serializer {
 	private static final byte	JAVA_OBJECT_TAG		= 0x1A;
 
 	private interface SimpleTypeSerializer {
-		public void serialize(ByteBufOutputStream os, Object o) throws IOException;
+		void serialize(ByteBufOutputStream os, Object o) throws IOException;
 	}
 
 	private static final Map<Class<?>, SimpleTypeSerializer> SERIALIZERS;
@@ -183,7 +183,7 @@ public class ProtoBufSerializer implements Serializer {
 	}
 
 	@Override
-	public void serializeArgs(ByteBuf buffer, Object[] o) throws IOException {
+	public void serializeArgs(ByteBuf buffer, Object... o) throws IOException {
 		ByteBufOutputStream bbos = new ByteBufOutputStream(buffer);
 		bbos.writeInt(o.length);
 		for (Object x : o)

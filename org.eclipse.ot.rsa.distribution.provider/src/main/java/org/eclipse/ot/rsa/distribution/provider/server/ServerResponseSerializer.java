@@ -12,9 +12,9 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.server;
 
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_SERIALIZATION_ERROR;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.RETURN_SERIALIZATION_ERROR;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.UNKNOWN_ERROR;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_TO_SERIALIZE_FAILURE_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_TO_SERIALIZE_SUCCESS_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
 
 import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage;
 import org.slf4j.Logger;
@@ -57,16 +57,16 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 		Exception e) {
 		AbstractRSAMessage<ServerMessageType> toReturn;
 		switch (response.getType()) {
-			case SUCCESS :
-				toReturn = new ServerErrorMessageResponse(RETURN_SERIALIZATION_ERROR, response.getServiceId(),
+			case SUCCESS_RESPONSE_TYPE :
+				toReturn = new ServerErrorMessageResponse(FAILURE_TO_SERIALIZE_SUCCESS_TYPE, response.getServiceId(),
 					response.getCallId(), e.getMessage());
 				break;
-			case FAILURE :
-				toReturn = new ServerErrorMessageResponse(FAILURE_SERIALIZATION_ERROR, response.getServiceId(),
+			case FAILURE_RESPONSE_TYPE :
+				toReturn = new ServerErrorMessageResponse(FAILURE_TO_SERIALIZE_FAILURE_TYPE, response.getServiceId(),
 					response.getCallId(), e.getMessage());
 				break;
 			default :
-				toReturn = new ServerErrorMessageResponse(UNKNOWN_ERROR, response.getServiceId(), response.getCallId(),
+				toReturn = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, response.getServiceId(), response.getCallId(),
 					e.getMessage());
 		}
 		return toReturn;

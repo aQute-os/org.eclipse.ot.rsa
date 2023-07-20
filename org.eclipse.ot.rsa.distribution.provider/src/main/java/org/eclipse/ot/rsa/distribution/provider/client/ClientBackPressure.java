@@ -12,7 +12,7 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.client;
 
-import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.STREAMING_RESPONSE_BACK_PRESSURE;
+import static org.eclipse.ot.rsa.distribution.provider.client.ClientMessageType.CLIENT_BACK_PRESSURE_TYPE;
 
 import java.util.UUID;
 
@@ -26,7 +26,7 @@ public class ClientBackPressure extends AbstractRSAMessage<ClientMessageType> {
 	private final long backPressure;
 
 	public ClientBackPressure(UUID serviceId, int callId, long backPressure) {
-		super(STREAMING_RESPONSE_BACK_PRESSURE, serviceId, callId);
+		super(CLIENT_BACK_PRESSURE_TYPE, serviceId, callId);
 		this.backPressure = backPressure;
 	}
 

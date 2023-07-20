@@ -205,7 +205,7 @@ public class ServiceInvocationHandlerTest {
 		CharSequence proxy = createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(ClientMessageType.WITH_RETURN, CharSequence.class.getMethod("length")
+			argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE, CharSequence.class.getMethod("length")
 				.toString(), new Object[0])),
 			any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
@@ -226,7 +226,7 @@ public class ServiceInvocationHandlerTest {
 
 		CharSequence proxy = createProxy(_proxyClass, sih);
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
+		when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE,
 			CharSequence.class.getMethod("subSequence", int.class, int.class)
 				.toString(),
 			new Object[] {
@@ -259,7 +259,7 @@ public class ServiceInvocationHandlerTest {
 				5, 10
 			}));
 
-		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET,
+		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.CALL_WITHOUT_RETURN_TYPE,
 			CharSequence.class.getMethod("subSequence", int.class, int.class)
 				.toString(),
 			new Object[] {
@@ -276,7 +276,7 @@ public class ServiceInvocationHandlerTest {
 		CharSequence proxy = createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(ClientMessageType.WITH_RETURN, CharSequence.class.getMethod("length")
+			argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE, CharSequence.class.getMethod("length")
 				.toString(), new Object[0])),
 			any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
@@ -331,7 +331,7 @@ public class ServiceInvocationHandlerTest {
 		CharSequence proxy = createProxy(_proxyClass, sih);
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(ClientMessageType.WITH_RETURN, CharSequence.class.getMethod("length")
+			argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE, CharSequence.class.getMethod("length")
 				.toString(), new Object[0])),
 			any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
@@ -374,7 +374,7 @@ public class ServiceInvocationHandlerTest {
 
 		CharSequence proxy = createProxy(_proxyClassWithDifferentAsyncDelegate, sih);
 
-		when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.WITH_RETURN,
+		when(_ch.writeAndFlush(argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE,
 			CharSequence.class.getMethod("subSequence", int.class, int.class)
 				.toString(),
 			new Object[] {
@@ -415,7 +415,7 @@ public class ServiceInvocationHandlerTest {
 			}
 		}));
 
-		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.FIRE_AND_FORGET,
+		verify(_ch).writeAndFlush(argThat(isInvocationWith(ClientMessageType.CALL_WITHOUT_RETURN_TYPE,
 			CharSequence.class.getMethod("subSequence", int.class, int.class)
 				.toString(),
 			new Object[] {
@@ -435,7 +435,7 @@ public class ServiceInvocationHandlerTest {
 		Exception e = new RuntimeException("BANG!");
 
 		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(ClientMessageType.WITH_RETURN, CharSequence.class.getMethod("length")
+			argThat(isInvocationWith(ClientMessageType.CALL_WITH_RETURN_TYPE, CharSequence.class.getMethod("length")
 				.toString(), new Object[0])),
 			any())).then(i -> {
 				i.<ChannelPromise> getArgument(1)
