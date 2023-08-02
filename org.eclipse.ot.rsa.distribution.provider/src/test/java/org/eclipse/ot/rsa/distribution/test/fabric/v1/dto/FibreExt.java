@@ -44,7 +44,7 @@ public class FibreExt extends struct {
 	@ADA(description = "The name of the fibre", groups = HIDE)
 	public String				name;
 
-	@ADA(description = "The uri of the fibre", groups = INFO)
+	@ADA(description = "The uris of the fibre", groups = INFO)
 	public URI					fibreUri;
 
 	// TODO ??

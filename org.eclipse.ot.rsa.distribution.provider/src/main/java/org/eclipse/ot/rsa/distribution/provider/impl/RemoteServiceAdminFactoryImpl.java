@@ -28,7 +28,7 @@ import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.client.ClientConnectionManager;
 import org.eclipse.ot.rsa.distribution.provider.server.RemotingProvider;
 import org.eclipse.ot.rsa.distribution.provider.server.ServerConnectionManager;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
@@ -66,7 +66,7 @@ public class RemoteServiceAdminFactoryImpl implements ServiceFactory<RemoteServi
 	private final TransportConfig					config;
 	private final BundleContext						context;
 
-	public RemoteServiceAdminFactoryImpl(BundleContext context, TransportConfig config, ParemusNettyTLS tls,
+	public RemoteServiceAdminFactoryImpl(BundleContext context, TransportConfig config, NettyTLS tls,
 		ByteBufAllocator allocator, EventLoopGroup serverIo, EventLoopGroup clientIo, EventExecutorGroup serverWorkers,
 		EventExecutorGroup clientWorkers, Timer timer) {
 		this.context = context;

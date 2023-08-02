@@ -31,7 +31,7 @@ class PromiseFactoryTest {
 	@Test
 	void testIsPromise() throws InterruptedException {
 
-		assertThat(PromiseFactory.isPromise(org.osgi.util.promise.Promise.class)).isTrue();
+		assertThat(RSAPromiseFactory.isPromise(org.osgi.util.promise.Promise.class)).isTrue();
 	}
 
 	@Test
@@ -56,12 +56,12 @@ class PromiseFactoryTest {
 
 	@Test
 	void testNonOSGiClass() throws InterruptedException, InvocationTargetException, ExecutionException {
-		assertThat(PromiseFactory.isPromise(String.class)).isFalse();
-		assertThat(PromiseFactory.isPromise(InputStream.class)).isFalse();
-		assertThat(PromiseFactory.isPromise(org.osgi.util.promise.Promise.class)).isTrue();
+		assertThat(RSAPromiseFactory.isPromise(String.class)).isFalse();
+		assertThat(RSAPromiseFactory.isPromise(InputStream.class)).isFalse();
+		assertThat(RSAPromiseFactory.isPromise(org.osgi.util.promise.Promise.class)).isTrue();
 		org.osgi.util.promise.PromiseFactory pf = new org.osgi.util.promise.PromiseFactory(null);
 
-		assertThat(PromiseFactory.isPromise(pf.deferred()
+		assertThat(RSAPromiseFactory.isPromise(pf.deferred()
 			.getPromise()
 			.getClass())).isTrue();
 	}
@@ -77,8 +77,7 @@ class PromiseFactoryTest {
 					try {
 						return x.toURI()
 							.toURL();
-					} catch (MalformedURLException e) {
-					}
+					} catch (MalformedURLException e) {}
 					return null;
 				})
 				.toArray(URL[]::new);
@@ -98,7 +97,7 @@ class PromiseFactoryTest {
 
 	private void testFailureNettyToOSGi(Class<?> ptype) throws ClassNotFoundException, InterruptedException {
 		Promise<Object> netty = ImmediateEventExecutor.INSTANCE.newPromise();
-		Function<Future<?>, Object> nettyToOSGi = PromiseFactory.nettyToOSGi(ptype, POOL);
+		Function<Future<?>, Object> nettyToOSGi = RSAPromiseFactory.nettyToOSGi(ptype, POOL);
 
 		Object promise = nettyToOSGi.apply(netty);
 		ProxyPromise wrap = PromiseHandler.getHandler(promise.getClass())
@@ -114,7 +113,7 @@ class PromiseFactoryTest {
 
 	void testSuccessNettyToOSGi(Class<?> ptype) throws InterruptedException, InvocationTargetException {
 		Promise<Object> netty = ImmediateEventExecutor.INSTANCE.newPromise();
-		Function<Future<?>, Object> nettyToOSGi = PromiseFactory.nettyToOSGi(ptype, POOL);
+		Function<Future<?>, Object> nettyToOSGi = RSAPromiseFactory.nettyToOSGi(ptype, POOL);
 		Object promise = nettyToOSGi.apply(netty);
 		ProxyPromise wrap = PromiseHandler.getHandler(promise.getClass())
 			.wrap(promise);
@@ -128,7 +127,7 @@ class PromiseFactoryTest {
 		ProxyPromiseFactory factory = PromiseHandler.getHandler(type).factory;
 		ProxyDeferred deferred = factory.deferred();
 
-		Function<Object, Future<Object>> osgiToNetty = PromiseFactory.osgiToNetty(type);
+		Function<Object, Future<Object>> osgiToNetty = RSAPromiseFactory.osgiToNetty(type);
 
 		Future<Object> netty = osgiToNetty.apply(deferred.getPromise()
 			.getActual());
@@ -144,7 +143,7 @@ class PromiseFactoryTest {
 		ProxyPromiseFactory factory = PromiseHandler.getHandler(type).factory;
 		ProxyDeferred deferred = factory.deferred();
 
-		Function<Object, Future<Object>> osgiToNetty = PromiseFactory.osgiToNetty(type);
+		Function<Object, Future<Object>> osgiToNetty = RSAPromiseFactory.osgiToNetty(type);
 
 		Future<Object> netty = osgiToNetty.apply(deferred.getPromise()
 			.getActual());

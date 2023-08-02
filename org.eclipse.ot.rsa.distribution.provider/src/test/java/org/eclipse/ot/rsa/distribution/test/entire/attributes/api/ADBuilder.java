@@ -325,7 +325,7 @@ public class ADBuilder {
 
 			ad.basicType = AD.BasicType.string;
 			if (clazz == URI.class || clazz == URL.class)
-				ad.viewer = "uri";
+				ad.viewer = "uris";
 
 			return this;
 		}

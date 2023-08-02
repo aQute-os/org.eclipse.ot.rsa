@@ -58,14 +58,14 @@ import java.util.function.Supplier;
 import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.impl.ImportRegistrationImpl;
 import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage;
-import org.eclipse.ot.rsa.distribution.provider.promise.PromiseFactory;
+import org.eclipse.ot.rsa.distribution.provider.promise.RSAPromiseFactory;
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise;
 import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.eclipse.ot.rsa.distribution.provider.serialize.freshvanilla.VanillaRMISerializerFactory;
 import org.eclipse.ot.rsa.distribution.provider.test.AbstractLeakCheckingTest;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V1;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V2;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,7 +115,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 	ClientConnectionManager		clientConnectionManager;
 
 	@Mock
-	ParemusNettyTLS				tls;
+	NettyTLS					tls;
 	@Mock
 	ImportRegistrationImpl		ir;
 	@Mock
@@ -768,8 +768,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
-			"testing"));
+			RSAPromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000), "testing"));
 
 		assertEquals(new URL("http://www.example.com"), p.get());
 	}
@@ -830,8 +829,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
-			"testing"));
+			RSAPromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000), "testing"));
 
 		assertEquals(new URL("http://www.example.com"), p.get());
 	}
@@ -915,8 +913,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
-			"testing"));
+			RSAPromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000), "testing"));
 
 		assertFalse(p.await(300));
 
@@ -1004,8 +1001,7 @@ public abstract class AbstractClientConnectionManagerTest extends AbstractLeakCh
 		}, new int[] {
 			0
 		}, new int[0], new VanillaRMISerializerFactory().create(classSpace),
-			PromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000),
-			"testing"));
+			RSAPromiseFactory.osgiToNetty(org.osgi.util.promise.Promise.class), p, new AtomicLong(3000), "testing"));
 
 		assertFalse(p.await(300));
 

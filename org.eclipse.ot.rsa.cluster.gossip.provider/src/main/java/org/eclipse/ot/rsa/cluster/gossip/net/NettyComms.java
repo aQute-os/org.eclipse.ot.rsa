@@ -35,7 +35,7 @@ import org.eclipse.ot.rsa.cluster.gossip.config.ClusterGossipConfig;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.service.cm.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class NettyComms implements GossipComms {
 	private static final Logger			logger				= LoggerFactory.getLogger(NettyComms.class);
 
 	private final UUID					id;
-	private final ParemusNettyTLS		ssl;
+	private final NettyTLS				ssl;
 
 	private final Gossip				gossip;
 
@@ -85,7 +85,7 @@ public class NettyComms implements GossipComms {
 
 	private final int					networkMTU;
 
-	public NettyComms(String cluster, UUID id, ClusterGossipConfig config, ParemusNettyTLS ssl, Gossip gossip)
+	public NettyComms(String cluster, UUID id, ClusterGossipConfig config, NettyTLS ssl, Gossip gossip)
 		throws IOException, ConfigurationException, InterruptedException {
 		this.id = id;
 		this.ssl = ssl;

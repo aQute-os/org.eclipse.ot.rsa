@@ -34,15 +34,11 @@ public interface Protocol_V2 extends Protocol_V1 {
 	 */
 	byte	SERVER_ASYNC_METHOD_PARAM_ERROR	= 13;
 
-	Msg serverAsyncMethodParamError(int callId, int paramIndex, Object value);
-
 	/**
 	 * Format: | Header | param index unsigned byte | serialized value | Usage -
 	 * sent by the client to propagate a data event for the named argument
 	 */
 	byte	ASYNC_METHOD_PARAM_DATA			= 14;
-
-	Msg asyncMethodParamData(int paramIndex, Object value);
 
 	/**
 	 * Format: | Header | param index unsigned byte | Usage - sent by the client
@@ -50,15 +46,11 @@ public interface Protocol_V2 extends Protocol_V1 {
 	 */
 	byte	ASYNC_METHOD_PARAM_CLOSE		= 15;
 
-	Msg asyncMethodParamClose(int paramIndex);
-
 	/**
 	 * Format: | Header | param index unsigned byte | serialized failure | Usage
 	 * - sent by the client to propagate a failure event for the named argument
 	 */
 	byte	ASYNC_METHOD_PARAM_FAILURE		= 16;
-
-	Msg asyncMethodParamFailure(int paramIndex, Object failure);
 
 	/**
 	 * Format: | Header | Usage - sent by the client to open a streaming
@@ -66,15 +58,11 @@ public interface Protocol_V2 extends Protocol_V1 {
 	 */
 	byte	CLIENT_OPEN						= 17;
 
-	Msg clientOpen();
-
 	/**
 	 * Format: | Header | Usage - sent by the client to close a streaming
 	 * response
 	 */
 	byte	CLIENT_CLOSE					= 18;
-
-	Msg clientClose();
 
 	/**
 	 * Format: | Header | Usage - sent by the client to indicate back pressure
@@ -82,15 +70,11 @@ public interface Protocol_V2 extends Protocol_V1 {
 	 */
 	byte	CLIENT_BACK_PRESSURE			= 19;
 
-	Msg clientBackPressure();
-
 	/**
 	 * Format: | Header | serialized data | Usage - sent by server to pass a
 	 * data event to the client
 	 */
 	byte	SERVER_DATA_EVENT				= 20;
-
-	Msg serverDataEvent(int callId, Object serializedData);
 
 	/**
 	 * Format: | Header | Usage - sent by server to indicate that a streaming
@@ -98,13 +82,11 @@ public interface Protocol_V2 extends Protocol_V1 {
 	 */
 	byte	SERVER_CLOSE_EVENT				= 21;
 
-	Msg serverCloseEvent(int callId);
-
 	/**
 	 * Format: | Header | serialized failure | Usage - sent by server to
 	 * indicate that a streaming response should be failed
 	 */
 	byte	SERVER_ERROR_EVENT				= 22;
 
-	Msg serverErrorEvent(int callId, Object failure);
+	int		LAST_COMMAND					= 23;
 }

@@ -17,7 +17,7 @@ import io.netty.handler.ssl.SslHandler;
 /**
  * Provides access to configured Netty Handlers providing TLS security
  */
-public interface ParemusNettyTLS {
+public interface NettyTLS {
 
 	/**
 	 * Get a Handler which provides bi-directional DTLS support

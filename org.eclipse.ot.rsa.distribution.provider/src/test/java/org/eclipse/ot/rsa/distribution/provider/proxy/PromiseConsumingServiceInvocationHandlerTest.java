@@ -203,8 +203,8 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 
 		Deferred<Boolean> d = new Deferred<>();
 
-		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
+		when(_ch.writeAndFlush(argThat(
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
 				.toString(), new Object[] {
 					d.getPromise()
 			})), any())).then(i -> {
@@ -228,10 +228,11 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 
 		CompletableFuture<Boolean> cf = new CompletableFuture<>();
 
-		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("alsoPending", CompletableFuture.class)
-				.toString(), new Object[] {
-					cf
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE,
+			TestConsumesAsyncTypes.class.getMethod("alsoPending", CompletableFuture.class)
+				.toString(),
+			new Object[] {
+				cf
 			})), any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
 					.getResult()
@@ -256,8 +257,8 @@ public class PromiseConsumingServiceInvocationHandlerTest {
 		Object promiseArg = _differentDeferred.getMethod("getPromise")
 			.invoke(deferred);
 
-		when(_ch.writeAndFlush(
-			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
+		when(_ch.writeAndFlush(argThat(
+			isInvocationWith(CALL_WITH_RETURN_TYPE, TestConsumesAsyncTypes.class.getMethod("pending", Promise.class)
 				.toString(), new Object[] {
 					promiseArg
 			})), any())).then(i -> {

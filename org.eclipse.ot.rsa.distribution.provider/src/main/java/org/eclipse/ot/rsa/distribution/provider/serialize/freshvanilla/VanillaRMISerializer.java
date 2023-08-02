@@ -44,6 +44,11 @@ public class VanillaRMISerializer implements Serializer {
 		this.metaClasses = metaClasses;
 	}
 
+	public VanillaRMISerializer() {
+		this(new MetaClasses(VanillaRMISerializer.class.getClassLoader()));
+
+	}
+
 	@Override
 	public void serializeArgs(ByteBuf buffer, Object... o) throws IOException {
 		BinaryWireFormat bwf = wireFormats.get();
@@ -192,6 +197,11 @@ public class VanillaRMISerializer implements Serializer {
 		} finally {
 			bwf.reset();
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "vanilla";
 	}
 
 }

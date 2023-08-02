@@ -14,6 +14,8 @@
 	org.eclipse.ot.rsa.tls.netty.provider,\
     org.osgi.util.pushstream;version=latest
 
--testpath: aQute.libg,\
+-testpath: \
+	aQute.libg,\
 	org.osgi.service.async,\
-    slf4j.simple;version=latest
+	slf4j.simple;version=latest,\
+	org.awaitility

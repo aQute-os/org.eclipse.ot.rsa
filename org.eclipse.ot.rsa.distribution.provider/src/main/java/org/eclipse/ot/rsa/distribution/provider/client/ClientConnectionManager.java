@@ -35,7 +35,7 @@ import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.config.ProtocolScheme;
 import org.eclipse.ot.rsa.distribution.provider.impl.ImportRegistrationImpl;
 import org.eclipse.ot.rsa.distribution.provider.tcp.VersionCheckingLengthFieldBasedFrameDecoder;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.framework.ServiceException;
 import org.osgi.service.remoteserviceadmin.EndpointDescription;
 import org.slf4j.Logger;
@@ -69,7 +69,7 @@ public class ClientConnectionManager {
 
 	private final ByteBufAllocator																allocator;
 
-	private final ParemusNettyTLS																tls;
+	private final NettyTLS																		tls;
 	private final Map<String, BiFunction<Consumer<Channel>, InetSocketAddress, ChannelFuture>>	connectors;
 
 	private final EventExecutorGroup															clientWorkers;
@@ -77,7 +77,7 @@ public class ClientConnectionManager {
 
 	boolean																						closed;
 
-	public ClientConnectionManager(TransportConfig config, ParemusNettyTLS tls, ByteBufAllocator allocator,
+	public ClientConnectionManager(TransportConfig config, NettyTLS tls, ByteBufAllocator allocator,
 		EventLoopGroup clientIo, EventExecutorGroup clientWorkers, Timer timer) {
 		this.tls = tls;
 		this.allocator = allocator;

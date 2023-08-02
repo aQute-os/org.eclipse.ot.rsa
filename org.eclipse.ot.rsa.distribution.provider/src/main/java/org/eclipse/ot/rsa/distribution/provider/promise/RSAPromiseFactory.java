@@ -31,7 +31,7 @@ import io.netty.util.concurrent.Promise;
  * This is a bit odd class now. In the original distribution there was special
  * handling for the
  */
-public class PromiseFactory {
+public class RSAPromiseFactory {
 
 	/**
 	 * Return if the given class is a Promise class
@@ -40,8 +40,7 @@ public class PromiseFactory {
 	 * @return true if the Promise class
 	 */
 	public static boolean isPromise(Class<?> osgi) {
-		if (osgi.isPrimitive() || osgi.isArray() || Number.class.isAssignableFrom(osgi)
-			|| osgi == String.class)
+		if (osgi.isPrimitive() || osgi.isArray() || Number.class.isAssignableFrom(osgi) || osgi == String.class)
 			return false;
 
 		return PromiseHandler.isPromise(osgi);

@@ -228,16 +228,17 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
-		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
-				.toString(), new Object[] {})), any())).then(i -> {
-					i.<ClientInvocation> getArgument(0)
-						.getResult()
-						.setSuccess(new Object[] {
-							new UUID(1, 2), 3
-					});
-					return null;
+		when(_ch.writeAndFlush(
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
+				.toString(), new Object[] {})),
+			any())).then(i -> {
+				i.<ClientInvocation> getArgument(0)
+					.getResult()
+					.setSuccess(new Object[] {
+						new UUID(1, 2), 3
 				});
+				return null;
+			});
 
 		PushStream<Boolean> p = proxy.booleans();
 
@@ -267,16 +268,17 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		TestReturnsPushStreamTypes proxy = (TestReturnsPushStreamTypes) createProxy(_proxyClass, sih);
 
-		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
-				.toString(), new Object[] {})), any())).then(i -> {
-					i.<ClientInvocation> getArgument(0)
-						.getResult()
-						.setSuccess(new Object[] {
-							new UUID(1, 2), 3
-					});
-					return null;
+		when(_ch.writeAndFlush(
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})),
+			any())).then(i -> {
+				i.<ClientInvocation> getArgument(0)
+					.getResult()
+					.setSuccess(new Object[] {
+						new UUID(1, 2), 3
 				});
+				return null;
+			});
 
 		PushEventSource<Integer> p = proxy.integers();
 
@@ -310,16 +312,17 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
-				.toString(), new Object[] {})), any())).then(i -> {
-					i.<ClientInvocation> getArgument(0)
-						.getResult()
-						.setSuccess(new Object[] {
-							new UUID(1, 2), 3
-					});
-					return null;
+		when(_ch.writeAndFlush(
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("booleans")
+				.toString(), new Object[] {})),
+			any())).then(i -> {
+				i.<ClientInvocation> getArgument(0)
+					.getResult()
+					.setSuccess(new Object[] {
+						new UUID(1, 2), 3
 				});
+				return null;
+			});
 
 		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
@@ -353,16 +356,17 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
-				.toString(), new Object[] {})), any())).then(i -> {
-					i.<ClientInvocation> getArgument(0)
-						.getResult()
-						.setSuccess(new Object[] {
-							new UUID(1, 2), 3
-					});
-					return null;
+		when(_ch.writeAndFlush(
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})),
+			any())).then(i -> {
+				i.<ClientInvocation> getArgument(0)
+					.getResult()
+					.setSuccess(new Object[] {
+						new UUID(1, 2), 3
 				});
+				return null;
+			});
 
 		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);
@@ -402,16 +406,17 @@ public class PushStreamReturningServiceInvocationHandlerTest {
 
 		Object proxy = createProxy(_proxyClassWithDifferentPushStream, sih);
 
-		when(_ch
-			.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
-				.toString(), new Object[] {})), any())).then(i -> {
-					i.<ClientInvocation> getArgument(0)
-						.getResult()
-						.setSuccess(new Object[] {
-							new UUID(1, 2), 3
-					});
-					return null;
+		when(_ch.writeAndFlush(
+			argThat(isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsPushStreamTypes.class.getMethod("integers")
+				.toString(), new Object[] {})),
+			any())).then(i -> {
+				i.<ClientInvocation> getArgument(0)
+					.getResult()
+					.setSuccess(new Object[] {
+						new UUID(1, 2), 3
 				});
+				return null;
+			});
 
 		when(_ch.writeAndFlush(argThat(isInvocationWith(CLIENT_OPEN_TYPE)))).then(i -> {
 			AbstractClientInvocationWithResult invocation = i.<AbstractClientInvocationWithResult> getArgument(0);

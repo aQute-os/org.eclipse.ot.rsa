@@ -40,14 +40,14 @@ import org.eclipse.ot.rsa.tls.netty.provider.dtls.adapter.JdkDtlsEngineAdapter;
 import org.eclipse.ot.rsa.tls.netty.provider.tls.DTLSClientHandler;
 import org.eclipse.ot.rsa.tls.netty.provider.tls.DTLSHandler;
 import org.eclipse.ot.rsa.tls.netty.provider.tls.MultiplexingDTLSHandler;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 
 import io.netty.handler.ssl.SslHandler;
 
 @Component(configurationPid = RSAConstants.TRANSPORT_TLS_PID, configurationPolicy = REQUIRE)
-public class ParemusNettyTLSImpl implements ParemusNettyTLS {
+public class ParemusNettyTLSImpl implements NettyTLS {
 
 	private final boolean				insecure;
 

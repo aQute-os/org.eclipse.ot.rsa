@@ -46,7 +46,7 @@ import org.eclipse.ot.rsa.cluster.gossip.v1.messages.FirstContactRequest;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.MessageType;
 import org.eclipse.ot.rsa.cluster.gossip.v1.messages.Snapshot;
 import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,7 +89,7 @@ public class SocketCommsTest extends AbstractLeakCheckingTest {
 	MemberInfo					member;
 
 	@Mock
-	ParemusNettyTLS				tls;
+	NettyTLS					tls;
 
 	@BeforeEach
 	public void setUp() throws Exception {

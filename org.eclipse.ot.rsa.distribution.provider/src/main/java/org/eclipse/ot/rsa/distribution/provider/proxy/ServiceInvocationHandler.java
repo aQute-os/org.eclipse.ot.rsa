@@ -42,7 +42,7 @@ import java.util.stream.IntStream.Builder;
 import org.eclipse.ot.rsa.distribution.provider.client.ClientInvocation;
 import org.eclipse.ot.rsa.distribution.provider.client.EndStreamingInvocation;
 import org.eclipse.ot.rsa.distribution.provider.impl.ImportRegistrationImpl;
-import org.eclipse.ot.rsa.distribution.provider.promise.PromiseFactory;
+import org.eclipse.ot.rsa.distribution.provider.promise.RSAPromiseFactory;
 import org.eclipse.ot.rsa.distribution.provider.pushstream.PushStreamFactory;
 import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.osgi.framework.Bundle;
@@ -127,11 +127,11 @@ public class ServiceInvocationHandler implements InvocationHandler {
 
 		Function<Future<?>, Object> pushEventSourceTransformer = getPushEventSourceTransformer(pushEventSourceClass);
 
-		Function<EventExecutor, Promise<Object>> nettyPromiseSupplier = PromiseFactory.nettyWithOSGi(promiseClass,
+		Function<EventExecutor, Promise<Object>> nettyPromiseSupplier = RSAPromiseFactory.nettyWithOSGi(promiseClass,
 			_timer);
 
 		Function<Object, Future<Object>> nettyFutureAdapter = promiseClass == null ? null
-			: PromiseFactory.osgiToNetty(promiseClass);
+			: RSAPromiseFactory.osgiToNetty(promiseClass);
 
 		Set<Method> objectMethods = stream(Object.class.getMethods()).collect(toSet());
 
@@ -275,7 +275,7 @@ public class ServiceInvocationHandler implements InvocationHandler {
 			promiseReturnAction = UNREACHABLE_RETURN_TRANSFORMER;
 		} else {
 			try {
-				promiseReturnAction = PromiseFactory.nettyToOSGi(promiseClass, _executor);
+				promiseReturnAction = RSAPromiseFactory.nettyToOSGi(promiseClass, _executor);
 			} catch (NoClassDefFoundError | Exception e) {
 				throw new RuntimeException("The Promises package is not supported", e);
 			}

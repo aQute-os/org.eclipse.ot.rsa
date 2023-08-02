@@ -12,11 +12,11 @@
  */
 package org.eclipse.ot.rsa.distribution.provider.server;
 
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_TO_DESERIALIZE_TYPE;
-import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SERVER_ASYNC_METHOD_PARAM_ERROR_TYPE;
 import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_NO_METHOD_TYPE;
 import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_SERVER_OVERLOADED_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_TO_DESERIALIZE_TYPE;
 import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
+import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.SERVER_ASYNC_METHOD_PARAM_ERROR_TYPE;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -34,12 +34,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage;
-import org.eclipse.ot.rsa.distribution.provider.promise.PromiseFactory;
+import org.eclipse.ot.rsa.distribution.provider.promise.RSAPromiseFactory;
 import org.eclipse.ot.rsa.distribution.provider.pushstream.PushStreamFactory;
 import org.eclipse.ot.rsa.distribution.provider.pushstream.PushStreamFactory.DataStreamFactory;
 import org.eclipse.ot.rsa.distribution.provider.serialize.CompletedPromise;
 import org.eclipse.ot.rsa.distribution.provider.serialize.Serializer;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V2;
+import org.eclipse.ot.rsa.distribution.util.Utils;
 import org.osgi.framework.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,9 +137,9 @@ public class ServiceInvoker {
 
 		try {
 			Class<?> promise = serviceClassLoader.loadClass("org.osgi.util.promise.Promise");
-			nettyPromiseCreator = PromiseFactory.nettyWithOSGi(promise, timer);
-			toNettyFutureAdapter = PromiseFactory.osgiToNetty(promise);
-			fromNettyFutureAdapter = PromiseFactory.nettyToOSGi(promise, serverWorkers);
+			nettyPromiseCreator = RSAPromiseFactory.nettyWithOSGi(promise, timer);
+			toNettyFutureAdapter = RSAPromiseFactory.osgiToNetty(promise);
+			fromNettyFutureAdapter = RSAPromiseFactory.nettyToOSGi(promise, serverWorkers);
 		} catch (NoClassDefFoundError | Exception e) {
 			LOG.debug("Unable to integrate with promises for the remote service {}", serviceId);
 		}
@@ -198,7 +199,7 @@ public class ServiceInvoker {
 
 			Class<?> returnType = methods[i].getReturnType();
 
-			if (PromiseFactory.isPromise(returnType)) {
+			if (RSAPromiseFactory.isPromise(returnType)) {
 				handler = promiseReturnHandler;
 			} else if (PushStreamFactory.isPushStream(returnType)) {
 				handler = pushStreamReturnHandler;
@@ -231,7 +232,7 @@ public class ServiceInvoker {
 
 				ArgumentProcessor ap = null;
 
-				if (PromiseFactory.isPromise(parameterType)) {
+				if (RSAPromiseFactory.isPromise(parameterType)) {
 					ap = promiseArgHandler;
 				} else if (CompletableFuture.class.equals(parameterType) || CompletionStage.class.equals(parameterType)
 					|| java.util.concurrent.Future.class.equals(parameterType)) {
@@ -327,10 +328,11 @@ public class ServiceInvoker {
 			try {
 				AbstractRSAMessage<ServerMessageType> message;
 				if (e != null) {
-					String error = String.valueOf(e.getMessage());
-					error = error.length() > 256 ? new StringBuilder(260).append(error, 0, 256)
-						.append("...")
-						.toString() : error;
+					String error = e.getMessage();
+					if (error == null)
+						error = e.getClass()
+							.getSimpleName();
+					error = Utils.limit(error, 256);
 					message = new ServerErrorMessageResponse(type, serviceId, callId, error);
 				} else {
 					message = new ServerErrorResponse(type, serviceId, callId);

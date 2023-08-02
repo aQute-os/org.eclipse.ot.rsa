@@ -24,7 +24,7 @@ import javax.net.ssl.SSLEngine;
 import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.config.ProtocolScheme;
 import org.eclipse.ot.rsa.distribution.provider.tcp.VersionCheckingLengthFieldBasedFrameDecoder;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +49,10 @@ public class ServerConnectionManager {
 
 	private final ByteBufAllocator				allocator;
 
-	private final ParemusNettyTLS				tls;
+	private final NettyTLS						tls;
 	private final List<RemotingProviderImpl>	configuredTransports;
 
-	public ServerConnectionManager(TransportConfig config, ParemusNettyTLS tls, ByteBufAllocator allocator,
+	public ServerConnectionManager(TransportConfig config, NettyTLS tls, ByteBufAllocator allocator,
 		EventLoopGroup serverIo, Timer timer) {
 		this.tls = tls;
 		this.allocator = allocator;

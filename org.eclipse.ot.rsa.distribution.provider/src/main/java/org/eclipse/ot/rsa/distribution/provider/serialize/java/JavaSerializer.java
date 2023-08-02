@@ -26,10 +26,35 @@ import io.netty.buffer.ByteBufOutputStream;
 
 public class JavaSerializer implements Serializer {
 
-	private final Bundle classSpace;
+	interface LoadClass {
+		Class<?> loadClass(String name) throws ClassNotFoundException;
+	}
 
-	public JavaSerializer(Bundle classSpace) {
+	private final LoadClass classSpace;
+
+	public JavaSerializer(LoadClass classSpace) {
 		this.classSpace = classSpace;
+	}
+
+	public JavaSerializer(Bundle bundle) {
+		this(bundle::loadClass);
+	}
+
+	public JavaSerializer(ClassLoader loader) {
+		this(loader::loadClass);
+	}
+
+	public JavaSerializer(Class<?> loader) {
+		this(loader.getClassLoader()::loadClass);
+	}
+
+	public JavaSerializer(Object object) {
+		this(object.getClass()
+			.getClassLoader()::loadClass);
+	}
+
+	public JavaSerializer() {
+		this(JavaSerializer.class.getClassLoader()::loadClass);
 	}
 
 	@Override
@@ -58,11 +83,20 @@ public class JavaSerializer implements Serializer {
 		try (ObjectInputStream ois = new ObjectInputStream(new ByteBufInputStream(buffer)) {
 			@Override
 			protected Class<?> resolveClass(ObjectStreamClass arg0) throws IOException, ClassNotFoundException {
-				return classSpace.loadClass(arg0.getName());
+
+				try {
+					return classSpace.loadClass(arg0.getName());
+				} catch (ClassNotFoundException e) {
+					return super.resolveClass(arg0);
+				}
 			}
 		}) {
 			return ois.readObject();
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "java";
+	}
 }

@@ -1,5 +1,6 @@
 package org.eclipse.ot.rsa.distribution.util;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.invoke.MethodHandle;
@@ -9,10 +10,14 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * Solves the problem of living in multiple class spaces. In the beginning the
@@ -27,6 +32,7 @@ import java.util.function.Function;
  */
 
 public class ClassSpace {
+
 	final static Lookup lookup = MethodHandles.lookup();
 
 	/**
@@ -71,6 +77,14 @@ public class ClassSpace {
 
 	public ClassSpace(Class<?> class1) {
 		this(class1.getClassLoader());
+	}
+
+	public ClassSpace(String... paths) {
+		this(new URLClassLoader(toURLs(paths)));
+	}
+
+	public ClassSpace(ClassLoader parent, String... paths) {
+		this(new URLClassLoader(toURLs(paths), parent));
 	}
 
 	/**
@@ -252,4 +266,28 @@ public class ClassSpace {
 			return clazz;
 		}
 	}
+
+	private static URL[] toURLs(String[] paths) {
+		return Stream.of(paths)
+			.map(p -> {
+				try {
+					File f = Utils.getFile(p);
+					if (!f.exists()) {
+						throw new IllegalArgumentException("A file on the class loader path does not exist " + f);
+					}
+					return f.toURI()
+						.toURL();
+
+				} catch (Exception e) {
+					throw Utils.duck(e);
+				}
+			})
+			.filter(Objects::nonNull)
+			.toArray(URL[]::new);
+	}
+
+	public Class<?> loadClass(String name) throws ClassNotFoundException {
+		return classLoader.loadClass(name);
+	}
+
 }

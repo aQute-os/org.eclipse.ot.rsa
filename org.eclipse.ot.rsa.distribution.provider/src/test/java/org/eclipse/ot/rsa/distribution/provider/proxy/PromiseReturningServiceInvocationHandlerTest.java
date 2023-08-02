@@ -198,10 +198,11 @@ public class PromiseReturningServiceInvocationHandlerTest {
 
 		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
 
-		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
-				.toString(), new Object[] {
-					7L, 42L
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE,
+			TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
+				.toString(),
+			new Object[] {
+				7L, 42L
 			})), any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
 					.getResult()
@@ -246,10 +247,11 @@ public class PromiseReturningServiceInvocationHandlerTest {
 
 		TestReturnsAsyncTypes proxy = (TestReturnsAsyncTypes) createProxy(_proxyClass, sih);
 
-		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("countGrainsOfSand", String.class)
-				.toString(), new Object[] {
-					"Foo"
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE,
+			TestReturnsAsyncTypes.class.getMethod("countGrainsOfSand", String.class)
+				.toString(),
+			new Object[] {
+				"Foo"
 			})), any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
 					.getResult()
@@ -270,10 +272,11 @@ public class PromiseReturningServiceInvocationHandlerTest {
 
 		Object proxy = createProxy(_proxyClassWithDifferentPromise, sih);
 
-		when(_ch.writeAndFlush(argThat(
-			isInvocationWith(CALL_WITH_RETURN_TYPE, TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
-				.toString(), new Object[] {
-					14L, 15L
+		when(_ch.writeAndFlush(argThat(isInvocationWith(CALL_WITH_RETURN_TYPE,
+			TestReturnsAsyncTypes.class.getMethod("coprime", long.class, long.class)
+				.toString(),
+			new Object[] {
+				14L, 15L
 			})), any())).then(i -> {
 				i.<ClientInvocation> getArgument(0)
 					.getResult()

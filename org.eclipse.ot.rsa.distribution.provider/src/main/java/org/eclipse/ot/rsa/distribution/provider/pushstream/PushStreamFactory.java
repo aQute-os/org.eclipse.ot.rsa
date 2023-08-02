@@ -36,7 +36,7 @@ import java.util.function.ToLongFunction;
 
 import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage;
 import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage.CacheKey;
-import org.eclipse.ot.rsa.distribution.provider.promise.PromiseFactory;
+import org.eclipse.ot.rsa.distribution.provider.promise.RSAPromiseFactory;
 import org.osgi.framework.ServiceException;
 
 import io.netty.util.Timer;
@@ -226,7 +226,7 @@ public class PushStreamFactory {
 					}
 
 					return defineClass(name, baos.toByteArray(), 0, baos.size(),
-						PromiseFactory.class.getProtectionDomain());
+						RSAPromiseFactory.class.getProtectionDomain());
 				} catch (IOException ioe) {
 					// TODO log this
 					throw new ClassNotFoundException(name, ioe);

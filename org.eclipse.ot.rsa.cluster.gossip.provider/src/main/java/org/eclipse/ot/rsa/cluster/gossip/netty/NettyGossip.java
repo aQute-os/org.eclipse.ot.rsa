@@ -47,7 +47,7 @@ import org.eclipse.ot.rsa.cluster.manager.provider.MemberInfo;
 import org.eclipse.ot.rsa.cluster.manager.provider.Update;
 import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.eclipse.ot.rsa.logger.util.HLogger;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.annotation.bundle.Capability;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
@@ -80,7 +80,7 @@ public class NettyGossip implements ClusterInformation {
 
 	@Activate
 	public NettyGossip(ClusterGossipConfig config, BundleContext context, @Reference(name = "ssl")
-	ParemusNettyTLS tls) throws Exception {
+	NettyTLS tls) throws Exception {
 
 		this.host = config.bind_address();
 		this.cluster = config.cluster_name();

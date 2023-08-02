@@ -33,8 +33,8 @@ public class AsyncArgumentCompletion extends AbstractPayloadMessage<ClientMessag
 	private final ClientInvocation	invocation;
 
 	public AsyncArgumentCompletion(boolean success, ClientInvocation invocation, int i, Object result) {
-		super(success ? ASYNC_METHOD_PARAM_DATA_TYPE : ASYNC_METHOD_PARAM_FAILURE_TYPE, invocation.getServiceId(), invocation.getCallId(),
-			invocation.getSerializer());
+		super(success ? ASYNC_METHOD_PARAM_DATA_TYPE : ASYNC_METHOD_PARAM_FAILURE_TYPE, invocation.getServiceId(),
+			invocation.getCallId(), invocation.getSerializer());
 
 		this.invocation = invocation;
 

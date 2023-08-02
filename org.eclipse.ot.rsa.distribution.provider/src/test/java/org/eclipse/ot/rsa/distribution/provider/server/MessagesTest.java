@@ -16,13 +16,20 @@ import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.
 import static org.eclipse.ot.rsa.distribution.provider.server.ServerMessageType.FAILURE_UNKNOWN_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import org.eclipse.ot.rsa.distribution.provider.message.AbstractRSAMessage;
+import org.eclipse.ot.rsa.distribution.provider.serialize.java.JavaSerializer;
+import org.eclipse.ot.rsa.distribution.provider.wireformat.Client;
+import org.eclipse.ot.rsa.distribution.provider.wireformat.Msg;
+import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V1;
 import org.eclipse.ot.rsa.distribution.provider.wireformat.Protocol_V2;
+import org.eclipse.ot.rsa.distribution.provider.wireformat.Server;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -48,29 +55,28 @@ public class MessagesTest {
 	@Mock
 	ChannelPromise				promise;
 
+	final Client				client			= Mockito.mock(Client.class);
+	final Server				server			= Mockito.mock(Server.class);
+
 	@Test
 	public void testServerError() throws IOException {
 		ServerErrorResponse ser = new ServerErrorResponse(FAILURE_NO_SERVICE_TYPE, serviceId, callId);
+		test(ser, client, () -> verify(client).failureNoService(serviceId, callId));
+	}
 
+	private void test(AbstractRSAMessage<?> ser, Client client2, Runnable r) throws IOException {
 		ByteBuf buffer = Unpooled.buffer();
-
 		ser.write(buffer, promise);
 
-		Mockito.verifyNoInteractions(promise);
-
-		assertEquals(Protocol_V1.VERSION, buffer.readByte());
-		int length = buffer.readUnsignedMedium();
-		assertEquals(buffer.readableBytes(), length);
-		assertEquals(Protocol_V1.FAILURE_NO_SERVICE, buffer.readByte());
-		assertEquals(serviceId.getMostSignificantBits(), buffer.readLong());
-		assertEquals(serviceId.getLeastSignificantBits(), buffer.readLong());
-		assertEquals(callId, buffer.readInt());
-		assertFalse(buffer.isReadable());
+		Protocol p = new Protocol(new JavaSerializer(), m -> {});
+		Msg msg = new Msg(p, buffer);
+		p.dispatch(msg, client2);
 	}
 
 	@Test
 	public void testServerErrorWithMessage() throws IOException {
-		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, serviceId, callId, TEST_MESSAGE);
+		ServerErrorMessageResponse ser = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, serviceId, callId,
+			TEST_MESSAGE);
 
 		ByteBuf buffer = Unpooled.buffer();
 

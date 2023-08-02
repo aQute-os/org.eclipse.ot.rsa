@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 
 public interface Protocol_V1 {
 
-
 	byte	VERSION							= 1;
 
 	/**
@@ -35,16 +34,11 @@ public interface Protocol_V1 {
 	 * client to indicate a method call with an expectation of a return value
 	 */
 	byte	CALL_WITH_RETURN				= 1;
-
-	Msg callWithReturn(int methodIndex, Object... args);
-
 	/**
 	 * Format: | Header | method index short | serialized args | Usage - sent by
 	 * client to indicate a method call with no expectation of a return value
 	 */
 	byte	CALL_WITHOUT_RETURN				= 2;
-
-	Msg callWithoutReturn(int methodIndex, Object... args);
 
 	/**
 	 * Format: | Header | interrupt boolean | Usage - sent by client to cancel a
@@ -53,8 +47,6 @@ public interface Protocol_V1 {
 	 */
 	byte	CANCEL							= 3;
 
-	Msg cancel(boolean interrupt);
-
 	/**
 	 * Format: | Header | serialized response | Usage - sent by server to
 	 * indicate a successful return value. Multiple responses for the same
@@ -62,15 +54,11 @@ public interface Protocol_V1 {
 	 */
 	byte	SUCCESS_RESPONSE				= 4;
 
-	Msg successResponse(int callId, Object result);
-
 	/**
 	 * Format: | Header | serialized failure | Usage - sent by server to
 	 * indicate a failure including the exception
 	 */
 	byte	FAILURE_RESPONSE				= 5;
-
-	Msg failureResponse(int callId, Throwable result);
 
 	/**
 	 * Format: | Header | Usage - sent by server to indicate no service existed
@@ -78,39 +66,27 @@ public interface Protocol_V1 {
 	 */
 	byte	FAILURE_NO_SERVICE				= 6;
 
-	Msg failureNoService(int callid);
-
 	/**
 	 * Format: | Header | Usage - sent by server to indicate no method with the
 	 * supplied id existed on the identified service
 	 */
 	byte	FAILURE_NO_METHOD				= 7;
 
-	Msg failureNoMethod(int callId);
-
 	/**
 	 * Format: | Header | String message | Usage - sent by server to indicate
 	 * that a deserialization error occurred when processing the arguments
 	 */
 	byte	FAILURE_TO_DESERIALIZE			= 8;
-
-	Msg failureToDeserialize(int callId, String message);
-
 	/**
 	 * Format: | Header | Message Usage - sent by server to indicate that the
 	 * success response could not be serialized
 	 */
 	byte	FAILURE_TO_SERIALIZE_SUCCESS	= 9;
-
-	Msg failureToSeserializeSuccess(int callId, String message);
-
 	/**
 	 * Format: | Header | Message Usage - sent by server to indicate that the
 	 * failure response could not be serialized
 	 */
 	byte	FAILURE_TO_SERIALIZE_FAILURE	= 10;
-
-	Msg failureToSeserializeFailure(int callId, String message);
 
 	/**
 	 * Format: | Header | String message | Usage - sent by server to indicate
@@ -118,15 +94,11 @@ public interface Protocol_V1 {
 	 */
 	byte	FAILURE_SERVER_OVERLOADED		= 11;
 
-	Msg failureServerOverloaded(int callId, String message);
-
 	/**
 	 * Format: | Header | String message Usage - sent by server to indicate an
 	 * unknown failure occurred
 	 */
 	byte	FAILURE_UNKNOWN					= 12;
-
-	Msg failureUnknown(int callId, String message);
 
 	/**
 	 * Converts a java.lang.reflect.Method into a canonicalised String

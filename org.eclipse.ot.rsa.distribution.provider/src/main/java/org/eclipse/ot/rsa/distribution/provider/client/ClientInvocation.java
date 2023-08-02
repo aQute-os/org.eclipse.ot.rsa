@@ -88,14 +88,6 @@ public class ClientInvocation extends AbstractClientInvocationWithResult {
 		return args;
 	}
 
-	public final int[] getPromiseArgs() {
-		return promiseArgs;
-	}
-
-	public final int[] getCompletionStageArgs() {
-		return completableFutureArgs;
-	}
-
 	public final Function<Object, Future<Object>> getToNettyPromiseAdapter() {
 		return toNettyPromiseAdapter;
 	}

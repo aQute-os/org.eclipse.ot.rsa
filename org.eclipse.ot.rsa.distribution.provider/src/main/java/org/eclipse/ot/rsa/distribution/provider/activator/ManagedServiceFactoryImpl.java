@@ -34,7 +34,7 @@ import org.eclipse.ot.rsa.constants.RSAConstants;
 import org.eclipse.ot.rsa.distribution.config.TransportConfig;
 import org.eclipse.ot.rsa.distribution.provider.impl.RemoteServiceAdminFactoryImpl;
 import org.eclipse.ot.rsa.multrsa.api.MultiFrameworkRemoteServiceAdmin;
-import org.eclipse.ot.rsa.tls.netty.provider.tls.ParemusNettyTLS;
+import org.eclipse.ot.rsa.tls.netty.provider.tls.NettyTLS;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -56,31 +56,31 @@ import io.netty.util.concurrent.EventExecutorGroup;
 
 public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
-	private static final Logger																				logger			= LoggerFactory
+	private static final Logger																			logger			= LoggerFactory
 		.getLogger(ManagedServiceFactoryImpl.class);
 
-	private final BundleContext																				context;
+	private final BundleContext																			context;
 
-	private final Timer																						timer;
+	private final Timer																					timer;
 
-	private final EventLoopGroup																			serverIo;
+	private final EventLoopGroup																		serverIo;
 
-	private final EventLoopGroup																			clientIo;
+	private final EventLoopGroup																		clientIo;
 
-	private final EventExecutorGroup																		serverWorkers;
+	private final EventExecutorGroup																	serverWorkers;
 
-	private final EventExecutorGroup																		clientWorkers;
+	private final EventExecutorGroup																	clientWorkers;
 
-	private final ByteBufAllocator																			allocator;
+	private final ByteBufAllocator																		allocator;
 
-	private final ConcurrentHashMap<String, ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>>				trackers		= new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, ServiceTracker<NettyTLS, NettyTLS>>							trackers		= new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<String, RemoteServiceAdminFactoryImpl>									rsas			= new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<RemoteServiceAdminFactoryImpl, ServiceRegistration<?>>					registrations	= new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, RemoteServiceAdminFactoryImpl>								rsas			= new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<RemoteServiceAdminFactoryImpl, ServiceRegistration<?>>				registrations	= new ConcurrentHashMap<>();
 
-	private final ConcurrentHashMap<ServiceReference<ParemusNettyTLS>, List<RemoteServiceAdminFactoryImpl>>	usedBy			= new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<ServiceReference<NettyTLS>, List<RemoteServiceAdminFactoryImpl>>	usedBy			= new ConcurrentHashMap<>();
 
-	private volatile boolean																				open			= true;
+	private volatile boolean																			open			= true;
 
 	public ManagedServiceFactoryImpl(BundleContext context, Timer timer, EventLoopGroup serverIo,
 		EventLoopGroup clientIo, EventExecutorGroup serverWorkers, EventExecutorGroup clientWorkers,
@@ -125,7 +125,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 
 		String filter = config.encoding_scheme_target();
 
-		Predicate<ServiceReference<ParemusNettyTLS>> selector;
+		Predicate<ServiceReference<NettyTLS>> selector;
 		if (filter.isEmpty()) {
 			selector = r -> true;
 		} else {
@@ -140,11 +140,11 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			selector = r -> f.match(r);
 		}
 
-		ServiceTracker<ParemusNettyTLS, ParemusNettyTLS> tracker = new ServiceTracker<ParemusNettyTLS, ParemusNettyTLS>(
-			context, ParemusNettyTLS.class, null) {
+		ServiceTracker<NettyTLS, NettyTLS> tracker = new ServiceTracker<NettyTLS, NettyTLS>(context, NettyTLS.class,
+			null) {
 			@Override
-			public ParemusNettyTLS addingService(ServiceReference<ParemusNettyTLS> reference) {
-				ParemusNettyTLS esf = super.addingService(reference);
+			public NettyTLS addingService(ServiceReference<NettyTLS> reference) {
+				NettyTLS esf = super.addingService(reference);
 
 				if (esf != null && selector.test(reference) && !rsas.containsKey(pid)) {
 					setup(reference, esf, config);
@@ -153,8 +153,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 				return esf;
 			}
 
-			private boolean setup(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS esf,
-				TransportConfig cfg) {
+			private boolean setup(ServiceReference<NettyTLS> reference, NettyTLS esf, TransportConfig cfg) {
 				RemoteServiceAdminFactoryImpl newRSA;
 				try {
 					newRSA = new RemoteServiceAdminFactoryImpl(context, config, esf, allocator, serverIo, clientIo,
@@ -192,13 +191,13 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			}
 
 			@Override
-			public void modifiedService(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS service) {
+			public void modifiedService(ServiceReference<NettyTLS> reference, NettyTLS service) {
 				if (!selector.test(reference)) {
 					removeAndAdd(reference);
 				}
 			}
 
-			private void removeAndAdd(ServiceReference<ParemusNettyTLS> reference) {
+			private void removeAndAdd(ServiceReference<NettyTLS> reference) {
 				RemoteServiceAdminFactoryImpl rsa = rsas.get(pid);
 				if (rsa != null) {
 					if (usedBy.getOrDefault(reference, emptyList())
@@ -233,7 +232,7 @@ public class ManagedServiceFactoryImpl implements ManagedServiceFactory {
 			}
 
 			@Override
-			public void removedService(ServiceReference<ParemusNettyTLS> reference, ParemusNettyTLS service) {
+			public void removedService(ServiceReference<NettyTLS> reference, NettyTLS service) {
 				removeAndAdd(reference);
 				super.removedService(reference, service);
 			}

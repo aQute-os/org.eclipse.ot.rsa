@@ -66,8 +66,8 @@ public class ServerResponseSerializer extends ChannelOutboundHandlerAdapter {
 					response.getCallId(), e.getMessage());
 				break;
 			default :
-				toReturn = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, response.getServiceId(), response.getCallId(),
-					e.getMessage());
+				toReturn = new ServerErrorMessageResponse(FAILURE_UNKNOWN_TYPE, response.getServiceId(),
+					response.getCallId(), e.getMessage());
 		}
 		return toReturn;
 	}

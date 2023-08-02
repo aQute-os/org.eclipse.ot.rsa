@@ -36,5 +36,4 @@ class ClassSpaceTest {
 		assertThat(sp.substring(0)).isInstanceOf(StringProxy.class);
 	}
 
-
 }
