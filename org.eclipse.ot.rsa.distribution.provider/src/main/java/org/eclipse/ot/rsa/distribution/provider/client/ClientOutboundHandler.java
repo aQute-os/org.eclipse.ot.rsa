@@ -21,13 +21,13 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 
-public class ClientRequestSerializer extends ChannelOutboundHandlerAdapter {
+public class ClientOutboundHandler extends ChannelOutboundHandlerAdapter {
 
-	private static final Logger			LOG	= LoggerFactory.getLogger(ClientRequestSerializer.class);
+	private static final Logger			LOG	= LoggerFactory.getLogger(ClientOutboundHandler.class);
 
-	private final ClientResponseHandler	responseHandler;
+	private final ClientInboundHandler	responseHandler;
 
-	public ClientRequestSerializer(ClientResponseHandler responseHandler) {
+	public ClientOutboundHandler(ClientInboundHandler responseHandler) {
 		this.responseHandler = responseHandler;
 	}
 

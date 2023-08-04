@@ -214,7 +214,9 @@ public class ServiceInvocationHandlerTest {
 				return null;
 			});
 
-		assertEquals(30, proxy.length());
+		int length = proxy.length();
+		assertEquals(30, length);
+
 	}
 
 	@Test

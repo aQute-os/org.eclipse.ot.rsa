@@ -98,7 +98,7 @@ public class Activator implements BundleActivator {
 		}
 
 		timer = new HashedWheelTimer(r -> {
-			Thread thread = new FastThreadLocalThread(r, "Paremus RSA Timeout worker");
+			Thread thread = new FastThreadLocalThread(r, "RSA Timeout worker");
 			thread.setDaemon(true);
 			return thread;
 		}, 100, MILLISECONDS, 16384);
@@ -248,7 +248,7 @@ public class Activator implements BundleActivator {
 				AtomicInteger ioThreadId = new AtomicInteger(1);
 
 				clientWorkers = new RSAExecutorGroup(cfg.client_io_threads(), r -> {
-					String name = "Paremus RSA Client Worker " + ioThreadId.getAndIncrement();
+					String name = "RSA Client Worker " + ioThreadId.getAndIncrement();
 					Thread thread = new FastThreadLocalThread(r, name);
 					thread.setDaemon(true);
 					return thread;

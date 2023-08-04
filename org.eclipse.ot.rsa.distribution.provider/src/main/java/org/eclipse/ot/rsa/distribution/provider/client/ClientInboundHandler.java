@@ -43,17 +43,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 
-public class ClientResponseHandler extends ChannelInboundHandlerAdapter {
+public class ClientInboundHandler extends ChannelInboundHandlerAdapter {
 
 	private static final Logger													LOG				= LoggerFactory
-		.getLogger(ClientResponseHandler.class);
+		.getLogger(ClientInboundHandler.class);
 
 	private final ConcurrentMap<CacheKey, AbstractClientInvocationWithResult>	pendingCalls	= new ConcurrentHashMap<>();
 
 	private final ClientConnectionManager										ccm;
 	private final Timer															timer;
 
-	public ClientResponseHandler(ClientConnectionManager ccm, Timer timer) {
+	public ClientInboundHandler(ClientConnectionManager ccm, Timer timer) {
 		this.ccm = ccm;
 		this.timer = timer;
 	}

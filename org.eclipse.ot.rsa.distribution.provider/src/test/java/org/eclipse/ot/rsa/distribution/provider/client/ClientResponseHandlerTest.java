@@ -72,7 +72,7 @@ public class ClientResponseHandlerTest {
 
 	UUID						serviceId	= UUID.randomUUID();
 
-	ClientResponseHandler		impl;
+	ClientInboundHandler		impl;
 
 	EventExecutor				executor;
 
@@ -88,7 +88,7 @@ public class ClientResponseHandlerTest {
 		nettyPromiseSupplier = () -> executor.next()
 			.newPromise();
 
-		impl = new ClientResponseHandler(ccm, timer);
+		impl = new ClientInboundHandler(ccm, timer);
 	}
 
 	@AfterEach

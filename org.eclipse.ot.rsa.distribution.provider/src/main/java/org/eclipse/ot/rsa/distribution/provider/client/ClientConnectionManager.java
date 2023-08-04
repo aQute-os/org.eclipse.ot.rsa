@@ -275,11 +275,11 @@ public class ClientConnectionManager {
 		ChannelFuture future = null;
 		try {
 			future = f.apply(ch -> {
-				ClientResponseHandler clientResponseHandler = new ClientResponseHandler(this, timer);
+				ClientInboundHandler clientResponseHandler = new ClientInboundHandler(this, timer);
 				ch.pipeline()
 					.addLast(ImmediateEventExecutor.INSTANCE, clientResponseHandler);
 				ch.pipeline()
-					.addLast(ImmediateEventExecutor.INSTANCE, new ClientRequestSerializer(clientResponseHandler));
+					.addLast(ImmediateEventExecutor.INSTANCE, new ClientOutboundHandler(clientResponseHandler));
 			}, remoteAddress);
 			future.await();
 
