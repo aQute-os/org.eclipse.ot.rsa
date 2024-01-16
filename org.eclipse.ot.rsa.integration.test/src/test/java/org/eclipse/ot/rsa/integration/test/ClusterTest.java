@@ -50,7 +50,7 @@ public class ClusterTest {
 				try (Launchpad c = builder.create("c")) {
 
 					System.out.println("configure the 3 frameworks, do not fully connect the peers");
-					configure(a, 1900, true, "127.0.0.1:1910", "127.0.0.1:1920", "127.0.0.1:1930", "127.0.0.1:1940");
+					configure(a, 1901, true, "127.0.0.1:1910", "127.0.0.1:1920", "127.0.0.1:1930", "127.0.0.1:1940");
 					configure(b, 1910, true);
 					configure(c, 1920, true);
 
@@ -83,8 +83,8 @@ public class ClusterTest {
 				try (Launchpad c = builder.create("c")) {
 
 					System.out.println("configure the 3 frameworks, do not fully connect the peers");
-					configure(a, 1900, true);
-					configure(b, 1910, true, "127.0.0.1:1900");
+					configure(a, 1901, true);
+					configure(b, 1910, true, "127.0.0.1:1901");
 					configure(c, 1920, true, "127.0.0.1:1910", "127.0.0.1:1930");
 
 					System.out.println("synchronize until all frameworks see their 3 peers");
@@ -156,7 +156,7 @@ public class ClusterTest {
 					System.out.println("Start a framework cc");
 					try (Launchpad cc = builder.create("cc")) {
 						System.out.println("Configure cc");
-						configure(cc, 1940, true, "127.0.0.1:1900");
+						configure(cc, 1940, true, "127.0.0.1:1901");
 						System.out.println("wait until it has its peers");
 						waitForClusterInformation(cc, 3);
 						ClusterInformation ccci = cc.getService(ClusterInformation.class)
@@ -218,7 +218,7 @@ public class ClusterTest {
 		}
 	}
 
-	static interface Node {
+	interface Node {
 		void send(int launchpad);
 	}
 
@@ -234,9 +234,9 @@ public class ClusterTest {
 			for (int i = 0; i < launchpads.length; i++) {
 				Launchpad lp = launchpads[i];
 				if (i == 0) {
-					configure(lp, 1900, true);
+					configure(lp, 1901, true);
 				} else {
-					configure(lp, 1900 + i, true, "127.0.0.1:1900");
+					configure(lp, 1901 + i, true, "127.0.0.1:1901");
 				}
 			}
 			for (Launchpad lp : launchpads) {
@@ -298,9 +298,9 @@ public class ClusterTest {
 		for (int i = 0; i < launchpads.length; i++) {
 			Launchpad lp = launchpads[i];
 			if (i == 0) {
-				configure(lp, 1900, true);
+				configure(lp, 1901, true);
 			} else {
-				configure(lp, 1900 + i, true, "127.0.0.1:1900");
+				configure(lp, 1901 + i, true, "127.0.0.1:1901");
 			}
 		}
 		for (Launchpad lp : launchpads) {
