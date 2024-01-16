@@ -8,6 +8,7 @@ import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -389,6 +390,22 @@ public class Utils {
 			out.append(")");
 			return null;
 		});
+	}
+
+	public static void close(AutoCloseable c) {
+		if (c == null)
+			return;
+		try {
+			c.close();
+		} catch (Exception e) {
+			// ignore
+		}
+	}
+
+	public static <K, V> Map<V, K> invert(Map<K, V> map) {
+		return map.entrySet()
+			.stream()
+			.collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 	}
 
 }

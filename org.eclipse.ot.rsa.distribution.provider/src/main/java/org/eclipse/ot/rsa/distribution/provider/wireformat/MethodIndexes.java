@@ -53,10 +53,11 @@ public class MethodIndexes {
 	/**
 	 * Converts a java.lang.reflect.Method into a canonicalised String
 	 *
-	 * @param m the method
-	 * @return A string identifier for the method
+	 * @param name the name of the method
+	 * @param parameters the parameter types
+	 * @return a signature string
 	 */
-	static String toSignature(String name, Class<?>... parameters) {
+	public static String toSignature(String name, Class... parameters) {
 		StringBuilder sb = new StringBuilder(name);
 		sb.append('[');
 		String del = "";
@@ -69,4 +70,13 @@ public class MethodIndexes {
 			.toString();
 	}
 
+	/**
+	 * Converts a java.lang.reflect.Method into a canonicalised String
+	 *
+	 * @param m the method
+	 * @return A string identifier for the method
+	 */
+	public static String toSignature(Method m) {
+		return toSignature(m.getName(), m.getParameterTypes());
+	}
 }
